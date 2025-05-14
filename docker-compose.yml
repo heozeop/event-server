@@ -1,0 +1,40 @@
+services:
+  gateway:
+    build: ./apps/gateway
+    networks:
+      - app-net
+    ports:
+      - "3000:3000"
+
+  auth:
+    build: ./apps/auth
+    networks:
+      - app-net
+
+  event:
+    build: ./apps/event
+    networks:
+      - app-net
+
+  mongo-user:
+    image: mongo:latest
+    container_name: mongo-user
+    volumes:
+      - user-data:/data/db
+    networks:
+      - app-net
+
+  mongo-event:
+    image: mongo:latest
+    container_name: mongo-event
+    volumes:
+      - event-data:/data/db
+    networks:
+      - app-net
+
+networks:
+  app-net:
+
+volumes:
+  user-data:
+  event-data:
