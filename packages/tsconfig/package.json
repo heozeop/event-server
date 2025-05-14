@@ -1,0 +1,23 @@
+{
+  "name": "tsconfig",
+  "version": "1.0.0",
+  "description": "Shared TypeScript configurations",
+  "files": [
+    "base",
+    "react.json",
+    "nestjs.json",
+    "library.json"
+  ],
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules"
+  },
+  "keywords": [
+    "typescript",
+    "config"
+  ],
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  }
+}
