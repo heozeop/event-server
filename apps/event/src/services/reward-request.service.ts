@@ -1,3 +1,4 @@
+import { EVENT_CMP } from '@libs/cmd';
 import {
   CreateRewardRequestDto,
   UpdateRewardRequestStatusDto,
@@ -12,6 +13,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { MessagePattern } from '@nestjs/microservices';
 import { RewardRequest } from '../entities/reward-request.entity';
 import { EventService } from './event.service';
 
@@ -26,6 +28,7 @@ export class RewardRequestService {
   /**
    * Create a new reward request
    */
+  @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_REQUEST })
   async createRewardRequest(
     userId: string,
     dto: CreateRewardRequestDto,
@@ -73,6 +76,7 @@ export class RewardRequestService {
   /**
    * Get a reward request by ID
    */
+  @MessagePattern({ cmd: EVENT_CMP.GET_REWARD_REQUEST_BY_ID })
   async getRewardRequestById(id: string): Promise<RewardRequest> {
     try {
       const rewardRequest = await this.rewardRequestRepository.findOne(
@@ -96,6 +100,7 @@ export class RewardRequestService {
   /**
    * Get reward requests with optional filtering
    */
+  @MessagePattern({ cmd: EVENT_CMP.GET_REWARD_REQUESTS })
   async getRewardRequests(
     options: {
       userId?: string;
@@ -136,6 +141,7 @@ export class RewardRequestService {
   /**
    * Update a reward request status
    */
+  @MessagePattern({ cmd: EVENT_CMP.UPDATE_REWARD_REQUEST_STATUS })
   async updateRewardRequestStatus(
     id: string,
     dto: UpdateRewardRequestStatusDto,

@@ -1,28 +1,20 @@
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.createMicroservice(AppModule, {
+    transport: Transport.TCP,
+    options: {
+      host: process.env.EVENT_SERVICE_HOST ?? '0.0.0.0',
+      port: process.env.EVENT_SERVICE_PORT ?? 3002,
+    },
+  });
 
-  // Set global prefix
-  app.setGlobalPrefix('api');
-
-  // Enable validation
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: true,
-    }),
+  await app.listen();
+  console.log(
+    `Event service is running on port ${process.env.EVENT_SERVICE_PORT ?? 3002}`,
   );
-
-  // Enable CORS
-  app.enableCors();
-
-  const port = process.env.PORT || 3002;
-  await app.listen(port);
-  console.log(`Event service is running on port ${port}`);
 }
 
 bootstrap();

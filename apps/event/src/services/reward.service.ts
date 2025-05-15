@@ -1,3 +1,4 @@
+import { EVENT_CMP } from '@libs/cmd';
 import {
   CreateBadgeRewardDto,
   CreateCouponRewardDto,
@@ -14,6 +15,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { MessagePattern } from '@nestjs/microservices';
 import { EventReward } from '../entities/event-reward.entity';
 import {
   BadgeReward,
@@ -44,6 +46,7 @@ export class RewardService {
   /**
    * Create a point reward
    */
+  @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_POINT })
   async createPointReward(dto: CreatePointRewardDto): Promise<PointReward> {
     const reward = new PointReward(dto.points);
     await this.pointRewardRepository.create(reward);
@@ -54,6 +57,7 @@ export class RewardService {
   /**
    * Create an item reward
    */
+  @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_ITEM })
   async createItemReward(dto: CreateItemRewardDto): Promise<ItemReward> {
     const reward = new ItemReward(dto.itemId, dto.quantity);
     await this.itemRewardRepository.create(reward);
@@ -64,6 +68,7 @@ export class RewardService {
   /**
    * Create a coupon reward
    */
+  @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_COUPON })
   async createCouponReward(dto: CreateCouponRewardDto): Promise<CouponReward> {
     const reward = new CouponReward(dto.couponCode, dto.expiry);
     await this.couponRewardRepository.create(reward);
@@ -74,6 +79,7 @@ export class RewardService {
   /**
    * Create a badge reward
    */
+  @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_BADGE })
   async createBadgeReward(dto: CreateBadgeRewardDto): Promise<BadgeReward> {
     const reward = new BadgeReward(dto.badgeId);
     await this.badgeRewardRepository.create(reward);
@@ -109,6 +115,7 @@ export class RewardService {
   /**
    * Get a reward by ID
    */
+  @MessagePattern({ cmd: EVENT_CMP.GET_REWARD_BY_ID })
   async getRewardById(id: string): Promise<RewardBase> {
     const reward = await this.em.findOne(RewardBase, {
       _id: new ObjectId(id),
@@ -122,6 +129,7 @@ export class RewardService {
   /**
    * Add a reward to an event
    */
+  @MessagePattern({ cmd: EVENT_CMP.ADD_REWARD_TO_EVENT })
   async addRewardToEvent(dto: CreateEventRewardDto): Promise<EventReward> {
     const event = await this.eventService.getEventById(dto.eventId);
     const reward = await this.getRewardById(dto.rewardId);
@@ -151,6 +159,7 @@ export class RewardService {
   /**
    * Get rewards for an event
    */
+  @MessagePattern({ cmd: EVENT_CMP.GET_REWARDS_BY_EVENT_ID })
   async getRewardsByEventId(eventId: string): Promise<RewardBase[]> {
     // First verify the event exists
     await this.eventService.getEventById(eventId);
@@ -166,6 +175,7 @@ export class RewardService {
   /**
    * Remove a reward from an event
    */
+  @MessagePattern({ cmd: EVENT_CMP.REMOVE_REWARD_FROM_EVENT })
   async removeRewardFromEvent(
     eventId: string,
     rewardId: string,

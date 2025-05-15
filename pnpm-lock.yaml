@@ -162,6 +162,9 @@ importers:
 
   apps/event:
     dependencies:
+      '@libs/cmd':
+        specifier: workspace:*
+        version: link:../../packages/cmd
       '@libs/dtos':
         specifier: workspace:*
         version: link:../../packages/dtos
@@ -171,9 +174,6 @@ importers:
       '@libs/filter':
         specifier: workspace:*
         version: link:../../packages/filter
-      '@libs/types':
-        specifier: workspace:*
-        version: link:../../packages/types
       '@mikro-orm/core':
         specifier: ^6.4.15
         version: 6.4.15
@@ -192,6 +192,9 @@ importers:
       '@nestjs/core':
         specifier: ^11.0.1
         version: 11.1.1(@nestjs/common@11.1.1)(@nestjs/microservices@11.1.1)(@nestjs/platform-express@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/microservices':
+        specifier: ^11.1.1
+        version: 11.1.1(@nestjs/common@11.1.1)(@nestjs/core@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/platform-express':
         specifier: ^11.0.1
         version: 11.1.1(@nestjs/common@11.1.1)(@nestjs/core@11.1.1)
@@ -217,6 +220,9 @@ importers:
       '@libs/test':
         specifier: workspace:*
         version: link:../../packages/test
+      '@libs/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@nestjs/cli':
         specifier: ^11.0.0
         version: 11.0.7(@swc/cli@0.6.0)(@swc/core@1.11.24)(@types/node@22.15.18)
