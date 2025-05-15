@@ -1,4 +1,5 @@
 import { Role } from "@libs/enums";
+import { UserEntity } from "@libs/types";
 import { Exclude, Expose } from "class-transformer";
 import { IsArray, IsDate, IsEnum, IsNotEmpty, IsString } from "class-validator";
 
@@ -28,4 +29,16 @@ export class UserResponseDto {
   @IsNotEmpty()
   @Expose()
   updatedAt!: Date;
+
+  static fromEntity(user: UserEntity): UserResponseDto {
+    const instance = new UserResponseDto();
+
+    instance.id = user._id.toString();
+    instance.email = user.email;
+    instance.roles = user.roles;
+    instance.createdAt = user.createdAt;
+    instance.updatedAt = user.updatedAt;
+
+    return instance;
+  }
 }

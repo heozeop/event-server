@@ -8,7 +8,7 @@ export interface UserEntity {
   /**
    * Unique identifier of the user
    */
-  id: ObjectId;
+  _id: ObjectId;
 
   /**
    * Email address of the user (unique)
