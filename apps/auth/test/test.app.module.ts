@@ -1,4 +1,5 @@
 import { HttpExceptionsModule } from '@libs/filter';
+import { MongoMemoryOrmModule } from '@libs/test';
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -7,7 +8,6 @@ import { UserController } from '../src/controllers/user.controller';
 import { User } from '../src/entities/user.entity';
 import { AuthService } from '../src/services/auth.service';
 import { UserService } from '../src/services/user.service';
-import { MongoMemoryOrmModule } from './mongo-memory-orm.module';
 
 @Module({})
 export class TestAppModule {

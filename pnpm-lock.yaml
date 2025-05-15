@@ -78,6 +78,9 @@ importers:
       '@eslint/js':
         specifier: ^9.18.0
         version: 9.26.0
+      '@libs/test':
+        specifier: workspace:*
+        version: link:../../packages/test
       '@libs/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -129,9 +132,6 @@ importers:
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.15.18)(ts-node@10.9.2)
-      mongodb-memory-server:
-        specifier: ^10.1.4
-        version: 10.1.4
       prettier:
         specifier: ^3.4.2
         version: 3.5.3
@@ -401,6 +401,31 @@ importers:
       '@nestjs/core':
         specifier: ^11.0.0
         version: 11.1.1(@nestjs/common@11.1.1)(@nestjs/platform-express@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+
+  packages/test:
+    dependencies:
+      '@mikro-orm/core':
+        specifier: ^6.4.15
+        version: 6.4.15
+      '@mikro-orm/mongodb':
+        specifier: ^6.4.15
+        version: 6.4.15(@mikro-orm/core@6.4.15)
+      '@mikro-orm/nestjs':
+        specifier: ^6.1.1
+        version: 6.1.1(@mikro-orm/core@6.4.15)(@nestjs/common@11.1.1)(@nestjs/core@11.1.1)
+      '@nestjs/common':
+        specifier: ^11.0.1
+        version: 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core':
+        specifier: ^11.0.1
+        version: 11.1.1(@nestjs/common@11.1.1)(@nestjs/platform-express@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+    devDependencies:
+      mongodb-memory-server:
+        specifier: ^10.1.4
+        version: 10.1.4
+      typescript:
+        specifier: ^5.7.3
+        version: 5.8.3
 
   packages/tsconfig: {}
 
@@ -3629,7 +3654,7 @@ packages:
     resolution: {integrity: sha512-LaKRbou8gt0RNID/9RoI+J2rvXsBRPMV7p+ElHlPhcSARbCPDYcYG2s1TIzAfWv4YSgyY5taidWzzs31lNV3yQ==}
     engines: {node: '>=12'}
     dependencies:
-      dotenv: 16.4.7
+      dotenv: 16.5.0
     dev: false
 
   /dotenv@16.4.7:

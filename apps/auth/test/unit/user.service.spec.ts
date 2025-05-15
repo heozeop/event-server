@@ -1,5 +1,6 @@
 import { CreateUserDto, UpdateRolesDto } from '@libs/dtos';
 import { Role } from '@libs/enums';
+import { MongoMemoryOrmModule } from '@libs/test';
 import { MikroORM, ObjectId } from '@mikro-orm/mongodb';
 import {
   INestApplication,
@@ -9,20 +10,7 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 import { User } from '../../src/entities/user.entity';
 import { UserService } from '../../src/services/user.service';
-import { MongoMemoryOrmModule } from '../mongo-memory-orm.module';
 import { TestAppModule } from '../test.app.module';
-
-// Mock bcrypt
-jest.mock('bcrypt', () => ({
-  hash: jest.fn().mockResolvedValue('hashedPassword'),
-  compare: jest.fn(),
-}));
-
-// Import bcrypt after mocking
-import * as bcrypt from 'bcrypt';
-
-// Increase timeout for slow tests
-jest.setTimeout(30000);
 
 describe('UserService', () => {
   let service: UserService;
@@ -86,7 +74,6 @@ describe('UserService', () => {
       expect(result).toBeDefined();
       expect(result.email).toBe(createUserDto.email);
       expect(result.roles).toContain(Role.USER);
-      expect(bcrypt.hash).toHaveBeenCalledWith(createUserDto.password, 10);
 
       // Verify user exists in database
       const userRepository = orm.em.getRepository(User);
@@ -208,7 +195,6 @@ describe('UserService', () => {
   describe('validateUser', () => {
     beforeEach(async () => {
       // Create a test user
-      (bcrypt.hash as jest.Mock).mockResolvedValueOnce('hashedTestPassword');
       await service.createUser({
         email: testEmail,
         password: testPassword,
@@ -216,16 +202,12 @@ describe('UserService', () => {
     });
 
     it('should validate user credentials successfully', async () => {
-      // Arrange
-      (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
-
       // Act
       const result = await service.validateUser(testEmail, testPassword);
 
       // Assert
       expect(result).toBeDefined();
       expect(result.email).toBe(testEmail);
-      expect(bcrypt.compare).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if user not found', async () => {
@@ -236,9 +218,6 @@ describe('UserService', () => {
     });
 
     it('should throw UnauthorizedException if password is invalid', async () => {
-      // Arrange
-      (bcrypt.compare as jest.Mock).mockResolvedValueOnce(false);
-
       // Act & Assert
       await expect(
         service.validateUser(testEmail, 'wrongpassword'),

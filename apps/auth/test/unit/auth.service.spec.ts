@@ -1,12 +1,12 @@
 import { LoginDto } from '@libs/dtos';
 import { Role } from '@libs/enums';
+import { MongoMemoryOrmModule } from '@libs/test';
 import { MikroORM, ObjectId } from '@mikro-orm/mongodb';
 import { INestApplication, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from '../../src/services/auth.service';
 import { UserService } from '../../src/services/user.service';
-import { MongoMemoryOrmModule } from '../mongo-memory-orm.module';
 import { TestAppModule } from '../test.app.module';
 
 describe('AuthService', () => {
