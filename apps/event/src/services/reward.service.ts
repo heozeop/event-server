@@ -6,10 +6,11 @@ import {
   CreateItemRewardDto,
   CreatePointRewardDto,
   QueryByIdDto,
+  QueryRewardDto,
   RemoveRewardDto,
 } from '@libs/dtos';
 import { RewardType } from '@libs/enums';
-import { EntityManager, EntityRepository } from '@mikro-orm/core';
+import { EntityManager, EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
@@ -50,7 +51,7 @@ export class RewardService {
    */
   @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_POINT })
   async createPointReward(dto: CreatePointRewardDto): Promise<PointReward> {
-    const reward = new PointReward(dto.points);
+    const reward = new PointReward(dto.name, dto.points);
     await this.pointRewardRepository.create(reward);
     await this.pointRewardRepository.getEntityManager().flush();
     return reward;
@@ -61,7 +62,7 @@ export class RewardService {
    */
   @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_ITEM })
   async createItemReward(dto: CreateItemRewardDto): Promise<ItemReward> {
-    const reward = new ItemReward(dto.itemId, dto.quantity);
+    const reward = new ItemReward(dto.name, dto.itemId, dto.quantity);
     await this.itemRewardRepository.create(reward);
     await this.itemRewardRepository.getEntityManager().flush();
     return reward;
@@ -72,7 +73,7 @@ export class RewardService {
    */
   @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_COUPON })
   async createCouponReward(dto: CreateCouponRewardDto): Promise<CouponReward> {
-    const reward = new CouponReward(dto.couponCode, dto.expiry);
+    const reward = new CouponReward(dto.name, dto.couponCode, dto.expiry);
     await this.couponRewardRepository.create(reward);
     await this.couponRewardRepository.getEntityManager().flush();
     return reward;
@@ -83,7 +84,7 @@ export class RewardService {
    */
   @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_BADGE })
   async createBadgeReward(dto: CreateBadgeRewardDto): Promise<BadgeReward> {
-    const reward = new BadgeReward(dto.badgeId);
+    const reward = new BadgeReward(dto.name, dto.badgeId);
     await this.badgeRewardRepository.create(reward);
     await this.badgeRewardRepository.getEntityManager().flush();
     return reward;
@@ -112,6 +113,34 @@ export class RewardService {
       default:
         throw new BadRequestException(`Invalid reward type: ${type}`);
     }
+  }
+
+  /**
+   * Get rewards with optional filtering
+   */
+  @MessagePattern({ cmd: EVENT_CMP.GET_REWARDS })
+  async getRewards({
+    type,
+    name,
+    limit = 10,
+    offset = 0,
+  }: QueryRewardDto): Promise<{ rewards: RewardBase[]; total: number }> {
+    const query: FilterQuery<RewardBase> = {};
+
+    if (type) {
+      query.type = type;
+    }
+
+    if (name) {
+      query.name = { $ilike: name };
+    }
+
+    const rewards = await this.em.find(RewardBase, query, {
+      limit,
+      offset,
+    });
+
+    return { rewards, total: rewards.length };
   }
 
   /**

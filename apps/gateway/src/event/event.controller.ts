@@ -5,6 +5,8 @@ import {
   CreateEventDto,
   CreateItemRewardDto,
   CreatePointRewardDto,
+  QueryEventDto,
+  QueryRewardRequestDto,
 } from '@libs/dtos';
 import { Role } from '@libs/enums';
 import {
@@ -40,79 +42,75 @@ export class EventController {
 
   @Get('events')
   @UseGuards(JwtAuthGuard)
-  async getEvents(@Query() query: any) {
+  async getEvents(@Query() query: QueryEventDto) {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_EVENTS }, query),
     );
   }
 
-  @Post('events/:eventId/rewards/coupon')
+  @Post('rewards/coupon')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OPERATOR, Role.ADMIN)
   async createReward(
-    @Param('eventId') eventId: string,
     @Body() createRewardDto: CreateCouponRewardDto,
   ) {
     return await lastValueFrom(
       this.eventClient.send(
         { cmd: EVENT_CMP.CREATE_REWARD_COUPON },
-        { eventId, ...createRewardDto },
+        createRewardDto,
       ),
     );
   }
 
-  @Post('events/:eventId/rewards/item')
+  @Post('rewards/item')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OPERATOR, Role.ADMIN)
   async createItemReward(
-    @Param('eventId') eventId: string,
     @Body() createRewardDto: CreateItemRewardDto,
   ) {
     return await lastValueFrom(
       this.eventClient.send(
         { cmd: EVENT_CMP.CREATE_REWARD_ITEM },
-        { eventId, ...createRewardDto },
+        createRewardDto,
       ),
     );
   }
 
-  @Post('events/:eventId/rewards/point')
+  @Post('rewards/point')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OPERATOR, Role.ADMIN)
   async createPointReward(
-    @Param('eventId') eventId: string,
     @Body() createRewardDto: CreatePointRewardDto,
   ) {
     return await lastValueFrom(
       this.eventClient.send(
         { cmd: EVENT_CMP.CREATE_REWARD_POINT },
-        { eventId, ...createRewardDto },
+        createRewardDto,
       ),
     );
   }
 
-  @Post('events/:eventId/rewards/badge')
+  @Post('rewards/badge')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OPERATOR, Role.ADMIN)
   async createBadgeReward(
-    @Param('eventId') eventId: string,
     @Body() createRewardDto: CreateBadgeRewardDto,
   ) {
     return await lastValueFrom(
       this.eventClient.send(
         { cmd: EVENT_CMP.CREATE_REWARD_BADGE },
-        { eventId, ...createRewardDto },
+        createRewardDto,
       ),
     );
   }
 
-  @Get('events/:eventId/rewards')
+  @Get('rewards')
   @UseGuards(JwtAuthGuard)
-  async getRewards(@Param('eventId') eventId: string) {
+  async getRewards(@Query() query: QueryRewardRequestDto) {
     return await lastValueFrom(
       this.eventClient.send(
-        { cmd: EVENT_CMP.GET_REWARDS_BY_EVENT_ID },
-        { eventId },
+        { cmd: EVENT_CMP.GET_REWARDS },
+        query,
       ),
     );
   }

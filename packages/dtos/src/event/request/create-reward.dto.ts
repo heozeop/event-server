@@ -1,4 +1,4 @@
-import { RewardType } from '@libs/enums';
+import { BadgeRewardEntity, CouponRewardEntity, ItemRewardEntity, PointRewardEntity } from '@libs/types';
 import { Type } from 'class-transformer';
 import {
   IsDate,
@@ -12,8 +12,10 @@ import {
 /**
  * DTO for creating point rewards
  */
-export class CreatePointRewardDto {
-  type = RewardType.POINT;
+export class CreatePointRewardDto implements Omit<PointRewardEntity, '_id' | 'type'> {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
 
   @IsNumber()
   @IsPositive()
@@ -23,7 +25,11 @@ export class CreatePointRewardDto {
 /**
  * DTO for creating item rewards
  */
-export class CreateItemRewardDto {
+export class CreateItemRewardDto implements Omit<ItemRewardEntity, '_id' | 'type'> {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
   @IsString()
   @IsNotEmpty()
   itemId!: string;
@@ -36,7 +42,11 @@ export class CreateItemRewardDto {
 /**
  * DTO for creating coupon rewards
  */
-export class CreateCouponRewardDto {
+export class CreateCouponRewardDto implements Omit<CouponRewardEntity, '_id' | 'type'> {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
   @IsString()
   @IsNotEmpty()
   couponCode!: string;
@@ -49,7 +59,11 @@ export class CreateCouponRewardDto {
 /**
  * DTO for creating badge rewards
  */
-export class CreateBadgeRewardDto {
+export class CreateBadgeRewardDto implements Omit<BadgeRewardEntity, '_id' | 'type'> {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
   @IsString()
   @IsNotEmpty()
   badgeId!: string;

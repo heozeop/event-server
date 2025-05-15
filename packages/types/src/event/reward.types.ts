@@ -7,6 +7,7 @@ import { ObjectId } from "@mikro-orm/mongodb";
 export interface RewardBaseEntity {
   _id: ObjectId;
   type: RewardType;
+  name: string;
 }
 
 /**

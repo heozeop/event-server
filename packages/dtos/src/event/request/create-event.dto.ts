@@ -1,4 +1,5 @@
 import { EventStatus } from '@libs/enums';
+import { EventEntity } from '@libs/types';
 import { Type } from 'class-transformer';
 import {
   IsDateString,
@@ -25,7 +26,7 @@ export class EventPeriodDto {
 /**
  * DTO for creating a new event
  */
-export class CreateEventDto {
+export class CreateEventDto implements Omit<EventEntity, '_id' | 'period'> {
   @IsString()
   @IsNotEmpty()
   name!: string;

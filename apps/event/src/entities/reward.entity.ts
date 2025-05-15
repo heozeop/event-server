@@ -28,6 +28,9 @@ export abstract class RewardBase implements RewardBaseEntity {
   type!: RewardType;
 
   @Property()
+  name!: string;
+
+  @Property()
   createdAt: Date = new Date();
 
   @Property({ onUpdate: () => new Date() })
@@ -41,8 +44,9 @@ export class PointReward extends RewardBase implements PointRewardEntity {
 
   override type: RewardType.POINT = RewardType.POINT;
 
-  constructor(points: number) {
+  constructor(name: string, points: number) {
     super();
+    this.name = name;
     this.type = RewardType.POINT;
     this.points = points;
   }
@@ -56,8 +60,9 @@ export class ItemReward extends RewardBase implements ItemRewardEntity {
   @Property()
   quantity!: number;
 
-  constructor(itemId: string, quantity: number) {
+  constructor(name: string, itemId: string, quantity: number) {
     super();
+    this.name = name;
     this.itemId = itemId;
     this.quantity = quantity;
   }
@@ -73,8 +78,9 @@ export class CouponReward extends RewardBase implements CouponRewardEntity {
   @Property()
   expiry!: Date;
 
-  constructor(couponCode: string, expiry: Date) {
+  constructor(name: string, couponCode: string, expiry: Date) {
     super();
+    this.name = name;
     this.couponCode = couponCode;
     this.expiry = expiry;
   }
@@ -87,8 +93,9 @@ export class BadgeReward extends RewardBase implements BadgeRewardEntity {
   @Property()
   badgeId!: string;
 
-  constructor(badgeId: string) {
+  constructor(name: string, badgeId: string) {
     super();
+    this.name = name;
     this.badgeId = badgeId;
   }
 
