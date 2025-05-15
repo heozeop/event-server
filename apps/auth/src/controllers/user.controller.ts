@@ -10,12 +10,16 @@ export class UserController {
   async createUser(
     @Body() createUserDto: CreateUserDto,
   ): Promise<UserResponseDto> {
-    return await this.userService.createUser(createUserDto);
+    const user = await this.userService.createUser(createUserDto);
+
+    return UserResponseDto.fromEntity(user);
   }
 
   @Get(':id')
   async getUser(@Param('id') id: string): Promise<UserResponseDto> {
-    return await this.userService.getUserById(id);
+    const user = await this.userService.getUserById(id);
+
+    return UserResponseDto.fromEntity(user);
   }
 
   @Put(':id/roles')
@@ -23,6 +27,8 @@ export class UserController {
     @Param('id') id: string,
     @Body() updateRolesDto: UpdateRolesDto,
   ): Promise<UserResponseDto> {
-    return await this.userService.updateRoles(id, updateRolesDto);
+    const user = await this.userService.updateRoles(id, updateRolesDto);
+
+    return UserResponseDto.fromEntity(user);
   }
 }

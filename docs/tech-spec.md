@@ -264,7 +264,7 @@ export class RewardRequest {
 
 ## 8. 테스트 전략
 
-* 단위 테스트: Jest로 서비스, 컨트롤러, 가드 검증
+* 단위 테스트: Jest로 서비스, 컨트롤러, mongodb-memory-server로 동작 검증
 * 통합 테스트: mongodb-memory-server + SuperTest
 * E2E 테스트: Docker Compose로 전체 스택 기동 후 SuperTest로 시나리오 실행
 

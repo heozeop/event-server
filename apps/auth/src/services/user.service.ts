@@ -1,7 +1,8 @@
 import { User } from '@/entities/user.entity';
-import { CreateUserDto, UpdateRolesDto, UserResponseDto } from '@libs/dtos';
+import { CreateUserDto, UpdateRolesDto } from '@libs/dtos';
 import { Role } from '@libs/enums';
 import { EntityRepository, ObjectId } from '@mikro-orm/mongodb';
+import { InjectRepository } from '@mikro-orm/nestjs';
 import {
   ConflictException,
   Injectable,
@@ -9,19 +10,21 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: EntityRepository<User>) {}
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: EntityRepository<User>,
+  ) {}
 
-  async createUser(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  async createUser(createUserDto: CreateUserDto): Promise<User> {
     const { email, password } = createUserDto;
 
     // Check if user exists
     const existingUser = await this.userRepository.findOne(
       { email },
-      { fields: ['id'] },
+      { fields: ['_id'] },
     );
     if (existingUser) {
       throw new ConflictException('User already exists');
@@ -42,47 +45,35 @@ export class UserService {
 
     await this.userRepository.getEntityManager().flush();
 
-    return plainToInstance(UserResponseDto, user, {
-      excludeExtraneousValues: true,
-    });
+    return user;
   }
 
-  async getUserById(id: string): Promise<UserResponseDto> {
+  async getUserById(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
-      id: new ObjectId(id),
+      _id: new ObjectId(id),
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    return plainToInstance(UserResponseDto, user, {
-      excludeExtraneousValues: true,
-    });
+    return user;
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
     return await this.userRepository.findOne({ email });
   }
 
-  async updateRoles(
-    id: string,
-    updateRolesDto: UpdateRolesDto,
-  ): Promise<UserResponseDto> {
+  async updateRoles(id: string, updateRolesDto: UpdateRolesDto): Promise<User> {
     const user = await this.getUserById(id);
     user.roles = updateRolesDto.roles;
 
     await this.userRepository.getEntityManager().flush();
 
-    return plainToInstance(UserResponseDto, user, {
-      excludeExtraneousValues: true,
-    });
+    return user;
   }
 
-  async validateUser(
-    email: string,
-    password: string,
-  ): Promise<UserResponseDto> {
+  async validateUser(email: string, password: string): Promise<User> {
     const user = await this.getUserByEmail(email);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -93,8 +84,6 @@ export class UserService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return plainToInstance(UserResponseDto, user, {
-      excludeExtraneousValues: true,
-    });
+    return user;
   }
 }

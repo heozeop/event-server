@@ -1,4 +1,5 @@
 import { HttpExceptionsModule } from '@libs/filter';
+import { MongoDriver } from '@mikro-orm/mongodb';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -20,7 +21,7 @@ import { UserService } from './services/user.service';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        type: 'mongo',
+        driver: MongoDriver,
         clientUrl: configService.get<string>(
           'MONGO_URI',
           'mongodb://mongo-user:27017/user-db',

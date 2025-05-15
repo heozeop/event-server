@@ -8,6 +8,8 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
-    return this.authService.login(loginDto);
+    const { accessToken, user } = await this.authService.login(loginDto);
+
+    return LoginResponseDto.fromEntity(accessToken, user);
   }
 }

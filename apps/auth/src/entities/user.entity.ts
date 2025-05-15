@@ -6,7 +6,7 @@ import { ObjectId } from '@mikro-orm/mongodb';
 @Entity()
 export class User implements UserEntity {
   @PrimaryKey()
-  id!: ObjectId;
+  _id!: ObjectId;
 
   @Property({ unique: true })
   email!: string;
