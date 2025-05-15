@@ -6,6 +6,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { plainToInstance } from 'class-transformer';
@@ -18,7 +19,10 @@ export class UserService {
     const { email, password } = createUserDto;
 
     // Check if user exists
-    const existingUser = await this.userRepository.findOne({ email });
+    const existingUser = await this.userRepository.findOne(
+      { email },
+      { fields: ['id'] },
+    );
     if (existingUser) {
       throw new ConflictException('User already exists');
     }
@@ -47,6 +51,7 @@ export class UserService {
     const user = await this.userRepository.findOne({
       id: new ObjectId(id),
     });
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -77,15 +82,15 @@ export class UserService {
   async validateUser(
     email: string,
     password: string,
-  ): Promise<UserResponseDto | null> {
+  ): Promise<UserResponseDto> {
     const user = await this.getUserByEmail(email);
     if (!user) {
-      return null;
+      throw new NotFoundException('User not found');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      return null;
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     return plainToInstance(UserResponseDto, user, {

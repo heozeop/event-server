@@ -1,5 +1,5 @@
 import { LoginDto, LoginResponseDto } from '@libs/dtos';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { plainToInstance } from 'class-transformer';
 import { UserService } from './user.service';
@@ -15,14 +15,10 @@ export class AuthService {
     const { email, password } = loginDto;
     const user = await this.userService.validateUser(email, password);
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
     const payload = {
       sub: user.id.toString(),
-      email: user.email,
       roles: user.roles,
+      iat: new Date().getTime(),
     };
 
     return plainToInstance(
