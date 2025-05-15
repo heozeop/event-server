@@ -145,7 +145,7 @@ volumes:
 @Entity()
 export class User {
   @PrimaryKey()
-  id: ObjectId;
+  _id: ObjectId;
 
   @Property()
   email: string;
@@ -167,7 +167,7 @@ export class User {
 @Entity()
 export class Event {
   @PrimaryKey()
-  id: ObjectId;
+  _id: ObjectId;
 
   @Property()
   name: string;
@@ -233,7 +233,7 @@ export class CouponReward extends RewardBase {
 @Unique({ properties: ['user', 'event']})
 export class RewardRequest {
   @PrimaryKey()        
-  id: ObjectId;
+  _id: ObjectId;
 
   @Property()
   userId: ObjectId;

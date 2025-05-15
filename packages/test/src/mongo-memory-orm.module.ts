@@ -7,8 +7,8 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
  * Test module that provides a MikroORM instance with mongodb-memory-server
  */
 export class MongoMemoryOrmModule {
-  private mongod: MongoMemoryServer;
-  private databaseName: string;
+  private mongod!: MongoMemoryServer;
+  private databaseName!: string;
 
   /**
    * Initialize the test database
