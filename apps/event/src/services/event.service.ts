@@ -1,6 +1,10 @@
 import { EVENT_CMP } from '@libs/cmd';
-import { CreateEventDto, UpdateEventDto } from '@libs/dtos';
-import { EventStatus } from '@libs/enums';
+import {
+  CreateEventDto,
+  QueryByIdDto,
+  QueryEventDto,
+  UpdateEventDto,
+} from '@libs/dtos';
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
@@ -42,7 +46,7 @@ export class EventService {
    * Get a single event by ID
    */
   @MessagePattern({ cmd: EVENT_CMP.GET_EVENT_BY_ID })
-  async getEventById(id: string): Promise<Event> {
+  async getEventById({ id }: QueryByIdDto): Promise<Event> {
     const event = await this.eventRepository.findOne({
       _id: new ObjectId(id),
     });
@@ -58,17 +62,13 @@ export class EventService {
    * Get events with optional filtering
    */
   @MessagePattern({ cmd: EVENT_CMP.GET_EVENTS })
-  async getEvents(
-    options: {
-      status?: EventStatus;
-      active?: boolean;
-      name?: string;
-      limit?: number;
-      offset?: number;
-    } = {},
-  ): Promise<{ events: Event[]; total: number }> {
-    const { status, active, name, limit = 10, offset = 0 } = options;
-
+  async getEvents({
+    status,
+    active,
+    name,
+    limit = 10,
+    offset = 0,
+  }: QueryEventDto): Promise<{ events: Event[]; total: number }> {
     const query: FilterQuery<Event> = {};
 
     if (status) {
@@ -106,7 +106,7 @@ export class EventService {
     period,
     status,
   }: UpdateEventDto): Promise<Event> {
-    const event = await this.getEventById(id);
+    const event = await this.getEventById({ id });
 
     if (name) {
       event.name = name;
@@ -135,8 +135,8 @@ export class EventService {
    * Delete an event
    */
   @MessagePattern({ cmd: EVENT_CMP.REMOVE_EVENT })
-  async deleteEvent(id: string): Promise<void> {
-    const event = await this.getEventById(id);
+  async deleteEvent({ id }: QueryByIdDto): Promise<void> {
+    const event = await this.getEventById({ id });
     await this.eventRepository.getEntityManager().removeAndFlush(event);
   }
 }

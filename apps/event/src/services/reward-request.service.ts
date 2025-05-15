@@ -1,6 +1,8 @@
 import { EVENT_CMP } from '@libs/cmd';
 import {
   CreateRewardRequestDto,
+  QueryByIdDto,
+  QueryRewardRequestDto,
   UpdateRewardRequestStatusDto,
 } from '@libs/dtos';
 import { RewardRequestStatus } from '@libs/enums';
@@ -34,7 +36,7 @@ export class RewardRequestService {
     eventId,
   }: CreateRewardRequestDto): Promise<RewardRequest> {
     // First verify the event exists
-    const event = await this.eventService.getEventById(eventId);
+    const event = await this.eventService.getEventById({ id: eventId });
 
     // Check event is active
     const now = new Date();
@@ -77,7 +79,7 @@ export class RewardRequestService {
    * Get a reward request by ID
    */
   @MessagePattern({ cmd: EVENT_CMP.GET_REWARD_REQUEST_BY_ID })
-  async getRewardRequestById(id: string): Promise<RewardRequest> {
+  async getRewardRequestById({ id }: QueryByIdDto): Promise<RewardRequest> {
     try {
       const rewardRequest = await this.rewardRequestRepository.findOne(
         { _id: new ObjectId(id) },
@@ -101,17 +103,16 @@ export class RewardRequestService {
    * Get reward requests with optional filtering
    */
   @MessagePattern({ cmd: EVENT_CMP.GET_REWARD_REQUESTS })
-  async getRewardRequests(
-    options: {
-      userId?: string;
-      eventId?: string;
-      status?: RewardRequestStatus;
-      limit?: number;
-      offset?: number;
-    } = {},
-  ): Promise<{ requests: RewardRequest[]; total: number }> {
-    const { userId, eventId, status, limit = 10, offset = 0 } = options;
-
+  async getRewardRequests({
+    userId,
+    eventId,
+    status,
+    limit = 10,
+    offset = 0,
+  }: QueryRewardRequestDto): Promise<{
+    requests: RewardRequest[];
+    total: number;
+  }> {
     const query: FilterQuery<RewardRequest> = {};
 
     if (userId) {
@@ -146,7 +147,9 @@ export class RewardRequestService {
     rewardRequestid,
     status,
   }: UpdateRewardRequestStatusDto): Promise<RewardRequest> {
-    const rewardRequest = await this.getRewardRequestById(rewardRequestid);
+    const rewardRequest = await this.getRewardRequestById({
+      id: rewardRequestid,
+    });
 
     // If already approved/rejected, don't allow status change
     if (rewardRequest.status !== RewardRequestStatus.PENDING) {

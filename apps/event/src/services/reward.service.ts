@@ -5,6 +5,8 @@ import {
   CreateEventRewardDto,
   CreateItemRewardDto,
   CreatePointRewardDto,
+  QueryByIdDto,
+  RemoveRewardDto,
 } from '@libs/dtos';
 import { RewardType } from '@libs/enums';
 import { EntityManager, EntityRepository } from '@mikro-orm/core';
@@ -116,10 +118,11 @@ export class RewardService {
    * Get a reward by ID
    */
   @MessagePattern({ cmd: EVENT_CMP.GET_REWARD_BY_ID })
-  async getRewardById(id: string): Promise<RewardBase> {
+  async getRewardById({ id }: QueryByIdDto): Promise<RewardBase> {
     const reward = await this.em.findOne(RewardBase, {
       _id: new ObjectId(id),
     });
+
     if (!reward) {
       throw new NotFoundException(`Reward with ID ${id} not found`);
     }
@@ -130,14 +133,17 @@ export class RewardService {
    * Add a reward to an event
    */
   @MessagePattern({ cmd: EVENT_CMP.ADD_REWARD_TO_EVENT })
-  async addRewardToEvent(dto: CreateEventRewardDto): Promise<EventReward> {
-    const event = await this.eventService.getEventById(dto.eventId);
-    const reward = await this.getRewardById(dto.rewardId);
+  async addRewardToEvent({
+    eventId,
+    rewardId,
+  }: CreateEventRewardDto): Promise<EventReward> {
+    const event = await this.eventService.getEventById({ id: eventId });
+    const reward = await this.getRewardById({ id: rewardId });
 
     // Check if this reward is already assigned to this event
     const existing = await this.eventRewardRepository.findOne({
-      event: { _id: new ObjectId(dto.eventId) },
-      reward: { _id: new ObjectId(dto.rewardId) },
+      event: { _id: new ObjectId(eventId) },
+      reward: { _id: new ObjectId(rewardId) },
     });
 
     if (existing) {
@@ -160,12 +166,12 @@ export class RewardService {
    * Get rewards for an event
    */
   @MessagePattern({ cmd: EVENT_CMP.GET_REWARDS_BY_EVENT_ID })
-  async getRewardsByEventId(eventId: string): Promise<RewardBase[]> {
+  async getRewardsByEventId({ id }: QueryByIdDto): Promise<RewardBase[]> {
     // First verify the event exists
-    await this.eventService.getEventById(eventId);
+    await this.eventService.getEventById({ id });
 
     const eventRewards = await this.eventRewardRepository.find(
-      { event: { _id: new ObjectId(eventId) } },
+      { event: { _id: new ObjectId(id) } },
       { populate: ['reward'] },
     );
 
@@ -176,10 +182,10 @@ export class RewardService {
    * Remove a reward from an event
    */
   @MessagePattern({ cmd: EVENT_CMP.REMOVE_REWARD_FROM_EVENT })
-  async removeRewardFromEvent(
-    eventId: string,
-    rewardId: string,
-  ): Promise<void> {
+  async removeRewardFromEvent({
+    eventId,
+    rewardId,
+  }: RemoveRewardDto): Promise<void> {
     const eventReward = await this.eventRewardRepository.findOne({
       event: { _id: new ObjectId(eventId) },
       reward: { _id: new ObjectId(rewardId) },
