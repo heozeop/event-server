@@ -3,9 +3,9 @@
 # Create directory for keys if it doesn't exist
 mkdir -p ./keys
 
-# Generate RSA256 private key
-echo "Generating RSA256 private key..."
-openssl genpkey -algorithm RSA256 -out ./keys/private.pem
+# Generate RSA private key
+echo "Generating RSA private key..."
+openssl genpkey -algorithm RSA -out ./keys/private.pem
 
 # Extract public key from private key
 echo "Extracting public key..."
@@ -25,9 +25,9 @@ echo "Generating .env variables..."
 # Create or append to apps/auth .env file
 touch apps/auth/.env
 echo "" >> apps/auth/.env
-echo "# JWT RSA256 Keys" >> apps/auth/.env
-echo "JWT_PRIVATE_KEY=\"$(cat ./keys/private.pem | grep -v "BEGIN\|END" | tr -d '\n')\"" >> apps/auth/.env
-echo "JWT_PUBLIC_KEY=\"$(cat ./keys/public.pem | grep -v "BEGIN\|END" | tr -d '\n')\"" >> apps/auth/.env
+echo "# JWT RSA Keys" >> apps/auth/.env
+echo "JWT_PRIVATE_KEY=\"$(cat ./keys/private.pem)\"" >> apps/auth/.env
+echo "JWT_PUBLIC_KEY=\"$(cat ./keys/public.pem)\"" >> apps/auth/.env
 
 echo "Added JWT key environment variables to apps/auth/.env file."
 echo "You can now use these in your application."
@@ -35,8 +35,8 @@ echo "You can now use these in your application."
 # Create or append to apps/gateway .env file
 touch apps/gateway/.env
 echo "" >> apps/gateway/.env
-echo "# JWT RSA256 Keys" >> apps/gateway/.env
-echo "JWT_PUBLIC_KEY=\"$(cat ./keys/public.pem | grep -v "BEGIN\|END" | tr -d '\n')\"" >> apps/gateway/.env
+echo "# JWT RSA Keys" >> apps/gateway/.env
+echo "JWT_PUBLIC_KEY=\"$(cat ./keys/public.pem)\"" >> apps/gateway/.env
 
 echo "Added JWT key environment variables to apps/gateway/.env file."
 echo "Done!" 
