@@ -75,24 +75,24 @@ describe('RewardRequestService', () => {
         status: EventStatus.ACTIVE,
       });
 
-      const userId = new ObjectId().toString();
       const dto: CreateRewardRequestDto = {
+        userId: new ObjectId().toString(),
         eventId: event._id.toString(),
       };
 
       // Act
-      const result = await service.createRewardRequest(userId, dto);
+      const result = await service.createRewardRequest(dto);
 
       // Assert
       expect(result).toBeDefined();
-      expect(result.userId.toString()).toBe(userId);
+      expect(result.userId.toString()).toBe(dto.userId);
       expect(result.event._id.toString()).toBe(event._id.toString());
       expect(result.status).toBe(RewardRequestStatus.PENDING);
 
       // Verify in database
       const repository = orm.em.getRepository(RewardRequest);
       const savedRequest = await repository.findOne(
-        { userId: new ObjectId(userId), event: { _id: event._id } },
+        { userId: new ObjectId(dto.userId), event: { _id: event._id } },
         { populate: ['event'] },
       );
       expect(savedRequest).toBeDefined();
@@ -111,13 +111,13 @@ describe('RewardRequestService', () => {
         status: EventStatus.INACTIVE,
       });
 
-      const userId = new ObjectId().toString();
       const dto: CreateRewardRequestDto = {
+        userId: new ObjectId().toString(),
         eventId: event._id.toString(),
       };
 
       // Act & Assert
-      await expect(service.createRewardRequest(userId, dto)).rejects.toThrow(
+      await expect(service.createRewardRequest(dto)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -138,13 +138,13 @@ describe('RewardRequestService', () => {
         status: EventStatus.ACTIVE,
       });
 
-      const userId = new ObjectId().toString();
       const dto: CreateRewardRequestDto = {
+        userId: new ObjectId().toString(),
         eventId: event._id.toString(),
       };
 
       // Act & Assert
-      await expect(service.createRewardRequest(userId, dto)).rejects.toThrow(
+      await expect(service.createRewardRequest(dto)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -165,13 +165,13 @@ describe('RewardRequestService', () => {
         status: EventStatus.ACTIVE,
       });
 
-      const userId = new ObjectId().toString();
       const dto: CreateRewardRequestDto = {
+        userId: new ObjectId().toString(),
         eventId: event._id.toString(),
       };
 
       // Act & Assert
-      await expect(service.createRewardRequest(userId, dto)).rejects.toThrow(
+      await expect(service.createRewardRequest(dto)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -188,29 +188,29 @@ describe('RewardRequestService', () => {
         status: EventStatus.ACTIVE,
       });
 
-      const userId = new ObjectId().toString();
       const dto: CreateRewardRequestDto = {
+        userId: new ObjectId().toString(),
         eventId: event._id.toString(),
       };
 
       // Create initial request
-      await service.createRewardRequest(userId, dto);
+      await service.createRewardRequest(dto);
 
       // Act & Assert - Try to create duplicate request
-      await expect(service.createRewardRequest(userId, dto)).rejects.toThrow(
+      await expect(service.createRewardRequest(dto)).rejects.toThrow(
         ConflictException,
       );
     });
 
     it('should throw NotFoundException if event not found', async () => {
       // Arrange
-      const userId = new ObjectId().toString();
       const dto: CreateRewardRequestDto = {
+        userId: new ObjectId().toString(),
         eventId: new ObjectId().toString(),
       };
 
       // Act & Assert
-      await expect(service.createRewardRequest(userId, dto)).rejects.toThrow(
+      await expect(service.createRewardRequest(dto)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -231,20 +231,22 @@ describe('RewardRequestService', () => {
       });
 
       // 2. Create a reward request
-      const userId = new ObjectId().toString();
-      const rewardRequest = await service.createRewardRequest(userId, {
+      const dto: CreateRewardRequestDto = {
+        userId: new ObjectId().toString(),
         eventId: event._id.toString(),
-      });
+      };
+
+      const rewardRequest = await service.createRewardRequest(dto);
 
       // Act
-      const result = await service.getRewardRequestById(
-        rewardRequest._id.toString(),
-      );
+      const result = await service.getRewardRequestById({
+        id: rewardRequest._id.toString(),
+      });
 
       // Assert
       expect(result).toBeDefined();
       expect(result._id.toString()).toBe(rewardRequest._id.toString());
-      expect(result.userId.toString()).toBe(userId);
+      expect(result.userId.toString()).toBe(dto.userId);
       expect(result.event._id.toString()).toBe(event._id.toString());
       expect(result.status).toBe(RewardRequestStatus.PENDING);
     });
@@ -254,7 +256,7 @@ describe('RewardRequestService', () => {
       const id = new ObjectId().toString();
 
       // Act & Assert
-      await expect(service.getRewardRequestById(id)).rejects.toThrow(
+      await expect(service.getRewardRequestById({ id })).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -289,15 +291,18 @@ describe('RewardRequestService', () => {
       const userId2 = new ObjectId().toString();
 
       // 3. Create reward requests
-      await service.createRewardRequest(userId1, {
+      await service.createRewardRequest({
+        userId: userId1,
         eventId: activeEvent._id.toString(),
       });
 
-      const request2 = await service.createRewardRequest(userId2, {
+      const request2 = await service.createRewardRequest({
+        userId: userId2,
         eventId: activeEvent._id.toString(),
       });
 
-      await service.createRewardRequest(userId1, {
+      await service.createRewardRequest({
+        userId: userId1,
         eventId: activeEvent2._id.toString(),
       });
 
@@ -348,7 +353,8 @@ describe('RewardRequestService', () => {
       const requests: RewardRequest[] = [];
       for (let i = 0; i < 15; i++) {
         const userId = new ObjectId().toString();
-        const request = await service.createRewardRequest(userId, {
+        const request = await service.createRewardRequest({
+          userId,
           eventId: activeEvent._id.toString(),
         });
         requests.push(request);
@@ -394,23 +400,28 @@ describe('RewardRequestService', () => {
       const userId3 = new ObjectId().toString();
 
       // Pending request
-      await service.createRewardRequest(userId1, {
+      await service.createRewardRequest({
+        userId: userId1,
         eventId: activeEvent._id.toString(),
       });
 
       // Approved request
-      const approvedRequest = await service.createRewardRequest(userId2, {
+      const approvedRequest = await service.createRewardRequest({
+        userId: userId2,
         eventId: activeEvent._id.toString(),
       });
-      await service.updateRewardRequestStatus(approvedRequest._id.toString(), {
+      await service.updateRewardRequestStatus({
+        rewardRequestid: approvedRequest._id.toString(),
         status: RewardRequestStatus.APPROVED,
       });
 
       // Rejected request
-      const rejectedRequest = await service.createRewardRequest(userId3, {
+      const rejectedRequest = await service.createRewardRequest({
+        userId: userId3,
         eventId: activeEvent._id.toString(),
       });
-      await service.updateRewardRequestStatus(rejectedRequest._id.toString(), {
+      await service.updateRewardRequestStatus({
+        rewardRequestid: rejectedRequest._id.toString(),
         status: RewardRequestStatus.REJECTED,
       });
 
@@ -465,20 +476,19 @@ describe('RewardRequestService', () => {
 
       // 2. Create a reward request
       const userId = new ObjectId().toString();
-      const rewardRequest = await service.createRewardRequest(userId, {
+      const rewardRequest = await service.createRewardRequest({
+        userId,
         eventId: event._id.toString(),
       });
 
       // 3. Prepare update DTO
       const updateDto: UpdateRewardRequestStatusDto = {
+        rewardRequestid: rewardRequest._id.toString(),
         status: RewardRequestStatus.APPROVED,
       };
 
       // Act
-      const result = await service.updateRewardRequestStatus(
-        rewardRequest._id.toString(),
-        updateDto,
-      );
+      const result = await service.updateRewardRequestStatus(updateDto);
 
       // Assert
       expect(result).toBeDefined();
@@ -508,38 +518,39 @@ describe('RewardRequestService', () => {
 
       // 2. Create a reward request
       const userId = new ObjectId().toString();
-      const rewardRequest = await service.createRewardRequest(userId, {
+      const rewardRequest = await service.createRewardRequest({
+        userId,
         eventId: event._id.toString(),
       });
 
       // 3. Update to APPROVED
-      await service.updateRewardRequestStatus(rewardRequest._id.toString(), {
+      await service.updateRewardRequestStatus({
+        rewardRequestid: rewardRequest._id.toString(),
         status: RewardRequestStatus.APPROVED,
       });
 
       // 4. Try to update again
       const updateDto: UpdateRewardRequestStatusDto = {
+        rewardRequestid: rewardRequest._id.toString(),
         status: RewardRequestStatus.REJECTED,
       };
 
       // Act & Assert
       await expect(
-        service.updateRewardRequestStatus(
-          rewardRequest._id.toString(),
-          updateDto,
-        ),
+        service.updateRewardRequestStatus(updateDto),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw NotFoundException if reward request not found', async () => {
       // Arrange
       const updateDto: UpdateRewardRequestStatusDto = {
+        rewardRequestid: new ObjectId().toString(),
         status: RewardRequestStatus.APPROVED,
       };
 
       // Act & Assert
       await expect(
-        service.updateRewardRequestStatus(new ObjectId().toString(), updateDto),
+        service.updateRewardRequestStatus(updateDto),
       ).rejects.toThrow(NotFoundException);
     });
   });

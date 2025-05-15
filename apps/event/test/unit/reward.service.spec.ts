@@ -68,6 +68,7 @@ describe('RewardService', () => {
     it('should create a point reward', async () => {
       // Arrange
       const dto: CreatePointRewardDto = {
+        name: 'Test Point Reward',
         points: 100,
       };
 
@@ -92,6 +93,7 @@ describe('RewardService', () => {
     it('should create an item reward', async () => {
       // Arrange
       const dto: CreateItemRewardDto = {
+        name: 'Test Item Reward',
         itemId: 'item-123',
         quantity: 5,
       };
@@ -112,6 +114,7 @@ describe('RewardService', () => {
       // Arrange
       const expiry = new Date(Date.now() + 86400000); // tomorrow
       const dto: CreateCouponRewardDto = {
+        name: 'Test Coupon Reward',
         couponCode: 'DISCOUNT50',
         expiry,
       };
@@ -131,6 +134,7 @@ describe('RewardService', () => {
     it('should create a badge reward', async () => {
       // Arrange
       const dto: CreateBadgeRewardDto = {
+        name: 'Test Badge Reward',
         badgeId: 'badge-456',
       };
 
@@ -148,17 +152,23 @@ describe('RewardService', () => {
     it('should create a reward of the specified type', async () => {
       // Arrange
       const pointsDto: CreatePointRewardDto = {
+        name: 'Test Point Reward',
         points: 200,
       };
       const itemDto: CreateItemRewardDto = {
+        name: 'Test Item Reward',
         itemId: 'item-789',
         quantity: 3,
       };
       const couponDto: CreateCouponRewardDto = {
+        name: 'Test Coupon Reward',
         couponCode: 'SUMMER25',
         expiry: new Date(Date.now() + 86400000),
       };
-      const badgeDto: CreateBadgeRewardDto = { badgeId: 'badge-111' };
+      const badgeDto: CreateBadgeRewardDto = {
+        name: 'Test Badge Reward',
+        badgeId: 'badge-111',
+      };
 
       // Act & Assert - Point Reward
       const pointReward = await service.createReward(
@@ -199,7 +209,10 @@ describe('RewardService', () => {
     it('should throw BadRequestException for invalid reward type', async () => {
       // Arrange
       const invalidType = 'INVALID' as RewardType;
-      const dto: CreatePointRewardDto = { points: 100 };
+      const dto: CreatePointRewardDto = {
+        name: 'Test Point Reward',
+        points: 100,
+      };
 
       // Act & Assert
       await expect(service.createReward(invalidType, dto)).rejects.toThrow(
@@ -211,13 +224,15 @@ describe('RewardService', () => {
   describe('getRewardById', () => {
     it('should return a reward by id', async () => {
       // Arrange
-      const pointReward = new PointReward(150);
+      const pointReward = new PointReward('Test Point Reward', 150);
       const rewardRepository = orm.em.getRepository(RewardBase);
       await rewardRepository.create(pointReward);
       await rewardRepository.getEntityManager().flush();
 
       // Act
-      const result = await service.getRewardById(pointReward._id.toString());
+      const result = await service.getRewardById({
+        id: pointReward._id.toString(),
+      });
 
       // Assert
       expect(result).toBeDefined();
@@ -231,7 +246,7 @@ describe('RewardService', () => {
       const id = new ObjectId().toString();
 
       // Act & Assert
-      await expect(service.getRewardById(id)).rejects.toThrow(
+      await expect(service.getRewardById({ id })).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -252,7 +267,10 @@ describe('RewardService', () => {
       });
 
       // 2. Create a reward
-      const reward = await service.createPointReward({ points: 200 });
+      const reward = await service.createPointReward({
+        name: 'Test Point Reward',
+        points: 200,
+      });
 
       // 3. Prepare the DTO
       const dto: CreateEventRewardDto = {
@@ -295,7 +313,10 @@ describe('RewardService', () => {
       });
 
       // 2. Create a reward
-      const reward = await service.createPointReward({ points: 200 });
+      const reward = await service.createPointReward({
+        name: 'Test Point Reward',
+        points: 200,
+      });
 
       // 3. Add reward to event
       const dto: CreateEventRewardDto = {
@@ -314,7 +335,10 @@ describe('RewardService', () => {
 
     it('should throw NotFoundException if event not found', async () => {
       // Arrange
-      const reward = await service.createPointReward({ points: 200 });
+      const reward = await service.createPointReward({
+        name: 'Test Point Reward',
+        points: 200,
+      });
       const dto: CreateEventRewardDto = {
         eventId: new ObjectId().toString(),
         rewardId: reward._id.toString(),
@@ -364,12 +388,17 @@ describe('RewardService', () => {
       });
 
       // 2. Create multiple rewards
-      const pointReward = await service.createPointReward({ points: 100 });
+      const pointReward = await service.createPointReward({
+        name: 'Test Point Reward',
+        points: 100,
+      });
       const itemReward = await service.createItemReward({
+        name: 'Test Item Reward',
         itemId: 'item-abc',
         quantity: 2,
       });
       const badgeReward = await service.createBadgeReward({
+        name: 'Test Badge Reward',
         badgeId: 'badge-xyz',
       });
 
@@ -388,7 +417,9 @@ describe('RewardService', () => {
       });
 
       // Act
-      const rewards = await service.getRewardsByEventId(event._id.toString());
+      const rewards = await service.getRewardsByEventId({
+        id: event._id.toString(),
+      });
 
       // Assert
       expect(rewards).toBeDefined();
@@ -414,7 +445,9 @@ describe('RewardService', () => {
       });
 
       // Act
-      const rewards = await service.getRewardsByEventId(event._id.toString());
+      const rewards = await service.getRewardsByEventId({
+        id: event._id.toString(),
+      });
 
       // Assert
       expect(rewards).toBeDefined();
@@ -424,7 +457,7 @@ describe('RewardService', () => {
     it('should throw NotFoundException if event not found', async () => {
       // Act & Assert
       await expect(
-        service.getRewardsByEventId(new ObjectId().toString()),
+        service.getRewardsByEventId({ id: new ObjectId().toString() }),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -444,7 +477,10 @@ describe('RewardService', () => {
       });
 
       // 2. Create a reward
-      const reward = await service.createPointReward({ points: 200 });
+      const reward = await service.createPointReward({
+        name: 'Test Point Reward',
+        points: 200,
+      });
 
       // 3. Add reward to event
       await service.addRewardToEvent({
@@ -453,10 +489,10 @@ describe('RewardService', () => {
       });
 
       // Act
-      await service.removeRewardFromEvent(
-        event._id.toString(),
-        reward._id.toString(),
-      );
+      await service.removeRewardFromEvent({
+        eventId: event._id.toString(),
+        rewardId: reward._id.toString(),
+      });
 
       // Assert
       const eventRewardRepository = orm.em.getRepository(EventReward);
@@ -478,14 +514,17 @@ describe('RewardService', () => {
         },
         status: EventStatus.ACTIVE,
       });
-      const reward = await service.createPointReward({ points: 200 });
+      const reward = await service.createPointReward({
+        name: 'Test Point Reward',
+        points: 200,
+      });
 
       // Act & Assert
       await expect(
-        service.removeRewardFromEvent(
-          event._id.toString(),
-          reward._id.toString(),
-        ),
+        service.removeRewardFromEvent({
+          eventId: event._id.toString(),
+          rewardId: reward._id.toString(),
+        }),
       ).rejects.toThrow(NotFoundException);
     });
   });

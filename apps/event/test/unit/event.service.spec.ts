@@ -92,7 +92,7 @@ describe('EventService', () => {
       await eventRepository.getEntityManager().flush();
 
       // Act
-      const result = await service.getEventById(event._id.toString());
+      const result = await service.getEventById({ id: event._id.toString() });
 
       // Assert
       expect(result).toBeDefined();
@@ -104,7 +104,9 @@ describe('EventService', () => {
       const id = new ObjectId().toString();
 
       // Act & Assert
-      await expect(service.getEventById(id)).rejects.toThrow(NotFoundException);
+      await expect(service.getEventById({ id })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });
