@@ -21,17 +21,45 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
+# Auth Service
+
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This is the authentication service for the event management system. It handles user registration, authentication, and authorization.
 
-## Project setup
+## Features
+
+- User registration and management
+- JWT-based authentication
+- Role-based authorization
+- Secure password handling
+
+## API Endpoints
+
+### Authentication
+
+- `POST /auth/login` - Authenticate a user and receive a JWT token
+
+### User Management
+
+- `POST /users` - Create a new user
+- `GET /users/:id` - Get user details (requires authentication)
+- `PUT /users/:id/roles` - Update user roles (requires ADMIN role)
+
+## Environment Variables
+
+- `PORT` - Service port (default: 3001)
+- `MONGO_URI` - MongoDB connection string (default: mongodb://mongo-user:27017/user-db)
+- `JWT_SECRET` - Secret key for JWT signing
+- `NODE_ENV` - Environment (development, production)
+
+## Installation
 
 ```bash
 $ pnpm install
 ```
 
-## Compile and run the project
+## Running the app
 
 ```bash
 # development
@@ -44,7 +72,7 @@ $ pnpm run start:dev
 $ pnpm run start:prod
 ```
 
-## Run tests
+## Test
 
 ```bash
 # unit tests
@@ -56,6 +84,25 @@ $ pnpm run test:e2e
 # test coverage
 $ pnpm run test:cov
 ```
+
+## Docker
+
+To build and run with Docker:
+
+```bash
+# Build the image
+$ docker build -t auth-service .
+
+# Run the container
+$ docker run -p 3001:3001 auth-service
+```
+
+## Technologies
+
+- NestJS
+- MongoDB with MikroORM
+- Passport.js with JWT
+- Class-Validator
 
 ## Deployment
 

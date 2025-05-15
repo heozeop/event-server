@@ -12,6 +12,6 @@
       "@/*": ["src/*"]
     }
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "../../packages/enums/src/auth/role.enum.ts"],
   "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
 }
