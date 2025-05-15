@@ -1,11 +1,10 @@
 import { RewardType } from "@libs/enums";
-import { ObjectId } from "@mikro-orm/mongodb";
+import { CustomBaseEntity } from "../base.types";
 
 /**
  * Base interface for all reward types
  */
-export interface RewardBaseEntity {
-  _id: ObjectId;
+export interface RewardBaseEntity extends CustomBaseEntity {
   type: RewardType;
   name: string;
 }

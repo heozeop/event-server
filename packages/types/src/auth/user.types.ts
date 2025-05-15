@@ -1,37 +1,11 @@
 import { Role } from '@libs/enums';
-import { ObjectId } from '@mikro-orm/mongodb';
+import { CustomBaseEntity } from '../base.types';
 
 /**
  * Interface for User entity
  */
-export interface UserEntity {
-  /**
-   * Unique identifier of the user
-   */
-  _id: ObjectId;
-
-  /**
-   * Email address of the user (unique)
-   */
+export interface UserEntity extends CustomBaseEntity {
   email: string;
-
-  /**
-   * Hashed password of the user
-   */
   passwordHash: string;
-
-  /**
-   * User roles for authorization
-   */
   roles: Role[];
-
-  /**
-   * Date when the user was created
-   */
-  createdAt: Date;
-
-  /**
-   * Date when the user was last updated
-   */
-  updatedAt: Date;
 } 

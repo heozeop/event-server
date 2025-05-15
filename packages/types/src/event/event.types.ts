@@ -1,11 +1,10 @@
 import { EventStatus } from '@libs/enums';
-import { ObjectId } from "@mikro-orm/mongodb";
+import { CustomBaseEntity } from '../base.types';
 
 /**
  * Interface representing the Event entity
  */
-export interface EventEntity {
-  _id: ObjectId;
+export interface EventEntity extends CustomBaseEntity {
   name: string;
   condition: Record<string, any>;
   period: {

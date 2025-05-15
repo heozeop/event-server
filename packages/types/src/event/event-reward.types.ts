@@ -1,12 +1,11 @@
-import { ObjectId } from "@mikro-orm/mongodb";
+import { CustomBaseEntity } from "../base.types";
 import { EventEntity } from "./event.types";
 import { RewardBaseEntity } from "./reward.types";
 
 /**
  * Interface representing the EventReward entity
  */
-export interface EventRewardEntity {
-  _id: ObjectId;
+export interface EventRewardEntity extends CustomBaseEntity {
   event: EventEntity;
   reward: RewardBaseEntity;
 }
