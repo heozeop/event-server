@@ -5,7 +5,7 @@ import {
   QueryRewardRequestDto,
   UpdateRewardRequestStatusDto,
 } from '@libs/dtos';
-import { RewardRequestStatus } from '@libs/enums';
+import { EventStatus, RewardRequestStatus } from '@libs/enums';
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
@@ -41,7 +41,7 @@ export class RewardRequestService {
     // Check event is active
     const now = new Date();
     if (
-      event.status !== 'ACTIVE' ||
+      event.status !== EventStatus.ACTIVE ||
       now < event.period.start ||
       now > event.period.end
     ) {
