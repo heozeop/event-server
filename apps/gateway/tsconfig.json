@@ -9,7 +9,9 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "dtos/*": ["../../packages/dtos/src/*"],
+      "enums/*": ["../../packages/enums/src/*"]
     }
   },
   "include": ["src/**/*.ts"],
