@@ -1,3 +1,4 @@
+import { EVENT_CMP } from '@libs/cmd';
 import {
   CreateBadgeRewardDto,
   CreateCouponRewardDto,
@@ -5,6 +6,7 @@ import {
   CreateItemRewardDto,
   CreatePointRewardDto,
 } from '@libs/dtos';
+import { Role } from '@libs/enums';
 import {
   Body,
   Controller,
@@ -16,7 +18,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { Role } from 'enums/auth/role.enum';
 import { lastValueFrom } from 'rxjs';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -33,7 +34,7 @@ export class EventController {
   @Roles(Role.OPERATOR, Role.ADMIN)
   async createEvent(@Body() createEventDto: CreateEventDto) {
     return await lastValueFrom(
-      this.eventClient.send({ cmd: 'create_event' }, createEventDto),
+      this.eventClient.send({ cmd: EVENT_CMP.CREATE_EVENT }, createEventDto),
     );
   }
 
@@ -41,7 +42,7 @@ export class EventController {
   @UseGuards(JwtAuthGuard)
   async getEvents(@Query() query: any) {
     return await lastValueFrom(
-      this.eventClient.send({ cmd: 'get_events' }, query),
+      this.eventClient.send({ cmd: EVENT_CMP.GET_EVENTS }, query),
     );
   }
 
@@ -54,7 +55,7 @@ export class EventController {
   ) {
     return await lastValueFrom(
       this.eventClient.send(
-        { cmd: `create_reward_coupon` },
+        { cmd: EVENT_CMP.CREATE_REWARD_COUPON },
         { eventId, ...createRewardDto },
       ),
     );
@@ -69,7 +70,7 @@ export class EventController {
   ) {
     return await lastValueFrom(
       this.eventClient.send(
-        { cmd: `create_reward_item` },
+        { cmd: EVENT_CMP.CREATE_REWARD_ITEM },
         { eventId, ...createRewardDto },
       ),
     );
@@ -84,7 +85,7 @@ export class EventController {
   ) {
     return await lastValueFrom(
       this.eventClient.send(
-        { cmd: `create_reward_point` },
+        { cmd: EVENT_CMP.CREATE_REWARD_POINT },
         { eventId, ...createRewardDto },
       ),
     );
@@ -99,7 +100,7 @@ export class EventController {
   ) {
     return await lastValueFrom(
       this.eventClient.send(
-        { cmd: `create_reward_badge` },
+        { cmd: EVENT_CMP.CREATE_REWARD_BADGE },
         { eventId, ...createRewardDto },
       ),
     );
@@ -109,7 +110,10 @@ export class EventController {
   @UseGuards(JwtAuthGuard)
   async getRewards(@Param('eventId') eventId: string) {
     return await lastValueFrom(
-      this.eventClient.send({ cmd: 'get_rewards' }, { eventId }),
+      this.eventClient.send(
+        { cmd: EVENT_CMP.GET_REWARDS_BY_EVENT_ID },
+        { eventId },
+      ),
     );
   }
 
@@ -118,7 +122,10 @@ export class EventController {
   @Roles(Role.USER)
   async requestReward(@Param('eventId') eventId: string) {
     return await lastValueFrom(
-      this.eventClient.send({ cmd: 'request_reward' }, { eventId }),
+      this.eventClient.send(
+        { cmd: EVENT_CMP.CREATE_REWARD_REQUEST },
+        { eventId },
+      ),
     );
   }
 
@@ -126,7 +133,7 @@ export class EventController {
   @UseGuards(JwtAuthGuard)
   async getRewardRequests(@Query() query: any) {
     return await lastValueFrom(
-      this.eventClient.send({ cmd: 'get_reward_requests' }, query),
+      this.eventClient.send({ cmd: EVENT_CMP.GET_REWARD_REQUESTS }, query),
     );
   }
 }

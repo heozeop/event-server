@@ -292,6 +292,9 @@ importers:
 
   apps/gateway:
     dependencies:
+      '@libs/cmd':
+        specifier: workspace:^
+        version: link:../../packages/cmd
       '@libs/dtos':
         specifier: workspace:*
         version: link:../../packages/dtos
@@ -410,6 +413,27 @@ importers:
       typescript-eslint:
         specifier: ^8.20.0
         version: 8.32.1(eslint@9.26.0)(typescript@5.8.3)
+
+  packages/cmd:
+    dependencies:
+      '@libs/enums':
+        specifier: workspace:*
+        version: link:../enums
+      '@libs/types':
+        specifier: workspace:*
+        version: link:../types
+      '@nestjs/common':
+        specifier: ^11.0.0
+        version: 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core':
+        specifier: ^11.0.0
+        version: 11.1.1(@nestjs/common@11.1.1)(@nestjs/microservices@11.1.1)(@nestjs/platform-express@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      class-transformer:
+        specifier: ^0.5.1
+        version: 0.5.1
+      class-validator:
+        specifier: ^0.14.2
+        version: 0.14.2
 
   packages/dtos:
     dependencies:
