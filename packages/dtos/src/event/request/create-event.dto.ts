@@ -26,7 +26,7 @@ export class EventPeriodDto {
 /**
  * DTO for creating a new event
  */
-export class CreateEventDto implements Omit<EventEntity, '_id' | 'period'> {
+export class CreateEventDto implements Omit<EventEntity, '_id' | 'period' | 'createdAt' | 'updatedAt'> {
   @IsString()
   @IsNotEmpty()
   name!: string;
