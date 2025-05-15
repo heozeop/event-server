@@ -29,12 +29,12 @@ export class RewardRequestService {
    * Create a new reward request
    */
   @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_REQUEST })
-  async createRewardRequest(
-    userId: string,
-    dto: CreateRewardRequestDto,
-  ): Promise<RewardRequest> {
+  async createRewardRequest({
+    userId,
+    eventId,
+  }: CreateRewardRequestDto): Promise<RewardRequest> {
     // First verify the event exists
-    const event = await this.eventService.getEventById(dto.eventId);
+    const event = await this.eventService.getEventById(eventId);
 
     // Check event is active
     const now = new Date();
@@ -49,7 +49,7 @@ export class RewardRequestService {
     // Check if request already exists
     const existingRequest = await this.rewardRequestRepository.findOne({
       userId: new ObjectId(userId),
-      event: { _id: new ObjectId(dto.eventId) },
+      event: { _id: new ObjectId(eventId) },
     });
 
     if (existingRequest) {
@@ -142,11 +142,11 @@ export class RewardRequestService {
    * Update a reward request status
    */
   @MessagePattern({ cmd: EVENT_CMP.UPDATE_REWARD_REQUEST_STATUS })
-  async updateRewardRequestStatus(
-    id: string,
-    dto: UpdateRewardRequestStatusDto,
-  ): Promise<RewardRequest> {
-    const rewardRequest = await this.getRewardRequestById(id);
+  async updateRewardRequestStatus({
+    rewardRequestid,
+    status,
+  }: UpdateRewardRequestStatusDto): Promise<RewardRequest> {
+    const rewardRequest = await this.getRewardRequestById(rewardRequestid);
 
     // If already approved/rejected, don't allow status change
     if (rewardRequest.status !== RewardRequestStatus.PENDING) {
@@ -155,7 +155,7 @@ export class RewardRequestService {
       );
     }
 
-    rewardRequest.status = dto.status;
+    rewardRequest.status = status;
     await this.rewardRequestRepository.getEntityManager().flush();
 
     return rewardRequest;

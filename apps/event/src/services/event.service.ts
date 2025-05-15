@@ -1,5 +1,5 @@
 import { EVENT_CMP } from '@libs/cmd';
-import { CreateEventDto } from '@libs/dtos';
+import { CreateEventDto, UpdateEventDto } from '@libs/dtos';
 import { EventStatus } from '@libs/enums';
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
@@ -99,29 +99,32 @@ export class EventService {
    * Update an event
    */
   @MessagePattern({ cmd: EVENT_CMP.UPDATE_EVENT })
-  async updateEvent(
-    id: string,
-    updateData: Partial<CreateEventDto>,
-  ): Promise<Event> {
+  async updateEvent({
+    id,
+    name,
+    condition,
+    period,
+    status,
+  }: UpdateEventDto): Promise<Event> {
     const event = await this.getEventById(id);
 
-    if (updateData.name) {
-      event.name = updateData.name;
+    if (name) {
+      event.name = name;
     }
 
-    if (updateData.condition) {
-      event.condition = updateData.condition;
+    if (condition) {
+      event.condition = condition;
     }
 
-    if (updateData.period) {
+    if (period) {
       event.period = {
-        start: new Date(updateData.period.start),
-        end: new Date(updateData.period.end),
+        start: new Date(period.start),
+        end: new Date(period.end),
       };
     }
 
-    if (updateData.status) {
-      event.status = updateData.status;
+    if (status) {
+      event.status = status;
     }
 
     await this.eventRepository.getEntityManager().flush();

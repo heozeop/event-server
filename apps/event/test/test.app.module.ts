@@ -2,9 +2,6 @@ import { HttpExceptionsModule } from '@libs/filter';
 import { MongoMemoryOrmModule } from '@libs/test';
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { EventController } from '../src/controllers/event.controller';
-import { RewardRequestController } from '../src/controllers/reward-request.controller';
-import { RewardController } from '../src/controllers/reward.controller';
 import { EventReward } from '../src/entities/event-reward.entity';
 import { Event } from '../src/entities/event.entity';
 import { RewardRequest } from '../src/entities/reward-request.entity';
@@ -44,7 +41,6 @@ export class TestAppModule {
         mongoMemoryOrmModule.getMikroOrmModule(entities),
         mongoMemoryOrmModule.getMikroOrmFeatureModule(entities),
       ],
-      controllers: [EventController, RewardRequestController, RewardController],
       providers: [EventService, RewardRequestService, RewardService],
     };
   }

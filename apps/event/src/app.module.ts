@@ -3,11 +3,6 @@ import { MongoDriver } from '@mikro-orm/mongodb';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import {
-  EventController,
-  RewardController,
-  RewardRequestController,
-} from './controllers';
 import { BadgeReward, CouponReward, ItemReward, PointReward } from './entities';
 import { EventReward } from './entities/event-reward.entity';
 import { Event } from './entities/event.entity';
@@ -55,7 +50,6 @@ import { EventService, RewardRequestService, RewardService } from './services';
     }),
     HttpExceptionsModule,
   ],
-  controllers: [EventController, RewardRequestController, RewardController],
   providers: [EventService, RewardRequestService, RewardService],
 })
 export class AppModule {}
