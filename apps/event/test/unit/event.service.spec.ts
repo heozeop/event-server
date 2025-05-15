@@ -5,15 +5,9 @@ import { MikroORM } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { EventReward } from '../../src/entities/event-reward.entity';
 import { Event } from '../../src/entities/event.entity';
-import {
-  BadgeReward,
-  CouponReward,
-  ItemReward,
-  PointReward,
-} from '../../src/entities/reward.entity';
 import { EventService } from '../../src/services/event.service';
+import { TestAppModule } from '../test.app.module';
 
 // Increase timeout for slow tests
 jest.setTimeout(30000);
@@ -29,17 +23,7 @@ describe('EventService', () => {
       await mongoMemoryOrmModule.init('event-test-db');
 
       const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [
-          mongoMemoryOrmModule.getMikroOrmModule([
-            Event,
-            EventReward,
-            PointReward,
-            ItemReward,
-            CouponReward,
-            BadgeReward,
-          ]),
-        ],
-        providers: [EventService],
+        imports: [TestAppModule.forTest(mongoMemoryOrmModule)],
       }).compile();
 
       orm = moduleFixture.get<MikroORM>(MikroORM);

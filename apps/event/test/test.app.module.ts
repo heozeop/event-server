@@ -6,6 +6,7 @@ import { EventController } from '../src/controllers/event.controller';
 import { RewardRequestController } from '../src/controllers/reward-request.controller';
 import { RewardController } from '../src/controllers/reward.controller';
 import { EventReward } from '../src/entities/event-reward.entity';
+import { Event } from '../src/entities/event.entity';
 import { RewardRequest } from '../src/entities/reward-request.entity';
 import {
   BadgeReward,

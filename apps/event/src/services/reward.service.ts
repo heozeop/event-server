@@ -6,7 +6,7 @@ import {
   CreatePointRewardDto,
 } from '@libs/dtos';
 import { RewardType } from '@libs/enums';
-import { EntityRepository } from '@mikro-orm/core';
+import { EntityManager, EntityRepository } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
@@ -27,10 +27,17 @@ import { EventService } from './event.service';
 @Injectable()
 export class RewardService {
   constructor(
-    @InjectRepository(RewardBase)
-    private readonly rewardRepository: EntityRepository<RewardBase>,
+    @InjectRepository(PointReward)
+    private readonly pointRewardRepository: EntityRepository<PointReward>,
+    @InjectRepository(ItemReward)
+    private readonly itemRewardRepository: EntityRepository<ItemReward>,
+    @InjectRepository(CouponReward)
+    private readonly couponRewardRepository: EntityRepository<CouponReward>,
+    @InjectRepository(BadgeReward)
+    private readonly badgeRewardRepository: EntityRepository<BadgeReward>,
     @InjectRepository(EventReward)
     private readonly eventRewardRepository: EntityRepository<EventReward>,
+    private readonly em: EntityManager,
     private readonly eventService: EventService,
   ) {}
 
@@ -39,8 +46,8 @@ export class RewardService {
    */
   async createPointReward(dto: CreatePointRewardDto): Promise<PointReward> {
     const reward = new PointReward(dto.points);
-    await this.rewardRepository.create(reward);
-    await this.rewardRepository.getEntityManager().flush();
+    await this.pointRewardRepository.create(reward);
+    await this.pointRewardRepository.getEntityManager().flush();
     return reward;
   }
 
@@ -49,8 +56,8 @@ export class RewardService {
    */
   async createItemReward(dto: CreateItemRewardDto): Promise<ItemReward> {
     const reward = new ItemReward(dto.itemId, dto.quantity);
-    await this.rewardRepository.create(reward);
-    await this.rewardRepository.getEntityManager().flush();
+    await this.itemRewardRepository.create(reward);
+    await this.itemRewardRepository.getEntityManager().flush();
     return reward;
   }
 
@@ -59,8 +66,8 @@ export class RewardService {
    */
   async createCouponReward(dto: CreateCouponRewardDto): Promise<CouponReward> {
     const reward = new CouponReward(dto.couponCode, dto.expiry);
-    await this.rewardRepository.create(reward);
-    await this.rewardRepository.getEntityManager().flush();
+    await this.couponRewardRepository.create(reward);
+    await this.couponRewardRepository.getEntityManager().flush();
     return reward;
   }
 
@@ -69,8 +76,8 @@ export class RewardService {
    */
   async createBadgeReward(dto: CreateBadgeRewardDto): Promise<BadgeReward> {
     const reward = new BadgeReward(dto.badgeId);
-    await this.rewardRepository.create(reward);
-    await this.rewardRepository.getEntityManager().flush();
+    await this.badgeRewardRepository.create(reward);
+    await this.badgeRewardRepository.getEntityManager().flush();
     return reward;
   }
 
@@ -103,20 +110,13 @@ export class RewardService {
    * Get a reward by ID
    */
   async getRewardById(id: string): Promise<RewardBase> {
-    try {
-      const reward = await this.rewardRepository.findOne({
-        _id: new ObjectId(id),
-      });
-      if (!reward) {
-        throw new NotFoundException(`Reward with ID ${id} not found`);
-      }
-      return reward;
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
+    const reward = await this.em.findOne(RewardBase, {
+      _id: new ObjectId(id),
+    });
+    if (!reward) {
       throw new NotFoundException(`Reward with ID ${id} not found`);
     }
+    return reward;
   }
 
   /**
