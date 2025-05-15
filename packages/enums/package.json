@@ -1,0 +1,17 @@
+{
+  "name": "@libs/enums",
+  "version": "1.0.0",
+  "description": "Common enums for NestJS applications",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": ["nestjs", "enums"],
+  "author": "heozeop",
+  "license": "ISC",
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0"
+  }
+}
