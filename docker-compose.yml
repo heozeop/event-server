@@ -7,16 +7,21 @@ services:
       dockerfile: apps/gateway/docker/Dockerfile.dev
     container_name: gateway
     ports:
-      - "3333:3000"
+      - "3010:3000"
+      - "3333:3333"
     environment:
       - NODE_ENV=development
+      - GATEWAY_HOST=0.0.0.0
+      - GATEWAY_PORT=3000
+      - HTTP_PORT=3333
       - AUTH_SERVICE_HOST=auth
       - AUTH_SERVICE_PORT=3001
       - EVENT_SERVICE_HOST=event
       - EVENT_SERVICE_PORT=3002
-      - JWT_SECRET=dev-secret-key
     networks:
       - event-network
+    volumes:
+      - .:/app
     depends_on:
       - auth
       - event
@@ -33,10 +38,11 @@ services:
     container_name: auth
     environment:
       - NODE_ENV=development
-      - MONGO_URI=mongodb://mongo-user:27017/user-db
-      - JWT_SECRET=dev-secret-key
+      - MONGODB_URI=mongodb://mongo-user:27017
     networks:
       - event-network
+    volumes:
+      - .:/app
     depends_on:
       - mongo-user
     logging:
@@ -52,9 +58,11 @@ services:
     container_name: event
     environment:
       - NODE_ENV=development
-      - MONGO_URI=mongodb://mongo-event:27017/event-db
+      - MONGODB_URI=mongodb://mongo-event:27017
     networks:
       - event-network
+    volumes:
+      - .:/app
     depends_on:
       - mongo-event
     logging:
