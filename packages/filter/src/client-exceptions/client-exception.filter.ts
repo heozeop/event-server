@@ -1,3 +1,4 @@
+import { ExceptionDto } from '@libs/dtos';
 import {
   ArgumentsHost,
   Catch,
@@ -13,13 +14,23 @@ import { Request, Response } from 'express';
  * and returns a standardized error response
  */
 @Catch()
-export class HttpExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(HttpExceptionFilter.name);
+export class ClientServiceExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(ClientServiceExceptionFilter.name);
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+
+    if(typeof exception === 'object' && Object.hasOwn(exception as object, 'error')) {
+      const error = (exception as { error: ExceptionDto }).error;
+      const status = error.statusCode;
+      const message = error.message;
+      const timestamp = error.timestamp;
+
+      return response.status(status).json({ message, timestamp, path: request.url });
+    }
+
 
     const status =
       exception instanceof HttpException

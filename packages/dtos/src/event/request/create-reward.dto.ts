@@ -18,10 +18,6 @@ export class CreateRewardDto {
  * DTO for creating point rewards
  */
 export class CreatePointRewardDto extends CreateRewardDto {
-  @IsString()
-  @IsNotEmpty()
-  name!: string;
-
   @IsNumber()
   @IsPositive()
   points!: number;
@@ -31,10 +27,6 @@ export class CreatePointRewardDto extends CreateRewardDto {
  * DTO for creating item rewards
  */
 export class CreateItemRewardDto extends CreateRewardDto {
-  @IsString()
-  @IsNotEmpty()
-  name!: string;
-
   @IsString()
   @IsNotEmpty()
   itemId!: string;
@@ -50,10 +42,6 @@ export class CreateItemRewardDto extends CreateRewardDto {
 export class CreateCouponRewardDto extends CreateRewardDto {
   @IsString()
   @IsNotEmpty()
-  name!: string;
-
-  @IsString()
-  @IsNotEmpty()
   couponCode!: string;
 
   @IsDate()
@@ -65,10 +53,6 @@ export class CreateCouponRewardDto extends CreateRewardDto {
  * DTO for creating badge rewards
  */
 export class CreateBadgeRewardDto extends CreateRewardDto {
-  @IsString()
-  @IsNotEmpty()
-  name!: string;
-
   @IsString()
   @IsNotEmpty()
   badgeId!: string;

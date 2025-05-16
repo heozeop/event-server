@@ -1,4 +1,3 @@
-export * from './http-exception.filter';
-export * from './http-exceptions.module';
-export * from './providers/global-exception-filter.provider';
+export * from './client-exceptions/http-exceptions.module';
+export * from './micro-exceptions/micro-service-exception.module';
 
