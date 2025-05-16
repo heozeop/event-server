@@ -5,6 +5,7 @@ import {
   QueryByIdDto,
   QueryUserByEmailDto,
   UpdateRolesDto,
+  UserResponseDto,
 } from '@libs/dtos';
 import { Role } from '@libs/enums';
 import { EntityRepository, ObjectId } from '@mikro-orm/mongodb';
@@ -26,7 +27,7 @@ export class UserService {
   ) {}
 
   @MessagePattern({ cmd: AUTH_CMP.CREATE_USER })
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
+  async createUser(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     const { email, password } = createUserDto;
 
     // Check if user exists
@@ -53,11 +54,11 @@ export class UserService {
 
     await this.userRepository.getEntityManager().flush();
 
-    return user;
+    return UserResponseDto.fromEntity(user);
   }
 
   @MessagePattern({ cmd: AUTH_CMP.GET_USER_BY_ID })
-  async getUserById({ id }: QueryByIdDto): Promise<User> {
+  async getUserById({ id }: QueryByIdDto): Promise<UserResponseDto> {
     const user = await this.userRepository.findOne({
       _id: new ObjectId(id),
     });
@@ -66,12 +67,20 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return UserResponseDto.fromEntity(user);
   }
 
   @MessagePattern({ cmd: AUTH_CMP.GET_USER_BY_EMAIL })
-  async getUserByEmail({ email }: QueryUserByEmailDto): Promise<User | null> {
-    return await this.userRepository.findOne({ email });
+  async getUserByEmail({
+    email,
+  }: QueryUserByEmailDto): Promise<UserResponseDto> {
+    const user = await this.userRepository.findOne({ email });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return UserResponseDto.fromEntity(user);
   }
 
   @MessagePattern({ cmd: AUTH_CMP.UPDATE_USER_ROLES })
@@ -81,17 +90,27 @@ export class UserService {
   }: {
     id: string;
     updateRolesDto: UpdateRolesDto;
-  }): Promise<User> {
-    const user = await this.getUserById({ id });
+  }): Promise<UserResponseDto> {
+    const user = await this.userRepository.findOne({
+      _id: new ObjectId(id),
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     user.roles = updateRolesDto.roles;
 
     await this.userRepository.getEntityManager().flush();
 
-    return user;
+    return UserResponseDto.fromEntity(user);
   }
 
-  async validateUser(email: string, password: string): Promise<User> {
-    const user = await this.getUserByEmail({ email });
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<UserResponseDto> {
+    const user = await this.userRepository.findOne({ email });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -101,6 +120,6 @@ export class UserService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return user;
+    return UserResponseDto.fromEntity(user);
   }
 }

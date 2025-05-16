@@ -106,7 +106,7 @@ describe('UserService', () => {
       const foundUser = await service.getUserByEmail({
         email: testEmail,
       });
-      userId = foundUser?._id.toString() || '';
+      userId = foundUser?.id || '';
     });
 
     it('should return a user by id', async () => {
@@ -149,14 +149,13 @@ describe('UserService', () => {
       expect(result?.email).toBe(testEmail);
     });
 
-    it('should return null if user not found', async () => {
-      // Act
-      const result = await service.getUserByEmail({
-        email: 'nonexistent@example.com',
-      });
-
-      // Assert
-      expect(result).toBeNull();
+    it('should throw NotFoundException if user not found', async () => {
+      // Act & Assert
+      await expect(
+        service.getUserByEmail({
+          email: 'nonexistent@example.com',
+        }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -174,7 +173,7 @@ describe('UserService', () => {
       const foundUser = await service.getUserByEmail({
         email: uniqueEmail,
       });
-      userId = foundUser?._id.toString() || '';
+      userId = foundUser?.id || '';
     });
 
     it('should update user roles successfully', async () => {
