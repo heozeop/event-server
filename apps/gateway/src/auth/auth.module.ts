@@ -27,7 +27,7 @@ import { JwtStrategy } from './jwt.strategy';
         useFactory: (configService: ConfigService) => ({
           transport: Transport.TCP,
           options: {
-            host: configService.get<string>('AUTH_SERVICE_HOST', 'localhost'),
+            host: configService.get<string>('AUTH_SERVICE_HOST', 'auth'),
             port: configService.get<number>('AUTH_SERVICE_PORT', 3001),
           },
         }),

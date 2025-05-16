@@ -13,7 +13,7 @@ import { EventController } from './event.controller';
         useFactory: (configService: ConfigService) => ({
           transport: Transport.TCP,
           options: {
-            host: configService.get<string>('EVENT_SERVICE_HOST', 'localhost'),
+            host: configService.get<string>('EVENT_SERVICE_HOST', 'event'),
             port: configService.get<number>('EVENT_SERVICE_PORT', 3002),
           },
         }),
