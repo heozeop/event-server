@@ -1,39 +1,101 @@
+version: '3.8'
+
 services:
   gateway:
-    build: ./apps/gateway
-    networks:
-      - app-net
+    build:
+      context: .
+      dockerfile: apps/gateway/docker/Dockerfile.dev
+    container_name: gateway
     ports:
-      - "3000:3000"
+      - "3333:3000"
+    environment:
+      - NODE_ENV=development
+      - AUTH_SERVICE_HOST=auth
+      - AUTH_SERVICE_PORT=3001
+      - EVENT_SERVICE_HOST=event
+      - EVENT_SERVICE_PORT=3002
+      - JWT_SECRET=dev-secret-key
+    networks:
+      - event-network
+    depends_on:
+      - auth
+      - event
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   auth:
-    build: ./apps/auth
+    build:
+      context: .
+      dockerfile: apps/auth/docker/Dockerfile.dev
+    container_name: auth
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo-user:27017/user-db
+      - JWT_SECRET=dev-secret-key
     networks:
-      - app-net
+      - event-network
+    depends_on:
+      - mongo-user
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   event:
-    build: ./apps/event
+    build:
+      context: .
+      dockerfile: apps/event/docker/Dockerfile.dev
+    container_name: event
+    environment:
+      - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo-event:27017/event-db
     networks:
-      - app-net
+      - event-network
+    depends_on:
+      - mongo-event
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   mongo-user:
     image: mongo:latest
     container_name: mongo-user
+    ports:
+      - "27017:27017"
     volumes:
       - user-data:/data/db
     networks:
-      - app-net
+      - event-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   mongo-event:
     image: mongo:latest
     container_name: mongo-event
+    ports:
+      - "27018:27017"
     volumes:
       - event-data:/data/db
     networks:
-      - app-net
+      - event-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  app-net:
+  event-network:
+    driver: bridge
 
 volumes:
   user-data:

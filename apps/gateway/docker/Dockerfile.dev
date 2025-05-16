@@ -1,0 +1,16 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY . .
+
+RUN npm install -g pnpm
+RUN pnpm install
+
+EXPOSE 3000
+
+# Set the working directory to the gateway app
+WORKDIR /app/apps/gateway
+
+# Use the shell form of CMD to properly execute the command
+CMD ["pnpm", "start:dev"] 
