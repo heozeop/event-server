@@ -200,7 +200,100 @@ export class ApiService {
 - fatal
 - error
 - warn
-- info (default)
+- info
 - debug
 - trace
-- silent 
+
+## Sensitive Data Filtering
+
+The logger provides built-in functionality to automatically mask sensitive information in logs, helping you comply with privacy regulations and prevent accidental exposure of sensitive data.
+
+### Basic Usage with Filtering
+
+```typescript
+import { LoggerFactory } from '@libs/logger';
+
+// Create a logger with sensitive data filtering enabled
+const logger = LoggerFactory.createLogger({
+  serviceName: 'my-service',
+  sensitiveDataOptions: {
+    enabled: true, // Enable filtering (enabled by default)
+    maskValue: '[REDACTED]' // Optional custom mask value
+  }
+});
+
+// Logs with sensitive data will be automatically masked
+logger.log('User info', { 
+  name: 'John Doe',
+  email: 'john.doe@example.com', // Will be masked
+  password: 'secret123'  // Will be masked
+});
+
+// Sensitive patterns in messages are also masked
+logger.log('Processing payment with card 4111-1111-1111-1111'); // Card number will be masked
+```
+
+### Customizing Filtering Rules
+
+```typescript
+import { LoggerFactory } from '@libs/logger';
+
+const logger = LoggerFactory.createLogger({
+  serviceName: 'my-service',
+  sensitiveDataOptions: {
+    // Custom mask value
+    maskValue: '***',
+    
+    // Override default sensitive keys
+    sensitiveKeys: [
+      'password', 'token', 'apiKey',
+      'myCustomSecret', 'internalCode'
+    ],
+    
+    // Add custom regex patterns to mask
+    sensitivePatterns: [
+      /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, // Email
+      /\b(?:\d{4}[-\s]?){3}\d{4}\b/g,                     // Credit card
+      /\b\d{3}[-]?\d{2}[-]?\d{4}\b/g,                     // SSN
+      /myapp-[a-z0-9]{8}-[a-z0-9]{4}/g                    // Custom app tokens
+    ],
+    
+    // Mask specific object paths
+    objectPaths: [
+      'req.body.password',
+      'req.headers.authorization',
+      'user.credentials.token',
+      'data.personalInfo.socialSecurityNumber'
+    ]
+  }
+});
+```
+
+### NestJS Module Configuration
+
+For NestJS applications, you can configure sensitive data filtering through the module:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { LoggerModule } from '@libs/logger';
+
+@Module({
+  imports: [
+    LoggerModule.forRoot({
+      serviceName: 'my-service',
+      prettyPrint: process.env.NODE_ENV !== 'production',
+      logLevel: process.env.LOG_LEVEL || 'info',
+      sensitiveDataOptions: {
+        enabled: true,
+        maskValue: '[REDACTED]',
+        sensitiveKeys: ['password', 'secret', 'token', 'apiKey'],
+        objectPaths: [
+          'req.body.password',
+          'req.headers.authorization'
+        ]
+      }
+    })
+  ]
+})
+export class AppModule {}
+``` 

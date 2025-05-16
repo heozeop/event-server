@@ -1,5 +1,6 @@
 import * as pino from 'pino';
 import { LogLevel, PinoLogLevelManager } from '../core/log-level-manager';
+import { SensitiveDataFilter } from '../filters';
 import { LogContext, LoggerService } from '../interfaces';
 
 export interface PinoLoggerOptions {
@@ -7,6 +8,13 @@ export interface PinoLoggerOptions {
   prettyPrint?: boolean;
   logLevel?: LogLevel;
   customTransports?: pino.TransportSingleOptions[];
+  sensitiveDataOptions?: {
+    maskValue?: string;
+    sensitiveKeys?: string[];
+    sensitivePatterns?: RegExp[];
+    objectPaths?: string[];
+    enabled?: boolean;
+  };
 }
 
 export class PinoLoggerService implements LoggerService {
@@ -14,10 +22,16 @@ export class PinoLoggerService implements LoggerService {
   private readonly serviceName: string;
   private logLevelManager: PinoLogLevelManager;
   private baseContext: LogContext = {};
+  private sensitiveDataFilter: SensitiveDataFilter | null = null;
 
   constructor(options: PinoLoggerOptions) {
     this.serviceName = options.serviceName;
     this.logLevelManager = new PinoLogLevelManager(options.logLevel);
+
+    // Initialize sensitive data filter if enabled
+    if (options.sensitiveDataOptions?.enabled !== false) {
+      this.sensitiveDataFilter = new SensitiveDataFilter(options.sensitiveDataOptions);
+    }
 
     const pinoConfig: pino.LoggerOptions = {
       level: this.logLevelManager.getLogLevel(),
@@ -57,11 +71,25 @@ export class PinoLoggerService implements LoggerService {
   }
 
   private formatContext(context?: LogContext): LogContext {
-    return {
+    const mergedContext = {
       ...this.baseContext,
       ...context,
       serviceId: this.serviceName
     };
+
+    // Apply sensitive data masking if enabled
+    if (this.sensitiveDataFilter) {
+      return this.sensitiveDataFilter.mask(mergedContext);
+    }
+
+    return mergedContext;
+  }
+
+  private maskMessage(message: string): string {
+    if (this.sensitiveDataFilter && typeof message === 'string') {
+      return this.sensitiveDataFilter.mask(message);
+    }
+    return message;
   }
 
   setContext(context: LogContext): LoggerService {
@@ -70,29 +98,30 @@ export class PinoLoggerService implements LoggerService {
   }
 
   log(message: string, context?: LogContext): void {
-    this.logger.info(this.formatContext(context), message);
+    this.logger.info(this.formatContext(context), this.maskMessage(message));
   }
 
   error(message: string, trace?: string, context?: LogContext): void {
     const errorContext = this.formatContext(context);
     
     if (trace) {
-      errorContext.stack = trace;
+      errorContext.stack = this.sensitiveDataFilter ? 
+        this.sensitiveDataFilter.mask(trace) : trace;
     }
     
-    this.logger.error(errorContext, message);
+    this.logger.error(errorContext, this.maskMessage(message));
   }
 
   warn(message: string, context?: LogContext): void {
-    this.logger.warn(this.formatContext(context), message);
+    this.logger.warn(this.formatContext(context), this.maskMessage(message));
   }
 
   debug(message: string, context?: LogContext): void {
-    this.logger.debug(this.formatContext(context), message);
+    this.logger.debug(this.formatContext(context), this.maskMessage(message));
   }
 
   verbose(message: string, context?: LogContext): void {
-    this.logger.trace(this.formatContext(context), message);
+    this.logger.trace(this.formatContext(context), this.maskMessage(message));
   }
 
   setLogLevel(level: LogLevel): void {
