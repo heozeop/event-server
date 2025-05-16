@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ClsService } from 'nestjs-cls';
-import { LogContext } from '../interfaces';
+import { LogContext } from '../..';
 
 /**
  * Store for managing log context across async operations using NestJS CLS

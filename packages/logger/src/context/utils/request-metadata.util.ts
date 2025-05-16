@@ -1,4 +1,4 @@
-import { LogContext } from '../interfaces';
+import { LogContext } from '../../interfaces';
 import { RequestIdUtil } from './request-id.util';
 
 /**

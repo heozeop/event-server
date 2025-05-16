@@ -1,4 +1,4 @@
-import { LogLevelManager } from './interfaces';
+import { LogLevelManager } from '../interfaces';
 
 export type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
 

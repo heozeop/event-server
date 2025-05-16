@@ -1,9 +1,8 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { ClsService } from 'nestjs-cls';
 import { Observable } from 'rxjs';
-import { LogContext } from '../interfaces';
-import { RequestIdUtil } from './request-id.util';
-import { RequestMetadataUtil } from './request-metadata.util';
+import { LogContext, RequestIdUtil } from '../..';
+import { RequestMetadataUtil } from '../utils/request-metadata.util';
 
 /**
  * NestJS interceptor that sets up log context for each request

@@ -1,6 +1,6 @@
 import * as pino from 'pino';
-import { LogContext, LoggerService } from './interfaces';
-import { LogLevel, PinoLogLevelManager } from './log-level-manager';
+import { LogLevel, PinoLogLevelManager } from '../core/log-level-manager';
+import { LogContext, LoggerService } from '../interfaces';
 
 export interface PinoLoggerOptions {
   serviceName: string;
