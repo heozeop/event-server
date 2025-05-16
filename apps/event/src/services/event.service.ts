@@ -4,6 +4,7 @@ import {
   QueryEventDto,
   UpdateEventDto,
 } from '@libs/dtos';
+import { LogExecution } from '@libs/logger';
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
@@ -20,6 +21,12 @@ export class EventService {
   /**
    * Create a new event
    */
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Creating event',
+    exitMessage: 'Event created',
+  })
   async createEvent(createEventDto: CreateEventDto): Promise<Event> {
     const event = this.eventRepository.create({
       name: createEventDto.name,
@@ -42,6 +49,12 @@ export class EventService {
   /**
    * Get a single event by ID
    */
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting event by ID',
+    exitMessage: 'Event retrieved',
+  })
   async getEventById({ id }: QueryByIdDto): Promise<Event> {
     const event = await this.eventRepository.findOne({
       _id: new ObjectId(id),
@@ -57,6 +70,12 @@ export class EventService {
   /**
    * Get events with optional filtering
    */
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting events',
+    exitMessage: 'Events retrieved',
+  })
   async getEvents({
     status,
     active,
@@ -93,6 +112,12 @@ export class EventService {
   /**
    * Update an event
    */
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Updating event',
+    exitMessage: 'Event updated',
+  })
   async updateEvent({
     id,
     name,
@@ -128,6 +153,12 @@ export class EventService {
   /**
    * Delete an event
    */
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Deleting event',
+    exitMessage: 'Event deleted',
+  })
   async deleteEvent({ id }: QueryByIdDto): Promise<void> {
     const event = await this.getEventById({ id });
     await this.eventRepository.getEntityManager().removeAndFlush(event);

@@ -214,6 +214,9 @@ importers:
       '@libs/filter':
         specifier: workspace:*
         version: link:../../packages/filter
+      '@libs/logger':
+        specifier: workspace:*
+        version: link:../../packages/logger
       '@mikro-orm/core':
         specifier: ^6.4.15
         version: 6.4.15

@@ -1,4 +1,4 @@
-import { MikroORM } from '@mikro-orm/core';
+import { LogContextInterceptor } from '@libs/logger';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
@@ -13,9 +13,13 @@ async function bootstrap() {
     },
   });
 
-  const orm = app.get(MikroORM);
+  const requestContextInterceptor = app.get(RequestContextInterceptor);
+  const loggerContextInterceptor = app.get(LogContextInterceptor);
 
-  app.useGlobalInterceptors(new RequestContextInterceptor(orm));
+  app.useGlobalInterceptors(
+    requestContextInterceptor,
+    loggerContextInterceptor,
+  );
 
   await app.listen();
 }

@@ -1,6 +1,8 @@
 import { MicroServiceExceptionModule } from '@libs/filter';
+import { LoggerModule } from '@libs/logger';
+import { MikroORM } from '@mikro-orm/core';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
   EventController,
   RewardController,
@@ -17,6 +19,15 @@ import { EventService, RewardRequestService, RewardService } from './services';
     }),
     DatabaseModule,
     MicroServiceExceptionModule,
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        serviceName: 'event-service',
+        prettyPrint: configService.get('NODE_ENV') !== 'production',
+        logLevel: configService.get('LOG_LEVEL') || 'info',
+      }),
+    }),
   ],
   providers: [
     EventService,
@@ -25,5 +36,14 @@ import { EventService, RewardRequestService, RewardService } from './services';
     RequestContextInterceptor,
   ],
   controllers: [EventController, RewardRequestController, RewardController],
+  exports: [
+    {
+      provide: RequestContextInterceptor,
+      useFactory: (orm: MikroORM) => {
+        return new RequestContextInterceptor(orm);
+      },
+      inject: [MikroORM],
+    },
+  ],
 })
 export class AppModule {}
