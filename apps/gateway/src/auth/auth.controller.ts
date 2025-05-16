@@ -2,6 +2,7 @@ import { Public } from '@/common/decorators/public.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
+import { LogPerformance } from '@/common/logging';
 import { AUTH_CMP } from '@libs/cmd';
 import {
   CreateUserDto,
@@ -47,6 +48,7 @@ export class AuthController {
     type: LoginResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @LogPerformance('auth-login')
   async login(@Body() loginDto: LoginDto) {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.LOGIN }, loginDto),
@@ -59,6 +61,7 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User successfully created' })
   @ApiResponse({ status: 400, description: 'Bad request - invalid data' })
   @ApiResponse({ status: 409, description: 'Conflict - user already exists' })
+  @LogPerformance('auth-create-user')
   async createUser(@Body() createUserDto: CreateUserDto) {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.CREATE_USER }, createUserDto),
@@ -77,6 +80,7 @@ export class AuthController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'User not found' })
+  @LogPerformance('auth-get-user-by-id')
   async getUserById(@Param('id') id: string) {
     console.log('getUserById', id);
     return await lastValueFrom(
@@ -96,6 +100,7 @@ export class AuthController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'User not found' })
+  @LogPerformance('auth-get-user-by-email')
   async getUserByEmail(@Param('email') email: string) {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.GET_USER_BY_EMAIL }, { email }),
@@ -114,6 +119,7 @@ export class AuthController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'User not found' })
+  @LogPerformance('auth-update-user-roles')
   async updateUserRoles(
     @Param('id') id: string,
     @Body() updateRolesDto: UpdateRolesDto,
@@ -130,6 +136,7 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'Test endpoint' })
   @ApiResponse({ status: 200, description: 'Service is working properly' })
+  @LogPerformance('auth-test')
   async test() {
     return { status: 'ok', service: 'auth' };
   }

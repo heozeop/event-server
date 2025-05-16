@@ -1,45 +1,60 @@
+import {
+  LogContextInterceptor,
+  LogContextStore,
+  PinoLoggerService,
+  PinoLogLevelManager,
+  SensitiveDataFilter,
+} from '@libs/logger';
 import { Module } from '@nestjs/common';
-import { IncomingMessage, ServerResponse } from 'http';
-import { LoggerModule } from 'nestjs-pino';
+import { ClsModule } from 'nestjs-cls';
 
 @Module({
   imports: [
-    LoggerModule.forRoot({
-      pinoHttp: {
-        name: 'gateway-service',
-        level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
-        transport:
-          process.env.NODE_ENV !== 'production'
-            ? { target: 'pino-pretty' }
-            : undefined,
-        customProps: () => ({
-          context: 'HTTP',
-        }),
-        customLogLevel: function (
-          req: IncomingMessage,
-          res: ServerResponse,
-          err: Error | undefined,
-        ) {
-          if (res.statusCode >= 400 && res.statusCode < 500) {
-            return 'warn';
-          } else if (res.statusCode >= 500 || err) {
-            return 'error';
-          }
-          return 'info';
-        },
-        redact: {
-          paths: [
+    ClsModule.forRoot({
+      global: true,
+      middleware: {
+        mount: true,
+        generateId: true,
+      },
+    }),
+  ],
+  providers: [
+    LogContextStore,
+    LogContextInterceptor,
+    {
+      provide: PinoLoggerService,
+      useFactory: () => {
+        return new PinoLoggerService({
+          serviceName: 'gateway-service',
+          prettyPrint: process.env.NODE_ENV !== 'production',
+          logLevel: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
+        });
+      },
+    },
+    {
+      provide: SensitiveDataFilter,
+      useFactory: () => {
+        return new SensitiveDataFilter({
+          maskValue: '***MASKED***',
+          objectPaths: [
             'req.headers.authorization',
             'req.headers.cookie',
             'req.body.password',
             'req.body.token',
             'req.body.secret',
           ],
-          censor: '***MASKED***',
-        },
+        });
       },
-    }),
+    },
+    PinoLogLevelManager,
   ],
-  exports: [LoggerModule],
+  exports: [
+    ClsModule,
+    LogContextStore,
+    LogContextInterceptor,
+    PinoLoggerService,
+    PinoLogLevelManager,
+    SensitiveDataFilter,
+  ],
 })
 export class LoggingModule {}
