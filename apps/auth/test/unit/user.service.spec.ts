@@ -103,7 +103,9 @@ describe('UserService', () => {
         password: testPassword,
       });
 
-      const foundUser = await service.getUserByEmail(testEmail);
+      const foundUser = await service.getUserByEmail({
+        email: testEmail,
+      });
       userId = foundUser?._id.toString() || '';
     });
 
@@ -138,7 +140,9 @@ describe('UserService', () => {
 
     it('should return a user by email', async () => {
       // Act
-      const result = await service.getUserByEmail(testEmail);
+      const result = await service.getUserByEmail({
+        email: testEmail,
+      });
 
       // Assert
       expect(result).toBeDefined();
@@ -147,7 +151,9 @@ describe('UserService', () => {
 
     it('should return null if user not found', async () => {
       // Act
-      const result = await service.getUserByEmail('nonexistent@example.com');
+      const result = await service.getUserByEmail({
+        email: 'nonexistent@example.com',
+      });
 
       // Assert
       expect(result).toBeNull();
@@ -165,7 +171,9 @@ describe('UserService', () => {
         password: testPassword,
       });
 
-      const foundUser = await service.getUserByEmail(uniqueEmail);
+      const foundUser = await service.getUserByEmail({
+        email: uniqueEmail,
+      });
       userId = foundUser?._id.toString() || '';
     });
 

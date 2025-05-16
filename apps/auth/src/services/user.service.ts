@@ -1,6 +1,11 @@
 import { User } from '@/entities/user.entity';
 import { AUTH_CMP } from '@libs/cmd';
-import { CreateUserDto, QueryByIdDto, UpdateRolesDto } from '@libs/dtos';
+import {
+  CreateUserDto,
+  QueryByIdDto,
+  QueryUserByEmailDto,
+  UpdateRolesDto,
+} from '@libs/dtos';
 import { Role } from '@libs/enums';
 import { EntityRepository, ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
@@ -64,7 +69,8 @@ export class UserService {
     return user;
   }
 
-  async getUserByEmail(email: string): Promise<User | null> {
+  @MessagePattern({ cmd: AUTH_CMP.GET_USER_BY_EMAIL })
+  async getUserByEmail({ email }: QueryUserByEmailDto): Promise<User | null> {
     return await this.userRepository.findOne({ email });
   }
 
@@ -85,7 +91,7 @@ export class UserService {
   }
 
   async validateUser(email: string, password: string): Promise<User> {
-    const user = await this.getUserByEmail(email);
+    const user = await this.getUserByEmail({ email });
     if (!user) {
       throw new NotFoundException('User not found');
     }
