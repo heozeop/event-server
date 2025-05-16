@@ -1,5 +1,6 @@
 import { User } from '@/entities/user.entity';
-import { CreateUserDto, UpdateRolesDto } from '@libs/dtos';
+import { AUTH_CMP } from '@libs/cmd';
+import { CreateUserDto, QueryByIdDto, UpdateRolesDto } from '@libs/dtos';
 import { Role } from '@libs/enums';
 import { EntityRepository, ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
@@ -9,6 +10,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { MessagePattern } from '@nestjs/microservices';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -18,6 +20,7 @@ export class UserService {
     private readonly userRepository: EntityRepository<User>,
   ) {}
 
+  @MessagePattern({ cmd: AUTH_CMP.CREATE_USER })
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const { email, password } = createUserDto;
 
@@ -48,7 +51,8 @@ export class UserService {
     return user;
   }
 
-  async getUserById(id: string): Promise<User> {
+  @MessagePattern({ cmd: AUTH_CMP.GET_USER_BY_ID })
+  async getUserById({ id }: QueryByIdDto): Promise<User> {
     const user = await this.userRepository.findOne({
       _id: new ObjectId(id),
     });
@@ -64,8 +68,15 @@ export class UserService {
     return await this.userRepository.findOne({ email });
   }
 
-  async updateRoles(id: string, updateRolesDto: UpdateRolesDto): Promise<User> {
-    const user = await this.getUserById(id);
+  @MessagePattern({ cmd: AUTH_CMP.UPDATE_USER_ROLES })
+  async updateRoles({
+    id,
+    updateRolesDto,
+  }: {
+    id: string;
+    updateRolesDto: UpdateRolesDto;
+  }): Promise<User> {
+    const user = await this.getUserById({ id });
     user.roles = updateRolesDto.roles;
 
     await this.userRepository.getEntityManager().flush();

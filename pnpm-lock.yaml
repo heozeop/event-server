@@ -14,6 +14,9 @@ importers:
 
   apps/auth:
     dependencies:
+      '@libs/cmd':
+        specifier: workspace:*
+        version: link:../../packages/cmd
       '@libs/dtos':
         specifier: workspace:*
         version: link:../../packages/dtos
@@ -44,6 +47,9 @@ importers:
       '@nestjs/jwt':
         specifier: ^11.0.0
         version: 11.0.0(@nestjs/common@11.1.1)
+      '@nestjs/microservices':
+        specifier: ^11.1.1
+        version: 11.1.1(@nestjs/common@11.1.1)(@nestjs/core@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/passport':
         specifier: ^11.0.5
         version: 11.0.5(@nestjs/common@11.1.1)(passport@0.7.0)

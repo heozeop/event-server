@@ -1,8 +1,9 @@
 import { User } from '@/entities/user.entity';
+import { AUTH_CMP } from '@libs/cmd';
 import { LoginDto } from '@libs/dtos';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { MessagePattern } from '@nestjs/microservices';
 import { UserService } from './user.service';
 
 @Injectable()
@@ -10,9 +11,9 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
   ) {}
 
+  @MessagePattern({ cmd: AUTH_CMP.LOGIN })
   async login(
     loginDto: LoginDto,
   ): Promise<{ accessToken: string; user: User }> {

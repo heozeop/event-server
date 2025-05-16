@@ -109,7 +109,7 @@ describe('UserService', () => {
 
     it('should return a user by id', async () => {
       // Act
-      const result = await service.getUserById(userId);
+      const result = await service.getUserById({ id: userId });
 
       // Assert
       expect(result).toBeDefined();
@@ -121,7 +121,7 @@ describe('UserService', () => {
       const nonExistentId = new ObjectId().toString();
 
       // Act & Assert
-      await expect(service.getUserById(nonExistentId)).rejects.toThrow(
+      await expect(service.getUserById({ id: nonExistentId })).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -176,7 +176,10 @@ describe('UserService', () => {
       };
 
       // Act
-      const result = await service.updateRoles(userId, updateRolesDto);
+      const result = await service.updateRoles({
+        id: userId,
+        updateRolesDto,
+      });
 
       // Assert
       expect(result).toBeDefined();
@@ -185,7 +188,7 @@ describe('UserService', () => {
       );
 
       // Verify roles were updated in database
-      const updatedUser = await service.getUserById(userId);
+      const updatedUser = await service.getUserById({ id: userId });
       expect(updatedUser.roles).toEqual(
         expect.arrayContaining(updateRolesDto.roles),
       );

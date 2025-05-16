@@ -3,8 +3,6 @@ import { MongoMemoryOrmModule } from '@libs/test';
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthController } from '../src/controllers/auth.controller';
-import { UserController } from '../src/controllers/user.controller';
 import { User } from '../src/entities/user.entity';
 import { AuthService } from '../src/services/auth.service';
 import { UserService } from '../src/services/user.service';
@@ -37,7 +35,6 @@ export class TestAppModule {
           }),
         }),
       ],
-      controllers: [UserController, AuthController],
       providers: [UserService, AuthService],
     };
   }
