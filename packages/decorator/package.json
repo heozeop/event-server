@@ -1,0 +1,24 @@
+{
+  "name": "@libs/decorator",
+  "version": "1.0.0",
+  "description": "Common Decorators for NestJS applications",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "nestjs",
+    "decorator"
+  ],
+  "author": "heozeop",
+  "license": "ISC",
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0"
+  },
+  "dependencies": {
+    "@libs/enums": "workspace:*",
+    "@libs/types": "workspace:*"
+  }
+}
