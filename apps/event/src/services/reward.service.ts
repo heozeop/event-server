@@ -1,4 +1,3 @@
-import { EVENT_CMP } from '@libs/cmd';
 import {
   CreateBadgeRewardDto,
   CreateCouponRewardDto,
@@ -19,7 +18,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
 import { EventReward } from '../entities/event-reward.entity';
 import {
   BadgeReward,
@@ -90,7 +88,6 @@ export class RewardService {
   /**
    * Create a reward of specific type
    */
-  @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD })
   async createReward({
     type,
     rewardData,
@@ -115,7 +112,6 @@ export class RewardService {
   /**
    * Get rewards with optional filtering
    */
-  @MessagePattern({ cmd: EVENT_CMP.GET_REWARDS })
   async getRewards({
     type,
     name,
@@ -143,7 +139,6 @@ export class RewardService {
   /**
    * Get a reward by ID
    */
-  @MessagePattern({ cmd: EVENT_CMP.GET_REWARD_BY_ID })
   async getRewardById({ id }: QueryByIdDto): Promise<RewardBase> {
     const reward = await this.em.findOne(RewardBase, {
       _id: new ObjectId(id),
@@ -152,13 +147,13 @@ export class RewardService {
     if (!reward) {
       throw new NotFoundException(`Reward with ID ${id} not found`);
     }
+
     return reward;
   }
 
   /**
    * Add a reward to an event
    */
-  @MessagePattern({ cmd: EVENT_CMP.ADD_REWARD_TO_EVENT })
   async addRewardToEvent({
     eventId,
     rewardId,
@@ -191,15 +186,15 @@ export class RewardService {
   /**
    * Get rewards for an event
    */
-  @MessagePattern({ cmd: EVENT_CMP.GET_REWARDS_BY_EVENT_ID })
   async getRewardsByEventId({ id }: QueryByIdDto): Promise<RewardBase[]> {
-    // First verify the event exists
-    await this.eventService.getEventById({ id });
-
     const eventRewards = await this.eventRewardRepository.find(
-      { event: { _id: new ObjectId(id) } },
-      { populate: ['reward'] },
+      { event: id },
+      { populate: ['reward'], fields: ['reward'] },
     );
+
+    if (eventRewards.length < 1) {
+      return [];
+    }
 
     return eventRewards.map((er) => er.reward);
   }
@@ -207,7 +202,6 @@ export class RewardService {
   /**
    * Remove a reward from an event
    */
-  @MessagePattern({ cmd: EVENT_CMP.REMOVE_REWARD_FROM_EVENT })
   async removeRewardFromEvent({
     eventId,
     rewardId,

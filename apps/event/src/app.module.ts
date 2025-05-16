@@ -1,14 +1,19 @@
-import { HttpExceptionsModule } from '@libs/filter';
+import { MicroServiceExceptionModule } from '@libs/filter';
 import { MongoDriver } from '@mikro-orm/mongodb';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import {
+  EventController,
+  RewardController,
+  RewardRequestController,
+} from './controllers';
 import { BadgeReward, CouponReward, ItemReward, PointReward } from './entities';
 import { EventReward } from './entities/event-reward.entity';
 import { Event } from './entities/event.entity';
 import { RewardRequest } from './entities/reward-request.entity';
+import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
 import { EventService, RewardRequestService, RewardService } from './services';
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -48,8 +53,14 @@ import { EventService, RewardRequestService, RewardService } from './services';
         BadgeReward,
       ],
     }),
-    HttpExceptionsModule,
+    MicroServiceExceptionModule,
   ],
-  providers: [EventService, RewardRequestService, RewardService],
+  providers: [
+    EventService,
+    RewardRequestService,
+    RewardService,
+    RequestContextInterceptor,
+  ],
+  controllers: [EventController, RewardRequestController, RewardController],
 })
 export class AppModule {}

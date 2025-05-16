@@ -1,4 +1,3 @@
-import { EVENT_CMP } from '@libs/cmd';
 import {
   CreateEventDto,
   QueryByIdDto,
@@ -9,7 +8,6 @@ import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
 import { Event } from '../entities/event.entity';
 
 @Injectable()
@@ -22,7 +20,6 @@ export class EventService {
   /**
    * Create a new event
    */
-  @MessagePattern({ cmd: EVENT_CMP.CREATE_EVENT })
   async createEvent(createEventDto: CreateEventDto): Promise<Event> {
     const event = this.eventRepository.create({
       name: createEventDto.name,
@@ -45,7 +42,6 @@ export class EventService {
   /**
    * Get a single event by ID
    */
-  @MessagePattern({ cmd: EVENT_CMP.GET_EVENT_BY_ID })
   async getEventById({ id }: QueryByIdDto): Promise<Event> {
     const event = await this.eventRepository.findOne({
       _id: new ObjectId(id),
@@ -61,7 +57,6 @@ export class EventService {
   /**
    * Get events with optional filtering
    */
-  @MessagePattern({ cmd: EVENT_CMP.GET_EVENTS })
   async getEvents({
     status,
     active,
@@ -98,7 +93,6 @@ export class EventService {
   /**
    * Update an event
    */
-  @MessagePattern({ cmd: EVENT_CMP.UPDATE_EVENT })
   async updateEvent({
     id,
     name,
@@ -134,7 +128,6 @@ export class EventService {
   /**
    * Delete an event
    */
-  @MessagePattern({ cmd: EVENT_CMP.REMOVE_EVENT })
   async deleteEvent({ id }: QueryByIdDto): Promise<void> {
     const event = await this.getEventById({ id });
     await this.eventRepository.getEntityManager().removeAndFlush(event);
