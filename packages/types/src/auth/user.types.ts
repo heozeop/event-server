@@ -9,3 +9,11 @@ export interface UserEntity extends CustomBaseEntity {
   passwordHash: string;
   roles: Role[];
 } 
+
+/**
+ * Interface for CurrentUser
+ */
+export interface CurrentUserData {
+  id: string;
+  roles: Role[];
+}
