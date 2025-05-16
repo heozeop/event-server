@@ -1,6 +1,6 @@
 import { LoggerService as NestLoggerService } from '@nestjs/common';
-import { LogContext } from './interfaces';
-import { PinoLoggerService } from './pino-logger.service';
+import { LogContext } from '../interfaces';
+import { PinoLoggerService } from '../services/pino-logger.service';
 
 export class NestLoggerAdapter implements NestLoggerService {
   private readonly pinoLogger: PinoLoggerService;

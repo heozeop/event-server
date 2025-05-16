@@ -1,6 +1,6 @@
+import { NestLoggerAdapter } from '../adapters/nest-logger.adapter';
+import { PinoLoggerOptions, PinoLoggerService } from '../services/pino-logger.service';
 import { LogLevel } from './log-level-manager';
-import { NestLoggerAdapter } from './nest-logger.adapter';
-import { PinoLoggerOptions, PinoLoggerService } from './pino-logger.service';
 
 export class LoggerFactory {
   private static defaultOptions: Partial<PinoLoggerOptions> = {

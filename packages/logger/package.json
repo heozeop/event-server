@@ -13,8 +13,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/uuid": "^10.0.0",
+    "nestjs-cls": "^5.4.3",
     "pino": "^8.16.2",
-    "pino-pretty": "^10.2.3"
+    "pino-pretty": "^10.2.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
@@ -27,4 +30,4 @@
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0"
   }
-} 
+}

@@ -9,6 +9,8 @@ A logging utility package for microservices based on Pino and integrated with Ne
 - Standardized log format (time, service name, request ID, level, message, metadata)
 - Log level management utilities
 - Context-based logging
+- Request context management with AsyncLocalStorage
+- Automatic context propagation between services
 
 ## Installation
 
@@ -115,6 +117,82 @@ logger.setContext({
 
 // This log will include the context
 logger.log('Processing request');
+```
+
+## Request Context Management
+
+The logger package includes a powerful context management system that automatically tracks request information across asynchronous operations and service boundaries.
+
+### Using the Log Context Interceptor
+
+```typescript
+import { Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { LogContextInterceptor } from '@libs/logger';
+
+@Module({
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LogContextInterceptor
+    }
+  ]
+})
+export class AppModule {}
+```
+
+This interceptor automatically:
+
+- Generates unique request IDs for each request if not already present
+- Extracts client IP, user agent, path, and method
+- Preserves context across async operations
+- Makes context available to all loggers within the request lifecycle
+
+### Accessing Context in Services
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { LogContextStore } from '@libs/logger';
+
+@Injectable()
+export class UserService {
+  doSomething() {
+    // Get the current request context
+    const contextStore = LogContextStore.getInstance();
+    const requestId = contextStore.getRequestId();
+    const userId = contextStore.getUserId();
+    
+    // Context is available in all async operations 
+    setTimeout(() => {
+      // Still has access to the same context
+      const sameRequestId = contextStore.getRequestId();
+    }, 100);
+  }
+}
+```
+
+### Propagating Context Between Services
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { RequestIdUtil, LogContextStore } from '@libs/logger';
+
+@Injectable()
+export class ApiService {
+  constructor(private readonly httpService: HttpService) {}
+  
+  async callAnotherService() {
+    const contextStore = LogContextStore.getInstance();
+    const requestId = contextStore.getRequestId();
+    
+    // Add request ID to outgoing HTTP request
+    const headers = RequestIdUtil.injectToHttpHeaders({}, requestId);
+    
+    // Make HTTP request with propagated context
+    return this.httpService.get('https://another-service/api', { headers });
+  }
+}
 ```
 
 ## Available Log Levels

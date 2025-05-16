@@ -1,8 +1,13 @@
 export interface LogContext {
   serviceId?: string;
+  requestId?: string;
   traceId?: string;
   spanId?: string;
   userId?: string;
+  path?: string;
+  method?: string;
+  clientIp?: string;
+  userAgent?: string;
   [key: string]: any;
 }
 
