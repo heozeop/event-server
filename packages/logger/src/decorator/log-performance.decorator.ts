@@ -1,5 +1,6 @@
-import { PinoLoggerService } from '@libs/logger';
 import { Inject } from '@nestjs/common';
+import { WithLogger } from '../interfaces';
+import { PinoLoggerService } from '../services/pino-logger.service';
 
 /**
  * Decorator that logs performance metrics for methods
@@ -17,8 +18,9 @@ export function LogPerformance(category: string = 'default') {
     // Inject the logger
     const logger = Inject(PinoLoggerService)(target, 'logger');
 
+
     // Replace the method with a wrapped version
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (this: WithLogger, ...args: any[]) {
       const startTime = Date.now();
 
       try {
@@ -29,7 +31,7 @@ export function LogPerformance(category: string = 'default') {
         const executionTime = Date.now() - startTime;
 
         // Log performance metrics
-        (this as any).logger.info(`Performance: ${category}.${propertyKey}`, {
+        this.logger.log(`Performance: ${category}.${propertyKey}`, {
           type: 'performance',
           category,
           method: propertyKey,
@@ -43,7 +45,7 @@ export function LogPerformance(category: string = 'default') {
         const executionTime = Date.now() - startTime;
 
         // Log performance metrics with error
-        (this as any).logger.warn(
+        this.logger.warn(
           `Performance: ${category}.${propertyKey} (error)`,
           {
             type: 'performance',

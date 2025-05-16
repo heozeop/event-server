@@ -1,3 +1,6 @@
+import { ModuleMetadata } from "@nestjs/common";
+import { PinoLoggerService } from "./services/pino-logger.service";
+
 export interface LogContext {
   serviceId?: string;
   requestId?: string;
@@ -26,3 +29,38 @@ export interface LoggerService {
   verbose(message: string, context?: LogContext): void;
   setContext(context: LogContext): LoggerService;
 } 
+
+export interface LoggerModuleOptions {
+  serviceName: string;
+  prettyPrint?: boolean;
+  logLevel?: string;
+  sensitiveDataOptions?: {
+    enabled?: boolean;
+    maskValue?: string;
+    sensitiveKeys?: string[];
+    sensitivePatterns?: RegExp[];
+    objectPaths?: string[];
+  };
+}
+
+export interface LoggerModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
+  imports: any[];
+  inject: any[];
+  useFactory: (...args: any[]) => Promise<LoggerModuleOptions> | LoggerModuleOptions;
+}
+
+
+export interface LogOptions {
+  entryLevel?: 'debug' | 'log' | 'warn' | 'error' | 'verbose';
+  exitLevel?: 'debug' | 'log' | 'warn' | 'error' | 'verbose';
+  errorLevel?: 'error' | 'warn';
+  logParams?: boolean;
+  logResult?: boolean;
+  logExecutionTime?: boolean;
+  entryMessage?: string;
+  exitMessage?: string;
+}
+
+export interface WithLogger {
+  logger: PinoLoggerService;
+}

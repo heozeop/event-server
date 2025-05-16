@@ -20,7 +20,8 @@ export class SensitiveDataFilter {
     this.maskValue = options.maskValue || '[REDACTED]';
     this.sensitiveKeys = options.sensitiveKeys || [
       'password', 'token', 'secret', 'credential', 'apikey', 'api_key', 
-      'key', 'auth', 'authorization', 'jwt', 'access_token', 'refresh_token'
+      'key', 'auth', 'authorization', 'jwt', 'access_token', 'refresh_token',
+      'accessToken', 'refreshToken'
     ];
     
     this.sensitivePatterns = options.sensitivePatterns || [
@@ -39,10 +40,22 @@ export class SensitiveDataFilter {
     
     this.objectPaths = options.objectPaths || [
       'req.body.password',
+      'req.body.accessToken',
+      'req.body.refreshToken',
       'req.headers.authorization',
+      'req.headers.cookie',
       'user.password',
       'payload.token',
-      'data.credentials'
+      'payload.accessToken',
+      'payload.refreshToken',
+      'payload.password',
+      'data.credentials',
+      'data.token',
+      'data.accessToken',
+      'data.refreshToken',
+      'data.password',
+      'data.credentials',
+      'data.token',
     ];
   }
   
