@@ -3,9 +3,10 @@ import {
   CreateCouponRewardDto,
   CreateItemRewardDto,
   CreatePointRewardDto,
-  CreateRewardDto,
 } from '@libs/dtos';
+import { RewardType } from '@libs/enums';
 import {
+  ArgumentMetadata,
   BadRequestException,
   Inject,
   Injectable,
@@ -13,30 +14,40 @@ import {
   Scope,
 } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
+import { RpcException } from '@nestjs/microservices';
 import { ClassConstructor, plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
+import { validateSync } from 'class-validator';
 import { Request } from 'express';
 
 @Injectable({ scope: Scope.REQUEST })
 export class RewardValidationPipe implements PipeTransform {
   constructor(@Inject(REQUEST) private readonly req: Request) {}
 
-  async transform(value: unknown) {
-    let dtoClass: ClassConstructor<CreateRewardDto>;
+  async transform(value: unknown, { type }: ArgumentMetadata) {
+    if (type === 'param') {
+      return value;
+    }
 
-    const type = this.req.params['type'];
+    let dtoClass: ClassConstructor<
+      | CreatePointRewardDto
+      | CreateItemRewardDto
+      | CreateCouponRewardDto
+      | CreateBadgeRewardDto
+    >;
 
-    switch (type) {
-      case 'point':
+    const rewardType = this.req.params['type'];
+
+    switch (rewardType) {
+      case RewardType.POINT:
         dtoClass = CreatePointRewardDto;
         break;
-      case 'item':
+      case RewardType.ITEM:
         dtoClass = CreateItemRewardDto;
         break;
-      case 'coupon':
+      case RewardType.COUPON:
         dtoClass = CreateCouponRewardDto;
         break;
-      case 'badge':
+      case RewardType.BADGE:
         dtoClass = CreateBadgeRewardDto;
         break;
       default:
@@ -44,13 +55,10 @@ export class RewardValidationPipe implements PipeTransform {
     }
 
     const dto = plainToInstance(dtoClass, value);
-    const errors = await validate(dto, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    });
+    const errors = validateSync(dto);
 
     if (errors.length > 0) {
-      throw new BadRequestException(
+      throw new RpcException(
         errors
           .map((error) => JSON.stringify(error.constraints, null, 2))
           .join(', '),

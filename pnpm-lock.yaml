@@ -347,6 +347,9 @@ importers:
       '@libs/enums':
         specifier: workspace:*
         version: link:../../packages/enums
+      '@libs/filter':
+        specifier: workspace:*
+        version: link:../../packages/filter
       '@libs/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -549,6 +552,9 @@ importers:
 
   packages/filter:
     dependencies:
+      '@libs/dtos':
+        specifier: workspace:*
+        version: link:../dtos
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)

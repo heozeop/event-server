@@ -1,18 +1,14 @@
-import { Public } from '@/common/decorators/public.decorator';
 import { RewardValidationPipe } from '@/common/pipe/reward-validation.pipe';
 import { EVENT_CMP } from '@libs/cmd';
 import { CurrentUser } from '@libs/decorator';
 import {
-  CreateBadgeRewardDto,
-  CreateCouponRewardDto,
   CreateEventDto,
-  CreateItemRewardDto,
-  CreatePointRewardDto,
+  CreateRewardDto,
   CreateRewardRequestDto,
   QueryEventDto,
   QueryRewardRequestDto,
 } from '@libs/dtos';
-import { Role } from '@libs/enums';
+import { RewardType, Role } from '@libs/enums';
 import { CurrentUserData } from '@libs/types';
 import {
   Body,
@@ -75,12 +71,11 @@ export class EventController {
 
   @Post('rewards/:type')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @UsePipes(RewardValidationPipe)
   @Roles(Role.OPERATOR, Role.ADMIN)
   @ApiOperation({ summary: 'Create a new reward' })
   @ApiParam({
     name: 'type',
-    enum: ['point', 'item', 'coupon', 'badge'],
+    enum: RewardType,
     description: 'Type of reward',
   })
   @ApiResponse({ status: 201, description: 'Reward successfully created' })
@@ -89,14 +84,10 @@ export class EventController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
+  @UsePipes(RewardValidationPipe)
   async createReward(
     @Param('type') type: string,
-    @Body()
-    rewardData:
-      | CreatePointRewardDto
-      | CreateItemRewardDto
-      | CreateCouponRewardDto
-      | CreateBadgeRewardDto,
+    @Body() rewardData: CreateRewardDto,
   ) {
     return await lastValueFrom(
       this.eventClient.send(
@@ -170,11 +161,45 @@ export class EventController {
     );
   }
 
-  @Get('test')
-  @Public()
-  @ApiOperation({ summary: 'Test endpoint' })
-  @ApiResponse({ status: 200, description: 'Service is working properly' })
-  async test() {
-    return { status: 'ok', service: 'event' };
+  @Get('events/:eventId/rewards')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get all rewards for an event' })
+  @ApiParam({ name: 'eventId', description: 'ID of the event' })
+  @ApiResponse({ status: 200, description: 'Rewards retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getRewardsForEvent(@Param('eventId') eventId: string) {
+    return await lastValueFrom(
+      this.eventClient.send(
+        { cmd: EVENT_CMP.GET_REWARDS_BY_EVENT_ID },
+        { id: eventId },
+      ),
+    );
+  }
+
+  @Post('events/:eventId/rewards')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OPERATOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Add a reward to an event' })
+  @ApiParam({ name: 'eventId', description: 'ID of the event' })
+  @ApiParam({ name: 'rewardId', description: 'ID of the reward' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reward added to event successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  async addRewardToEvent(
+    @Param('eventId') eventId: string,
+    @Body('rewardId') rewardId: string,
+  ) {
+    return await lastValueFrom(
+      this.eventClient.send(
+        { cmd: EVENT_CMP.ADD_REWARD_TO_EVENT },
+        { eventId, rewardId },
+      ),
+    );
   }
 }
