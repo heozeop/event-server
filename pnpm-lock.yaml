@@ -57,6 +57,9 @@ importers:
       '@libs/filter':
         specifier: workspace:*
         version: link:../../packages/filter
+      '@libs/logger':
+        specifier: workspace:*
+        version: link:../../packages/logger
       '@mikro-orm/core':
         specifier: ^6.4.15
         version: 6.4.15
@@ -383,9 +386,6 @@ importers:
       class-validator:
         specifier: ^0.14.2
         version: 0.14.2
-      nestjs-pino:
-        specifier: ^4.4.0
-        version: 4.4.0(@nestjs/common@11.1.1)(pino-http@9.0.0)(pino@8.21.0)(rxjs@7.8.2)
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -6453,22 +6453,6 @@ packages:
       '@nestjs/common': 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 11.1.1(@nestjs/common@11.1.1)(@nestjs/microservices@11.1.1)(@nestjs/platform-express@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
       reflect-metadata: 0.2.2
-      rxjs: 7.8.2
-    dev: false
-
-  /nestjs-pino@4.4.0(@nestjs/common@11.1.1)(pino-http@9.0.0)(pino@8.21.0)(rxjs@7.8.2):
-    resolution: {integrity: sha512-+GMNlcNWDRrMtlQftfcxN+5pV2C25A4wsYIY7cfRJTMW4b8IFKYReDrG1lUp5LGql9fXemmnVJ2Ww10iIkCZPQ==}
-    engines: {node: '>= 14'}
-    requiresBuild: true
-    peerDependencies:
-      '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
-      pino: ^7.5.0 || ^8.0.0 || ^9.0.0
-      pino-http: ^6.4.0 || ^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
-      rxjs: ^7.1.0
-    dependencies:
-      '@nestjs/common': 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      pino: 8.21.0
-      pino-http: 9.0.0
       rxjs: 7.8.2
     dev: false
 

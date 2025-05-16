@@ -1,4 +1,6 @@
 import { MicroServiceExceptionModule } from '@libs/filter';
+import { LoggerModule } from '@libs/logger';
+import { MikroORM } from '@mikro-orm/core';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -14,6 +16,19 @@ import { UserService } from './services/user.service';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+    }),
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        serviceName: 'auth-service',
+        prettyPrint: configService.get('NODE_ENV') !== 'production',
+        logLevel: configService.get('LOG_LEVEL') || 'info',
+        sensitiveDataOptions: {
+          enabled: true,
+          maskValue: '******',
+        },
+      }),
     }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -31,6 +46,16 @@ import { UserService } from './services/user.service';
     MicroServiceExceptionModule,
   ],
   controllers: [UserController, AuthController],
-  providers: [UserService, AuthService, RequestContextInterceptor],
+  providers: [
+    UserService,
+    AuthService,
+    {
+      provide: RequestContextInterceptor,
+      useFactory: (orm: MikroORM) => {
+        return new RequestContextInterceptor(orm);
+      },
+      inject: [MikroORM],
+    },
+  ],
 })
 export class AppModule {}
