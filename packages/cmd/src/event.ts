@@ -14,10 +14,7 @@ export const EVENT_CMP = {
   // Reward
   GET_REWARDS: 'get_rewards',
   GET_REWARD_BY_ID: 'get_reward_by_id',
-  CREATE_REWARD_COUPON: 'create_reward_coupon',
-  CREATE_REWARD_ITEM: 'create_reward_item',
-  CREATE_REWARD_POINT: 'create_reward_point',
-  CREATE_REWARD_BADGE: 'create_reward_badge',
+  CREATE_REWARD: 'create_reward',
 
   // Reward Request
   CREATE_REWARD_REQUEST: 'create_reward_request',

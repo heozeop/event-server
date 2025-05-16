@@ -1,4 +1,3 @@
-import { BadgeRewardEntity, CouponRewardEntity, ItemRewardEntity, PointRewardEntity } from '@libs/types';
 import { Type } from 'class-transformer';
 import {
   IsDate,
@@ -9,10 +8,16 @@ import {
   IsString
 } from 'class-validator';
 
+export class CreateRewardDto {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+}
+
 /**
  * DTO for creating point rewards
  */
-export class CreatePointRewardDto implements Omit<PointRewardEntity, '_id' | 'type' | 'createdAt' | 'updatedAt'> {
+export class CreatePointRewardDto extends CreateRewardDto {
   @IsString()
   @IsNotEmpty()
   name!: string;
@@ -25,7 +30,7 @@ export class CreatePointRewardDto implements Omit<PointRewardEntity, '_id' | 'ty
 /**
  * DTO for creating item rewards
  */
-export class CreateItemRewardDto implements Omit<ItemRewardEntity, '_id' | 'type' | 'createdAt' | 'updatedAt'> {
+export class CreateItemRewardDto extends CreateRewardDto {
   @IsString()
   @IsNotEmpty()
   name!: string;
@@ -42,7 +47,7 @@ export class CreateItemRewardDto implements Omit<ItemRewardEntity, '_id' | 'type
 /**
  * DTO for creating coupon rewards
  */
-export class CreateCouponRewardDto implements Omit<CouponRewardEntity, '_id' | 'type' | 'createdAt' | 'updatedAt'> {
+export class CreateCouponRewardDto extends CreateRewardDto {
   @IsString()
   @IsNotEmpty()
   name!: string;
@@ -59,7 +64,7 @@ export class CreateCouponRewardDto implements Omit<CouponRewardEntity, '_id' | '
 /**
  * DTO for creating badge rewards
  */
-export class CreateBadgeRewardDto implements Omit<BadgeRewardEntity, '_id' | 'type' | 'createdAt' | 'updatedAt'> {
+export class CreateBadgeRewardDto extends CreateRewardDto {
   @IsString()
   @IsNotEmpty()
   name!: string;
