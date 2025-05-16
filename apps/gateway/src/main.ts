@@ -2,11 +2,20 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   // Create hybrid application (HTTP + Microservice)
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true, // Buffer logs until logger is ready
+  });
+
+  // Get the logger service
+  const logger = app.get(Logger);
+  app.useLogger(logger);
+
+  logger.log('Starting gateway service...');
 
   // Configure microservice
   app.connectMicroservice({
@@ -37,15 +46,17 @@ async function bootstrap() {
 
   // Start microservices
   await app.startAllMicroservices();
+  logger.log('Microservice transport initialized');
 
   // Start HTTP server
-  await app.listen(process.env.HTTP_PORT ?? 3333);
+  const httpPort = process.env.HTTP_PORT ?? 3333;
+  await app.listen(httpPort);
 
-  console.log(
-    `Gateway service is running:
-    - Microservice on port ${process.env.GATEWAY_PORT ?? 3000}
-    - HTTP on port ${process.env.HTTP_PORT ?? 3333}
-    - Swagger available at http://localhost:${process.env.HTTP_PORT ?? 3333}/docs`,
-  );
+  logger.log(`Gateway service is running`, {
+    microservicePort: process.env.GATEWAY_PORT ?? 3000,
+    httpPort: httpPort,
+    swaggerUrl: `http://localhost:${httpPort}/docs`,
+    environment: process.env.NODE_ENV || 'development',
+  });
 }
 bootstrap();

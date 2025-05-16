@@ -33,6 +33,7 @@ import { lastValueFrom } from 'rxjs';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { LogPerformance } from '../common/logging/decorators/log-performance.decorator';
 
 @ApiTags('Events')
 @ApiBearerAuth()
@@ -63,6 +64,7 @@ export class EventController {
   @ApiOperation({ summary: 'Get all events' })
   @ApiResponse({ status: 200, description: 'Events retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @LogPerformance('event')
   async getEvents(@Query() query: QueryEventDto) {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_EVENTS }, query),
