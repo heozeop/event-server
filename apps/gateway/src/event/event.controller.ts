@@ -1,3 +1,4 @@
+import { RewardValidationPipe } from '@/common/pipe/reward-validation.pipe';
 import { EVENT_CMP } from '@libs/cmd';
 import { CurrentUser } from '@libs/decorator';
 import {
@@ -21,6 +22,7 @@ import {
   Post,
   Query,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
@@ -51,50 +53,26 @@ export class EventController {
     );
   }
 
-  @Post('rewards/coupon')
+  @Post('rewards/:type')
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @UsePipes(RewardValidationPipe)
   @Roles(Role.OPERATOR, Role.ADMIN)
-  async createReward(@Body() createRewardDto: CreateCouponRewardDto) {
+  async createReward(
+    @Param('type') type: string,
+    @Body()
+    rewardData:
+      | CreatePointRewardDto
+      | CreateItemRewardDto
+      | CreateCouponRewardDto
+      | CreateBadgeRewardDto,
+  ) {
     return await lastValueFrom(
       this.eventClient.send(
-        { cmd: EVENT_CMP.CREATE_REWARD_COUPON },
-        createRewardDto,
-      ),
-    );
-  }
-
-  @Post('rewards/item')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.OPERATOR, Role.ADMIN)
-  async createItemReward(@Body() createRewardDto: CreateItemRewardDto) {
-    return await lastValueFrom(
-      this.eventClient.send(
-        { cmd: EVENT_CMP.CREATE_REWARD_ITEM },
-        createRewardDto,
-      ),
-    );
-  }
-
-  @Post('rewards/point')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.OPERATOR, Role.ADMIN)
-  async createPointReward(@Body() createRewardDto: CreatePointRewardDto) {
-    return await lastValueFrom(
-      this.eventClient.send(
-        { cmd: EVENT_CMP.CREATE_REWARD_POINT },
-        createRewardDto,
-      ),
-    );
-  }
-
-  @Post('rewards/badge')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.OPERATOR, Role.ADMIN)
-  async createBadgeReward(@Body() createRewardDto: CreateBadgeRewardDto) {
-    return await lastValueFrom(
-      this.eventClient.send(
-        { cmd: EVENT_CMP.CREATE_REWARD_BADGE },
-        createRewardDto,
+        { cmd: EVENT_CMP.CREATE_REWARD },
+        {
+          type,
+          rewardData,
+        },
       ),
     );
   }

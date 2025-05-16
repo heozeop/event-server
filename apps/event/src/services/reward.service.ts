@@ -5,6 +5,7 @@ import {
   CreateEventRewardDto,
   CreateItemRewardDto,
   CreatePointRewardDto,
+  CreateRewardDto,
   QueryByIdDto,
   QueryRewardDto,
   RemoveRewardDto,
@@ -49,7 +50,6 @@ export class RewardService {
   /**
    * Create a point reward
    */
-  @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_POINT })
   async createPointReward(dto: CreatePointRewardDto): Promise<PointReward> {
     const reward = new PointReward(dto.name, dto.points);
     await this.pointRewardRepository.create(reward);
@@ -60,7 +60,6 @@ export class RewardService {
   /**
    * Create an item reward
    */
-  @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_ITEM })
   async createItemReward(dto: CreateItemRewardDto): Promise<ItemReward> {
     const reward = new ItemReward(dto.name, dto.itemId, dto.quantity);
     await this.itemRewardRepository.create(reward);
@@ -71,7 +70,6 @@ export class RewardService {
   /**
    * Create a coupon reward
    */
-  @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_COUPON })
   async createCouponReward(dto: CreateCouponRewardDto): Promise<CouponReward> {
     const reward = new CouponReward(dto.name, dto.couponCode, dto.expiry);
     await this.couponRewardRepository.create(reward);
@@ -82,7 +80,6 @@ export class RewardService {
   /**
    * Create a badge reward
    */
-  @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD_BADGE })
   async createBadgeReward(dto: CreateBadgeRewardDto): Promise<BadgeReward> {
     const reward = new BadgeReward(dto.name, dto.badgeId);
     await this.badgeRewardRepository.create(reward);
@@ -93,14 +90,14 @@ export class RewardService {
   /**
    * Create a reward of specific type
    */
-  async createReward(
-    type: RewardType,
-    rewardData:
-      | CreatePointRewardDto
-      | CreateItemRewardDto
-      | CreateCouponRewardDto
-      | CreateBadgeRewardDto,
-  ): Promise<RewardBase> {
+  @MessagePattern({ cmd: EVENT_CMP.CREATE_REWARD })
+  async createReward({
+    type,
+    rewardData,
+  }: {
+    type: RewardType;
+    rewardData: CreateRewardDto;
+  }): Promise<RewardBase> {
     switch (type) {
       case RewardType.POINT:
         return this.createPointReward(rewardData as CreatePointRewardDto);
