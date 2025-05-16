@@ -9,6 +9,7 @@ import {
   QueryRewardRequestDto,
 } from '@libs/dtos';
 import { RewardType, Role } from '@libs/enums';
+import { LogPerformance } from '@libs/logger';
 import { CurrentUserData } from '@libs/types';
 import {
   Body,
@@ -33,7 +34,6 @@ import { lastValueFrom } from 'rxjs';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-import { LogPerformance } from '../common/logging/decorators/log-performance.decorator';
 
 @ApiTags('Events')
 @ApiBearerAuth()
