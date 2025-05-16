@@ -1,4 +1,4 @@
-import { HttpExceptionsModule } from '@libs/filter';
+import { MicroServiceExceptionModule } from '@libs/filter';
 import { MongoDriver } from '@mikro-orm/mongodb';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './controllers/auth.controller';
 import { UserController } from './controllers/user.controller';
 import { User } from './entities/user.entity';
+import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
 import { AuthService } from './services/auth.service';
 import { UserService } from './services/user.service';
 
@@ -16,7 +17,7 @@ import { UserService } from './services/user.service';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    HttpExceptionsModule,
+    MicroServiceExceptionModule,
     MikroOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -54,6 +55,6 @@ import { UserService } from './services/user.service';
     }),
   ],
   controllers: [UserController, AuthController],
-  providers: [UserService, AuthService],
+  providers: [UserService, AuthService, RequestContextInterceptor],
 })
 export class AppModule {}
