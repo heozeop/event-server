@@ -42,3 +42,6 @@ keys/
 
 # DataGrip
 .idea/
+
+# ts config buildinfo
+tsconfig.tsbuildinfo
