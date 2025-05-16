@@ -23,6 +23,8 @@
     "@libs/cmd": "workspace:^",
     "@libs/dtos": "workspace:*",
     "@libs/enums": "workspace:*",
+    "@libs/decorator": "workspace:*",
+    "@libs/types": "workspace:*",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.0",

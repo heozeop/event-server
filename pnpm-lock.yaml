@@ -301,12 +301,18 @@ importers:
       '@libs/cmd':
         specifier: workspace:^
         version: link:../../packages/cmd
+      '@libs/decorator':
+        specifier: workspace:*
+        version: link:../../packages/decorator
       '@libs/dtos':
         specifier: workspace:*
         version: link:../../packages/dtos
       '@libs/enums':
         specifier: workspace:*
         version: link:../../packages/enums
+      '@libs/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -440,6 +446,21 @@ importers:
       class-validator:
         specifier: ^0.14.2
         version: 0.14.2
+
+  packages/decorator:
+    dependencies:
+      '@libs/enums':
+        specifier: workspace:*
+        version: link:../enums
+      '@libs/types':
+        specifier: workspace:*
+        version: link:../types
+      '@nestjs/common':
+        specifier: ^11.0.0
+        version: 11.1.1(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/core':
+        specifier: ^11.0.0
+        version: 11.1.1(@nestjs/common@11.1.1)(@nestjs/microservices@11.1.1)(@nestjs/platform-express@11.1.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
 
   packages/dtos:
     dependencies:
