@@ -1,8 +1,8 @@
 import { ClientServiceExceptionModule } from '@libs/filter';
+import { LoggerModule } from '@libs/logger';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { LoggingModule } from './common/logging';
 import { EventModule } from './event/event.module';
 
 @Module({
@@ -11,7 +11,15 @@ import { EventModule } from './event/event.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    LoggingModule,
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        serviceName: 'gateway',
+        logLevel: configService.get('LOG_LEVEL'),
+        prettyPrint: configService.get('NODE_ENV') !== 'production',
+      }),
+    }),
     AuthModule,
     EventModule,
     ClientServiceExceptionModule,
