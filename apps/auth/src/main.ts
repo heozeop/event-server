@@ -1,7 +1,8 @@
-import { ValidationPipe } from '@nestjs/common';
+import { MikroORM } from '@mikro-orm/core';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
+import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice(AppModule, {
@@ -12,13 +13,9 @@ async function bootstrap() {
     },
   });
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
+  const orm = app.get(MikroORM);
+
+  app.useGlobalInterceptors(new RequestContextInterceptor(orm));
 
   await app.listen();
 }

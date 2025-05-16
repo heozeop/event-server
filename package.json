@@ -15,5 +15,17 @@
   "packageManager": "pnpm@8.15.9",
   "devDependencies": {
     "turbo": "^2.5.3"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.13.3",
+    "@grpc/proto-loader": "^0.7.15",
+    "@nestjs/swagger": "^11.2.0",
+    "amqp-connection-manager": "^4.1.14",
+    "amqplib": "^0.10.8",
+    "ioredis": "^5.6.1",
+    "kafkajs": "^2.2.4",
+    "mqtt": "^5.13.0",
+    "nats": "^2.29.3",
+    "swagger-ui-express": "^5.0.1"
   }
 }

@@ -1,11 +1,9 @@
 import { User } from '@/entities/user.entity';
-import { AUTH_CMP } from '@libs/cmd';
 import {
   CreateUserDto,
   QueryByIdDto,
   QueryUserByEmailDto,
   UpdateRolesDto,
-  UserResponseDto,
 } from '@libs/dtos';
 import { Role } from '@libs/enums';
 import { EntityRepository, ObjectId } from '@mikro-orm/mongodb';
@@ -16,8 +14,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService {
@@ -26,8 +23,7 @@ export class UserService {
     private readonly userRepository: EntityRepository<User>,
   ) {}
 
-  @MessagePattern({ cmd: AUTH_CMP.CREATE_USER })
-  async createUser(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  async createUser(createUserDto: CreateUserDto): Promise<User> {
     const { email, password } = createUserDto;
 
     // Check if user exists
@@ -54,11 +50,10 @@ export class UserService {
 
     await this.userRepository.getEntityManager().flush();
 
-    return UserResponseDto.fromEntity(user);
+    return user;
   }
 
-  @MessagePattern({ cmd: AUTH_CMP.GET_USER_BY_ID })
-  async getUserById({ id }: QueryByIdDto): Promise<UserResponseDto> {
+  async getUserById({ id }: QueryByIdDto): Promise<User> {
     const user = await this.userRepository.findOne({
       _id: new ObjectId(id),
     });
@@ -67,30 +62,26 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
-    return UserResponseDto.fromEntity(user);
+    return user;
   }
 
-  @MessagePattern({ cmd: AUTH_CMP.GET_USER_BY_EMAIL })
-  async getUserByEmail({
-    email,
-  }: QueryUserByEmailDto): Promise<UserResponseDto> {
+  async getUserByEmail({ email }: QueryUserByEmailDto): Promise<User> {
     const user = await this.userRepository.findOne({ email });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
-    return UserResponseDto.fromEntity(user);
+    return user;
   }
 
-  @MessagePattern({ cmd: AUTH_CMP.UPDATE_USER_ROLES })
   async updateRoles({
     id,
     updateRolesDto,
   }: {
     id: string;
     updateRolesDto: UpdateRolesDto;
-  }): Promise<UserResponseDto> {
+  }): Promise<User> {
     const user = await this.userRepository.findOne({
       _id: new ObjectId(id),
     });
@@ -103,13 +94,16 @@ export class UserService {
 
     await this.userRepository.getEntityManager().flush();
 
-    return UserResponseDto.fromEntity(user);
+    return user;
   }
 
-  async validateUser(
-    email: string,
-    password: string,
-  ): Promise<UserResponseDto> {
+  async validateUser({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }): Promise<User> {
     const user = await this.userRepository.findOne({ email });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -120,6 +114,6 @@ export class UserService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return UserResponseDto.fromEntity(user);
+    return user;
   }
 }

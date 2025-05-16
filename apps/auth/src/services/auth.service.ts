@@ -1,8 +1,7 @@
-import { AUTH_CMP } from '@libs/cmd';
-import { LoginDto, UserResponseDto } from '@libs/dtos';
+import { User } from '@/entities/user.entity';
+import { LoginDto } from '@libs/dtos';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { MessagePattern } from '@nestjs/microservices';
 import { UserService } from './user.service';
 
 @Injectable()
@@ -12,15 +11,13 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  @MessagePattern({ cmd: AUTH_CMP.LOGIN })
   async login(
     loginDto: LoginDto,
-  ): Promise<{ accessToken: string; user: UserResponseDto }> {
-    const { email, password } = loginDto;
-    const user = await this.userService.validateUser(email, password);
+  ): Promise<{ accessToken: string; user: User }> {
+    const user = await this.userService.validateUser(loginDto);
 
     const payload = {
-      sub: user.id,
+      sub: user._id.toString(),
       roles: user.roles,
       iat: new Date().getTime(),
     };
