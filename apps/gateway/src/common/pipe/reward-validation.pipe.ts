@@ -1,11 +1,5 @@
 import {
-  CreateBadgeRewardDto,
-  CreateCouponRewardDto,
-  CreateItemRewardDto,
-  CreatePointRewardDto,
-  CreateRewardDto,
-} from '@libs/dtos';
-import {
+  ArgumentMetadata,
   BadRequestException,
   Inject,
   Injectable,
@@ -13,50 +7,68 @@ import {
   Scope,
 } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { ClassConstructor, plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
 import { Request } from 'express';
 
 @Injectable({ scope: Scope.REQUEST })
 export class RewardValidationPipe implements PipeTransform {
   constructor(@Inject(REQUEST) private readonly req: Request) {}
 
-  async transform(value: unknown) {
-    let dtoClass: ClassConstructor<CreateRewardDto>;
-
-    const type = this.req.params['type'];
-
-    switch (type) {
-      case 'point':
-        dtoClass = CreatePointRewardDto;
-        break;
-      case 'item':
-        dtoClass = CreateItemRewardDto;
-        break;
-      case 'coupon':
-        dtoClass = CreateCouponRewardDto;
-        break;
-      case 'badge':
-        dtoClass = CreateBadgeRewardDto;
-        break;
-      default:
-        throw new BadRequestException('Invalid reward type');
+  transform(value: any, metadata: ArgumentMetadata) {
+    if (metadata.type !== 'body') {
+      return value;
     }
 
-    const dto = plainToInstance(dtoClass, value);
-    const errors = await validate(dto, {
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    });
+    this.validateRewardByType(value);
 
-    if (errors.length > 0) {
-      throw new BadRequestException(
-        errors
-          .map((error) => JSON.stringify(error.constraints, null, 2))
-          .join(', '),
-      );
+    return value;
+  }
+
+  private validateRewardByType(value: any): void {
+    // Check if it's a point reward
+    if (this.isPointReward(value)) {
+      return;
     }
 
-    return dto;
+    // Check if it's an item reward
+    if (this.isItemReward(value)) {
+      return;
+    }
+
+    // Check if it's a coupon reward
+    if (this.isCouponReward(value)) {
+      return;
+    }
+
+    // Check if it's a badge reward
+    if (this.isBadgeReward(value)) {
+      return;
+    }
+
+    throw new BadRequestException('Invalid reward data format');
+  }
+
+  private isPointReward(value: any): boolean {
+    return value.points !== undefined && typeof value.points === 'number';
+  }
+
+  private isItemReward(value: any): boolean {
+    return (
+      value.itemId !== undefined &&
+      typeof value.itemId === 'string' &&
+      value.quantity !== undefined &&
+      typeof value.quantity === 'number'
+    );
+  }
+
+  private isCouponReward(value: any): boolean {
+    return (
+      value.couponCode !== undefined &&
+      typeof value.couponCode === 'string' &&
+      value.expiry !== undefined
+    );
+  }
+
+  private isBadgeReward(value: any): boolean {
+    return value.badgeId !== undefined && typeof value.badgeId === 'string';
   }
 }

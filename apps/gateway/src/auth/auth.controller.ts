@@ -1,3 +1,4 @@
+import { Public } from '@/common/decorators/public.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
@@ -24,6 +25,7 @@ export class AuthController {
   ) {}
 
   @Post('login')
+  @Public()
   async login(@Body() loginDto: LoginDto) {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.LOGIN }, loginDto),
@@ -31,6 +33,7 @@ export class AuthController {
   }
 
   @Post('users')
+  @Public()
   async createUser(@Body() createUserDto: CreateUserDto) {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.CREATE_USER }, createUserDto),
@@ -68,5 +71,11 @@ export class AuthController {
         { id, updateRolesDto },
       ),
     );
+  }
+
+  @Get('test')
+  @Public()
+  async test() {
+    return { status: 'ok', service: 'auth' };
   }
 }

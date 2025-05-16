@@ -1,3 +1,4 @@
+import { Public } from '@/common/decorators/public.decorator';
 import { RewardValidationPipe } from '@/common/pipe/reward-validation.pipe';
 import { EVENT_CMP } from '@libs/cmd';
 import { CurrentUser } from '@libs/decorator';
@@ -112,5 +113,11 @@ export class EventController {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_REWARD_REQUESTS }, query),
     );
+  }
+
+  @Get('test')
+  @Public()
+  async test() {
+    return { status: 'ok', service: 'event' };
   }
 }
