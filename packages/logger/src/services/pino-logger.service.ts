@@ -17,6 +17,11 @@ export interface PinoLoggerOptions {
     objectPaths?: string[];
     enabled?: boolean;
   };
+  alloyConfig?: {
+    enabled?: boolean;
+    messageKey?: string;
+    levelKey?: string;
+  };
 }
 
 @Injectable({ scope: Scope.DEFAULT })
@@ -27,11 +32,15 @@ export class PinoLoggerService implements LoggerService {
   private baseContext: LogContext = {};
   private sensitiveDataFilter: SensitiveDataFilter | null = null;
   private contextStore?: LogContextStore;
+  private readonly messageKey: string;
 
   constructor(options: PinoLoggerOptions, contextStore?: LogContextStore) {
     this.serviceName = options.serviceName;
     this.logLevelManager = new PinoLogLevelManager(options.logLevel);
     this.contextStore = contextStore;
+    
+    // Set default or custom message key for Alloy - always use 'msg' for consistency
+    this.messageKey = options.alloyConfig?.messageKey || 'msg';
 
     // Initialize sensitive data filter if enabled
     if (options.sensitiveDataOptions?.enabled !== false) {
@@ -44,7 +53,8 @@ export class PinoLoggerService implements LoggerService {
       base: {
         serviceId: this.serviceName
       },
-      timestamp: pino.stdTimeFunctions.isoTime
+      timestamp: pino.stdTimeFunctions.isoTime,
+      messageKey: this.messageKey // Always use the configured message key
     };
 
     // Full config with formatters (for direct use without transports)
@@ -52,7 +62,16 @@ export class PinoLoggerService implements LoggerService {
       ...baseConfig,
       formatters: {
         level: (label) => {
-          return { level: label };
+          // Use configured level key if provided
+          const levelKey = options.alloyConfig?.levelKey || 'level';
+          return { [levelKey]: label };
+        },
+        // Ensure timestamp is formatted correctly for Alloy
+        log: (object) => {
+          return {
+            ...object,
+            timestamp: new Date().toISOString() // ISO format timestamp for Alloy
+          };
         }
       }
     };
@@ -67,7 +86,8 @@ export class PinoLoggerService implements LoggerService {
           options: {
             colorize: true,
             translateTime: 'SYS:standard',
-            ignore: 'pid,hostname'
+            ignore: 'pid,hostname',
+            messageKey: this.messageKey // Ensure consistent message key
           }
         }
       });
@@ -76,7 +96,13 @@ export class PinoLoggerService implements LoggerService {
       this.logger = pino.pino({
         ...baseConfig,
         transport: {
-          targets: options.customTransports
+          targets: options.customTransports.map(target => ({
+            ...target,
+            options: {
+              ...target.options,
+              messageKey: this.messageKey // Ensure consistent message key in custom transports
+            }
+          }))
         }
       });
     } else {

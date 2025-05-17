@@ -21,6 +21,12 @@ export const defaultLoggerModuleOptions: LoggerModuleOptions = {
       'req.body.accessToken',
       'req.body.refreshToken',
     ],
+  },
+  // Default Alloy config that matches the Alloy river configuration
+  alloyConfig: {
+    enabled: true,
+    messageKey: 'msg',
+    levelKey: 'level'
   } 
 };
 
@@ -69,7 +75,8 @@ export class LoggerModule {
       serviceName: options.serviceName,
       prettyPrint: options.prettyPrint,
       logLevel: options.logLevel as any,
-      sensitiveDataOptions: options.sensitiveDataOptions
+      sensitiveDataOptions: options.sensitiveDataOptions,
+      alloyConfig: options.alloyConfig
     }, contextStore);
   }
 } 

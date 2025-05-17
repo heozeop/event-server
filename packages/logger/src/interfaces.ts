@@ -36,11 +36,16 @@ export interface LoggerModuleOptions {
   prettyPrint?: boolean;
   logLevel?: string;
   sensitiveDataOptions?: {
-    enabled?: boolean;
     maskValue?: string;
     sensitiveKeys?: string[];
     sensitivePatterns?: RegExp[];
     objectPaths?: string[];
+    enabled?: boolean;
+  };
+  alloyConfig?: {
+    enabled?: boolean;
+    messageKey?: string;
+    levelKey?: string;
   };
 }
 
