@@ -5,7 +5,6 @@ import {
   UpdateRewardRequestStatusDto,
 } from '@libs/dtos';
 import { EventStatus, RewardRequestStatus } from '@libs/enums';
-import { LogExecution, PinoLoggerService } from '@libs/logger';
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
@@ -23,18 +22,11 @@ export class RewardRequestService {
     @InjectRepository(RewardRequest)
     private readonly rewardRequestRepository: EntityRepository<RewardRequest>,
     private readonly eventService: EventService,
-    private readonly logger: PinoLoggerService,
   ) {}
 
   /**
    * Create a new reward request
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Creating reward request',
-    exitMessage: 'Reward request created',
-  })
   async createRewardRequest({
     userId,
     eventId,
@@ -87,12 +79,6 @@ export class RewardRequestService {
   /**
    * Get a reward request by ID
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Getting reward request by ID',
-    exitMessage: 'Reward request retrieved',
-  })
   async getRewardRequestById({ id }: QueryByIdDto): Promise<RewardRequest> {
     try {
       const rewardRequest = await this.rewardRequestRepository.findOne(
@@ -116,12 +102,6 @@ export class RewardRequestService {
   /**
    * Get reward requests with optional filtering
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Getting reward requests',
-    exitMessage: 'Reward requests retrieved',
-  })
   async getRewardRequests({
     userId,
     eventId,
@@ -161,12 +141,6 @@ export class RewardRequestService {
   /**
    * Update a reward request status
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Updating reward request status',
-    exitMessage: 'Reward request status updated',
-  })
   async updateRewardRequestStatus({
     rewardRequestid,
     status,

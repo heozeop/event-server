@@ -10,7 +10,7 @@ import {
   RemoveRewardDto,
 } from '@libs/dtos';
 import { RewardType } from '@libs/enums';
-import { LogExecution, PinoLoggerService } from '@libs/logger';
+import { LogExecution } from '@libs/logger';
 import { EntityManager, EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
@@ -43,18 +43,11 @@ export class RewardService {
     private readonly eventRewardRepository: EntityRepository<EventReward>,
     private readonly em: EntityManager,
     private readonly eventService: EventService,
-    private readonly logger: PinoLoggerService,
   ) {}
 
   /**
    * Create a point reward
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Creating point reward',
-    exitMessage: 'Point reward created',
-  })
   async createPointReward(dto: CreatePointRewardDto): Promise<PointReward> {
     const reward = new PointReward(dto.name, dto.points);
     await this.pointRewardRepository.create(reward);
@@ -65,12 +58,6 @@ export class RewardService {
   /**
    * Create an item reward
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Creating item reward',
-    exitMessage: 'Item reward created',
-  })
   async createItemReward(dto: CreateItemRewardDto): Promise<ItemReward> {
     const reward = new ItemReward(dto.name, dto.itemId, dto.quantity);
     await this.itemRewardRepository.create(reward);
@@ -81,12 +68,6 @@ export class RewardService {
   /**
    * Create a coupon reward
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Creating coupon reward',
-    exitMessage: 'Coupon reward created',
-  })
   async createCouponReward(dto: CreateCouponRewardDto): Promise<CouponReward> {
     const reward = new CouponReward(dto.name, dto.couponCode, dto.expiry);
     await this.couponRewardRepository.create(reward);
@@ -97,12 +78,6 @@ export class RewardService {
   /**
    * Create a badge reward
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Creating badge reward',
-    exitMessage: 'Badge reward created',
-  })
   async createBadgeReward(dto: CreateBadgeRewardDto): Promise<BadgeReward> {
     const reward = new BadgeReward(dto.name, dto.badgeId);
     await this.badgeRewardRepository.create(reward);
@@ -113,12 +88,6 @@ export class RewardService {
   /**
    * Create a reward of specific type
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Creating reward',
-    exitMessage: 'Reward created',
-  })
   async createReward({
     type,
     rewardData,
@@ -143,12 +112,6 @@ export class RewardService {
   /**
    * Get rewards with optional filtering
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Getting rewards',
-    exitMessage: 'Rewards retrieved',
-  })
   async getRewards({
     type,
     name,
@@ -176,12 +139,6 @@ export class RewardService {
   /**
    * Get a reward by ID
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Getting reward by ID',
-    exitMessage: 'Reward retrieved',
-  })
   async getRewardById({ id }: QueryByIdDto): Promise<RewardBase> {
     const reward = await this.em.findOne(RewardBase, {
       _id: new ObjectId(id),
@@ -197,12 +154,6 @@ export class RewardService {
   /**
    * Add a reward to an event
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Adding reward to event',
-    exitMessage: 'Reward added to event',
-  })
   async addRewardToEvent({
     eventId,
     rewardId,
@@ -235,12 +186,6 @@ export class RewardService {
   /**
    * Get rewards for an event
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Getting rewards by event ID',
-    exitMessage: 'Rewards retrieved by event ID',
-  })
   async getRewardsByEventId({ id }: QueryByIdDto): Promise<RewardBase[]> {
     const eventRewards = await this.eventRewardRepository.find(
       { event: id },
