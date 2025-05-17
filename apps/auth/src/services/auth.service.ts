@@ -13,12 +13,6 @@ export class AuthService {
     private readonly logger: PinoLoggerService,
   ) {}
 
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'User login attempt',
-    exitMessage: 'User login successful',
-  })
   async login(
     loginDto: LoginDto,
   ): Promise<{ accessToken: string; user: User }> {

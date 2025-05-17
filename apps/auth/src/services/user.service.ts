@@ -6,7 +6,7 @@ import {
   UpdateRolesDto,
 } from '@libs/dtos';
 import { Role } from '@libs/enums';
-import { LogExecution, PinoLoggerService } from '@libs/logger';
+import { PinoLoggerService } from '@libs/logger';
 import { EntityRepository, ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
@@ -25,12 +25,6 @@ export class UserService {
     private readonly logger: PinoLoggerService,
   ) {}
 
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Creating user',
-    exitMessage: 'User created',
-  })
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const { email, password } = createUserDto;
 
@@ -61,12 +55,6 @@ export class UserService {
     return user;
   }
 
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Getting user by ID',
-    exitMessage: 'User retrieved',
-  })
   async getUserById({ id }: QueryByIdDto): Promise<User> {
     const user = await this.userRepository.findOne({
       _id: new ObjectId(id),
@@ -79,12 +67,6 @@ export class UserService {
     return user;
   }
 
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Getting user by email',
-    exitMessage: 'User retrieved',
-  })
   async getUserByEmail({ email }: QueryUserByEmailDto): Promise<User> {
     const user = await this.userRepository.findOne({ email });
 
@@ -95,12 +77,6 @@ export class UserService {
     return user;
   }
 
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Updating user roles',
-    exitMessage: 'User roles updated',
-  })
   async updateRoles({
     id,
     updateRolesDto,
@@ -138,12 +114,6 @@ export class UserService {
     return user;
   }
 
-  @LogExecution({
-    entryLevel: 'debug',
-    exitLevel: 'debug',
-    entryMessage: 'User authentication attempt',
-    exitMessage: 'User authentication successful',
-  })
   async validateUser({
     email,
     password,
