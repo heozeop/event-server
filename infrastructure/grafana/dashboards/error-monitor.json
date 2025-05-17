@@ -87,8 +87,8 @@
             "uid": "P8E80F9AEF21F6940"
           },
           "editorMode": "builder",
-          "expr": "rate({job=~\".+\", level=\"error\"} [$__interval])",
-          "legendFormat": "{{job}}",
+          "expr": "rate({job=\"docker\", level=\"error\", service=~\".+\", service!~\"loki|alloy|grafana\"} [$__interval])",
+          "legendFormat": "{{service}}",
           "queryType": "range",
           "refId": "A"
         }
@@ -152,8 +152,8 @@
             "uid": "P8E80F9AEF21F6940"
           },
           "editorMode": "builder",
-          "expr": "topk(10, count_over_time({level=\"error\"} | pattern `<_> error=\\\"<error_type>\\\"` [$__range]))",
-          "legendFormat": "{{error_type}}",
+          "expr": "topk(10, sum by(service, msg) (count_over_time({job=\"docker\", level=\"error\", service!~\"loki|alloy|grafana\"} [$__range])))",
+          "legendFormat": "{{service}}: {{msg}}",
           "queryType": "instant",
           "refId": "A"
         }
@@ -190,7 +190,7 @@
             "uid": "P8E80F9AEF21F6940"
           },
           "editorMode": "builder",
-          "expr": "{level=\"error\", job=\"$service\"}",
+          "expr": "{level=\"error\", job=\"docker\", service=\"$service\", service!~\"loki|alloy|grafana\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -215,14 +215,14 @@
           "type": "loki",
           "uid": "P8E80F9AEF21F6940"
         },
-        "definition": "label_values(job)",
+        "definition": "label_values({job=\"docker\", service!~\"loki|alloy|grafana\"}, service)",
         "hide": 0,
         "includeAll": true,
         "label": "Service",
         "multi": false,
         "name": "service",
         "options": [],
-        "query": "label_values(job)",
+        "query": "label_values({job=\"docker\", service!~\"loki|alloy|grafana\"}, service)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,

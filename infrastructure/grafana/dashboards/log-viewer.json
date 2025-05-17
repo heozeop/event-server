@@ -18,16 +18,15 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": 2,
   "links": [],
-  "liveNow": false,
+  "liveNow": true,
   "panels": [
     {
       "datasource": {
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
-      "description": "Shows number of log entries by service",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -40,7 +39,7 @@
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
-            "fillOpacity": 30,
+            "fillOpacity": 20,
             "gradientMode": "none",
             "hideFrom": {
               "legend": false,
@@ -78,20 +77,51 @@
           },
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "error"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "warn"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
-        "h": 7,
+        "h": 8,
         "w": 24,
         "x": 0,
         "y": 0
       },
-      "id": 6,
+      "id": 1,
       "options": {
         "legend": {
-          "calcs": ["sum", "max"],
-          "displayMode": "table",
-          "placement": "right",
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
           "showLegend": true
         },
         "tooltip": {
@@ -99,21 +129,20 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "10.0.0",
       "targets": [
         {
           "datasource": {
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "editorMode": "builder",
-          "expr": "sum by(service) (count_over_time({job=\"docker\", service=~\".+\"} [10m]))",
-          "legendFormat": "{{service}}",
+          "editorMode": "code",
+          "expr": "sum by(level) (count_over_time({job=\"docker\", service=~\"$service\", service!~\"loki|alloy|grafana\", level=~\".+\"} [$__interval]))",
+          "legendFormat": "{{level}}",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Log Volume by Service",
+      "title": "Logs by Level",
       "type": "timeseries"
     },
     {
@@ -121,7 +150,7 @@
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
-      "description": "Select a Request ID from this table to view detailed logs",
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -133,7 +162,7 @@
               "type": "auto"
             },
             "filterable": true,
-            "inspect": true
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
@@ -150,36 +179,24 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "requestId"
+              "options": "Count"
             },
             "properties": [
               {
                 "id": "custom.width",
-                "value": 300
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "service"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 150
+                "value": 100
               }
             ]
           }
         ]
       },
       "gridPos": {
-        "h": 9,
-        "w": 24,
+        "h": 8,
+        "w": 12,
         "x": 0,
-        "y": 7
+        "y": 8
       },
-      "id": 8,
+      "id": 6,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -200,24 +217,23 @@
             "uid": "P8E80F9AEF21F6940"
           },
           "editorMode": "code",
-          "expr": "sum by(requestId, method, path, service, statusCode) (count_over_time({job=\"docker\", requestId=~\".+\"} | drop level, msg [$__interval]))",
+          "expr": "sum by(service) (count_over_time({job=\"docker\", service!~\"loki|alloy|grafana\"} [1h]))",
           "legendFormat": "",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Recent Request IDs",
+      "title": "Log Count by Service",
       "transformations": [
         {
-          "id": "sortBy",
+          "id": "organize",
           "options": {
-            "fields": {},
-            "sort": [
-              {
-                "field": "Time",
-                "desc": true
-              }
-            ]
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Value": "Count",
+              "service": "Service"
+            }
           }
         }
       ],
@@ -228,80 +244,19 @@
         "type": "loki",
         "uid": "P8E80F9AEF21F6940"
       },
-      "description": "Shows all log entries for the selected request ID",
-      "gridPos": {
-        "h": 15,
-        "w": 24,
-        "x": 0,
-        "y": 16
-      },
-      "id": 2,
-      "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": true,
-        "prettifyLogMessage": false,
-        "showCommonLabels": false,
-        "showLabels": true,
-        "showTime": true,
-        "sortOrder": "Descending",
-        "wrapLogMessage": false
-      },
-      "pluginVersion": "10.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "P8E80F9AEF21F6940"
-          },
-          "editorMode": "builder",
-          "expr": "{job=\"docker\", requestId=\"$requestId\"}",
-          "queryType": "range",
-          "refId": "A"
-        }
-      ],
-      "title": "Request Trace: $requestId",
-      "type": "logs"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "P8E80F9AEF21F6940"
-      },
-      "description": "Request flow across services",
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
           "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "bars",
-            "fillOpacity": 30,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
             },
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "filterable": true,
+            "inspect": false
           },
           "mappings": [],
           "thresholds": {
@@ -314,26 +269,39 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Count"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 31
+        "w": 12,
+        "x": 12,
+        "y": 8
       },
-      "id": 10,
+      "id": 7,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
         },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
+        "showHeader": true
       },
       "pluginVersion": "10.0.0",
       "targets": [
@@ -342,62 +310,135 @@
             "type": "loki",
             "uid": "P8E80F9AEF21F6940"
           },
-          "editorMode": "builder",
-          "expr": "sum by(service) (count_over_time({job=\"docker\", requestId=\"$requestId\"} [5m]))",
-          "legendFormat": "{{service}}",
+          "editorMode": "code",
+          "expr": "sum by(path) (count_over_time({job=\"docker\", service=~\"$service\", service!~\"loki|alloy|grafana\", path=~\".+\"} [24h]))",
+          "legendFormat": "{{path}}",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Service Activity for Request ID: $requestId",
-      "type": "timeseries"
+      "title": "Log Count by Path",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Value": "Count",
+              "path": "Path"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "P8E80F9AEF21F6940"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 3,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "P8E80F9AEF21F6940"
+          },
+          "editorMode": "builder",
+          "expr": "{job=\"docker\", service=~\"$service\", service!~\"loki|alloy|grafana\"} |~ \"$search\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Logs",
+      "type": "logs"
     }
   ],
   "refresh": "5s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["trace", "requestId"],
+  "tags": ["logs"],
   "templating": {
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": "None",
-          "value": ""
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
         },
         "datasource": {
           "type": "loki",
           "uid": "P8E80F9AEF21F6940"
         },
-        "definition": "label_values(requestId)",
+        "definition": "label_values({job=\"docker\", service!~\"loki|alloy|grafana\"}, service)",
         "hide": 0,
-        "includeAll": false,
-        "label": "Request ID",
-        "multi": false,
-        "name": "requestId",
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
         "options": [],
         "query": {
-          "label": "requestId",
+          "label": "service",
           "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "",
+          "stream": "{job=\"docker\", service!~\"loki|alloy|grafana\"}",
           "type": 1
         },
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
-        "sort": 5,
+        "sort": 1,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "hide": 0,
+        "name": "search",
+        "options": [
+          {
+            "selected": true,
+            "text": "",
+            "value": ""
+          }
+        ],
+        "query": "",
+        "skipUrlSync": false,
+        "type": "textbox"
       }
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Request Tracing Dashboard",
-  "uid": "request-tracing",
-  "version": 3,
+  "title": "Log Viewer",
+  "uid": "log-viewer",
+  "version": 1,
   "weekStart": ""
 } 
