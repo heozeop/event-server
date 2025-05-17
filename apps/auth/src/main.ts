@@ -1,4 +1,5 @@
 import { LogContextInterceptor, PinoLoggerService } from '@libs/logger';
+import { ValidationPipe } from '@libs/pipe';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import 'reflect-metadata'; // Required for decorators
@@ -21,6 +22,8 @@ async function bootstrap() {
   const requestContextInterceptor = app.get(RequestContextInterceptor);
 
   app.useGlobalInterceptors(loggerIntercepter, requestContextInterceptor);
+
+  app.useGlobalPipes(app.get(ValidationPipe));
 
   await app.listen();
   logger.log('Auth microservice is listening');
