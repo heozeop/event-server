@@ -7,6 +7,7 @@ import {
   CreateUserDto,
   LoginDto,
   LoginResponseDto,
+  QueryUserByEmailDto,
   UpdateRolesDto,
 } from '@libs/dtos';
 import { Role } from '@libs/enums';
@@ -24,6 +25,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -42,13 +44,17 @@ export class AuthController {
 
   @Post('login')
   @Public()
-  @ApiOperation({ summary: 'User login' })
+  @ApiOperation({
+    summary: 'User login',
+    description: 'User login',
+  })
   @ApiResponse({
     status: 200,
     description: 'Login successful',
     type: LoginResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @ApiBody({ type: LoginDto })
   @LogExecution({
     entryLevel: 'log',
     exitLevel: 'log',
@@ -64,6 +70,7 @@ export class AuthController {
   @Post('users')
   @Public()
   @ApiOperation({ summary: 'Create a new user' })
+  @ApiBody({ type: CreateUserDto })
   @ApiResponse({ status: 201, description: 'User successfully created' })
   @ApiResponse({ status: 400, description: 'Bad request - invalid data' })
   @ApiResponse({ status: 409, description: 'Conflict - user already exists' })
@@ -104,11 +111,11 @@ export class AuthController {
     );
   }
 
-  @Get('users/email/:email')
+  @Get('users/email')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get user by email' })
-  @ApiParam({ name: 'email', description: 'User email' })
+  @ApiBody({ type: QueryUserByEmailDto })
   @ApiResponse({ status: 200, description: 'User found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
@@ -122,9 +129,12 @@ export class AuthController {
     entryMessage: 'Getting user by email',
     exitMessage: 'User found',
   })
-  async getUserByEmail(@Param('email') email: string) {
+  async getUserByEmail(@Body() queryUserByEmailDto: QueryUserByEmailDto) {
     return await lastValueFrom(
-      this.authClient.send({ cmd: AUTH_CMP.GET_USER_BY_EMAIL }, { email }),
+      this.authClient.send(
+        { cmd: AUTH_CMP.GET_USER_BY_EMAIL },
+        queryUserByEmailDto,
+      ),
     );
   }
 
@@ -133,6 +143,7 @@ export class AuthController {
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Update user roles' })
   @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiBody({ type: UpdateRolesDto })
   @ApiResponse({ status: 200, description: 'Roles updated successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
@@ -169,6 +180,24 @@ export class AuthController {
     exitMessage: 'Endpoint tested',
   })
   async test() {
+    // Add explicit logging for testing Fluentd
+    this.logger.log('Gateway AUTH TEST - Info level log message', {
+      test: true,
+      timestamp: new Date().toISOString(),
+    } as any);
+    this.logger.error('Gateway AUTH TEST - Error level log message', {
+      test: true,
+      timestamp: new Date().toISOString(),
+    } as any);
+    this.logger.warn('Gateway AUTH TEST - Warning level log message', {
+      test: true,
+      timestamp: new Date().toISOString(),
+    } as any);
+    this.logger.debug('Gateway AUTH TEST - Debug level log message', {
+      test: true,
+      timestamp: new Date().toISOString(),
+    } as any);
+
     return { status: 'ok', service: 'auth' };
   }
 }

@@ -25,8 +25,10 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -48,6 +50,7 @@ export class EventController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OPERATOR, Role.ADMIN)
   @ApiOperation({ summary: 'Create a new event' })
+  @ApiBody({ type: CreateEventDto })
   @ApiResponse({ status: 201, description: 'Event successfully created' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
@@ -69,6 +72,7 @@ export class EventController {
   @Get('events')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all events' })
+  @ApiBody({ type: QueryEventDto })
   @ApiResponse({ status: 200, description: 'Events retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @LogExecution({
@@ -124,6 +128,7 @@ export class EventController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OPERATOR, Role.ADMIN)
   @ApiOperation({ summary: 'Get all rewards' })
+  @ApiQuery({ type: QueryRewardRequestDto })
   @ApiResponse({ status: 200, description: 'Rewards retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
@@ -178,6 +183,7 @@ export class EventController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.USER, Role.AUDITOR, Role.ADMIN)
   @ApiOperation({ summary: 'Get all reward requests' })
+  @ApiQuery({ type: QueryRewardRequestDto })
   @ApiResponse({
     status: 200,
     description: 'Reward requests retrieved successfully',
