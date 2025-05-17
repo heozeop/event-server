@@ -18,17 +18,6 @@ async function bootstrap() {
   const logger = app.get(PinoLoggerService);
   logger.log('Starting gateway service...');
 
-  // Log some additional context information for Alloy testing
-  logger.log('Logger configured for Alloy integration', {
-    serviceId: 'gateway',
-    requestId: 'test-request-id',
-    userId: 'test-user-id',
-    path: '/test-path',
-    method: 'GET',
-    clientIp: '127.0.0.1',
-    userAgent: 'test-user-agent',
-  });
-
   // Configure microservice
   app.connectMicroservice({
     transport: Transport.TCP,
