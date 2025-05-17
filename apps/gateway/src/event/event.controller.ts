@@ -229,9 +229,20 @@ export class EventController {
   @Post('events/:eventId/rewards')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OPERATOR, Role.ADMIN)
-  @ApiOperation({ summary: 'Add a reward to an event' })
+  @ApiOperation({
+    summary: 'Add a reward to an event',
+    requestBody: {
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: { rewardId: { type: 'string' } },
+          },
+        },
+      },
+    },
+  })
   @ApiParam({ name: 'eventId', description: 'ID of the event' })
-  @ApiParam({ name: 'rewardId', description: 'ID of the reward' })
   @ApiResponse({
     status: 200,
     description: 'Reward added to event successfully',
