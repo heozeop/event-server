@@ -59,7 +59,7 @@ export class EventService {
    */
   async getEvents({
     status,
-    active,
+    inPeriod,
     name,
     limit = 10,
     offset = 0,
@@ -70,7 +70,7 @@ export class EventService {
       query.status = status;
     }
 
-    if (active) {
+    if (inPeriod) {
       const now = new Date();
       query.period = {
         start: { $lte: now },
@@ -79,7 +79,7 @@ export class EventService {
     }
 
     if (name) {
-      query.name = { $ilike: name };
+      query.name = new RegExp(name, 'i');
     }
 
     const [events, total] = await this.eventRepository.findAndCount(query, {

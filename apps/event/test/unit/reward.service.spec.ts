@@ -171,25 +171,28 @@ describe('RewardService', () => {
       };
 
       // Act & Assert - Point Reward
-      const pointReward = await service.createReward(
-        RewardType.POINT,
-        pointsDto,
-      );
+      const pointReward = await service.createReward({
+        type: RewardType.POINT,
+        rewardData: pointsDto,
+      });
       expect(pointReward).toBeDefined();
       expect(pointReward.type).toBe(RewardType.POINT);
       expect((pointReward as PointReward).points).toBe(pointsDto.points);
 
       // Act & Assert - Item Reward
-      const itemReward = await service.createReward(RewardType.ITEM, itemDto);
+      const itemReward = await service.createReward({
+        type: RewardType.ITEM,
+        rewardData: itemDto,
+      });
       expect(itemReward).toBeDefined();
       expect(itemReward.type).toBe(RewardType.ITEM);
       expect((itemReward as ItemReward).itemId).toBe(itemDto.itemId);
 
       // Act & Assert - Coupon Reward
-      const couponReward = await service.createReward(
-        RewardType.COUPON,
-        couponDto,
-      );
+      const couponReward = await service.createReward({
+        type: RewardType.COUPON,
+        rewardData: couponDto,
+      });
       expect(couponReward).toBeDefined();
       expect(couponReward.type).toBe(RewardType.COUPON);
       expect((couponReward as CouponReward).couponCode).toBe(
@@ -197,10 +200,10 @@ describe('RewardService', () => {
       );
 
       // Act & Assert - Badge Reward
-      const badgeReward = await service.createReward(
-        RewardType.BADGE,
-        badgeDto,
-      );
+      const badgeReward = await service.createReward({
+        type: RewardType.BADGE,
+        rewardData: badgeDto,
+      });
       expect(badgeReward).toBeDefined();
       expect(badgeReward.type).toBe(RewardType.BADGE);
       expect((badgeReward as BadgeReward).badgeId).toBe(badgeDto.badgeId);
@@ -215,9 +218,12 @@ describe('RewardService', () => {
       };
 
       // Act & Assert
-      await expect(service.createReward(invalidType, dto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.createReward({
+          type: invalidType,
+          rewardData: dto,
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
