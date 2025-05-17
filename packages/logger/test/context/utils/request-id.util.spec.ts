@@ -1,4 +1,4 @@
-import { RequestIdUtil } from './request-id.util';
+import { RequestIdUtil } from "../../../src";
 
 describe('RequestIdUtil', () => {
   it('should generate a UUID v4 request ID', () => {

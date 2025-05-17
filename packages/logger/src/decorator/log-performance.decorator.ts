@@ -1,6 +1,4 @@
-import { Inject } from '@nestjs/common';
 import { WithLogger } from '../interfaces';
-import { PinoLoggerService } from '../services/pino-logger.service';
 
 /**
  * Decorator that logs performance metrics for methods
@@ -15,13 +13,12 @@ export function LogPerformance(category: string = 'default') {
     // Store the original method
     const originalMethod = descriptor.value;
 
-    // Inject the logger
-    const logger = Inject(PinoLoggerService)(target, 'logger');
 
 
     // Replace the method with a wrapped version
     descriptor.value = async function (this: WithLogger, ...args: any[]) {
       const startTime = Date.now();
+      this.logger.log('LogPerformance', args);
 
       try {
         // Execute the original method

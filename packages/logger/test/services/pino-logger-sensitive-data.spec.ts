@@ -12,11 +12,6 @@ jest.mock('pino', () => {
   
   const mockPino = jest.fn().mockReturnValue(mockLoggerInstance);
   
-  // Add the standard time functions
-  mockPino.stdTimeFunctions = {
-    isoTime: jest.fn()
-  };
-  
   return { 
     pino: mockPino,
     stdTimeFunctions: {

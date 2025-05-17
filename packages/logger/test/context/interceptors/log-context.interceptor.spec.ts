@@ -2,9 +2,9 @@ import { CallHandler, ExecutionContext } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ClsModule, ClsService } from 'nestjs-cls';
 import { of } from 'rxjs';
-import { LogContextInterceptor } from './log-context.interceptor';
-import { RequestIdUtil } from './request-id.util';
-import { RequestMetadataUtil } from './request-metadata.util';
+import { LogContextInterceptor } from '../../../src/context/interceptors/log-context.interceptor';
+import { RequestIdUtil } from '../../../src/context/utils/request-id.util';
+import { RequestMetadataUtil } from '../../../src/context/utils/request-metadata.util';
 
 jest.mock('./request-id.util');
 jest.mock('./request-metadata.util');

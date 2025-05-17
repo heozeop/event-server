@@ -31,6 +31,7 @@ export interface LoggerService {
 } 
 
 export interface LoggerModuleOptions {
+  global?: boolean;
   serviceName: string;
   prettyPrint?: boolean;
   logLevel?: string;
@@ -44,6 +45,7 @@ export interface LoggerModuleOptions {
 }
 
 export interface LoggerModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
+  global?: boolean;
   imports: any[];
   inject: any[];
   useFactory: (...args: any[]) => Promise<LoggerModuleOptions> | LoggerModuleOptions;

@@ -9,6 +9,7 @@ import { LoggerModuleAsyncOptions, LoggerModuleOptions } from './interfaces';
 import { PinoLoggerService } from './services/pino-logger.service';
 
 export const defaultLoggerModuleOptions: LoggerModuleOptions = {
+  global: true,
   serviceName: 'default',
   prettyPrint: true,
   logLevel: 'error',
@@ -25,6 +26,8 @@ export const defaultLoggerModuleOptions: LoggerModuleOptions = {
   } 
 };
 
+const LOGGER_MODULE_OPTIONS = Symbol('LOGGER_MODULE_OPTIONS');
+
 @Module({
   imports: [
     ClsModule.forRoot({
@@ -36,44 +39,26 @@ export const defaultLoggerModuleOptions: LoggerModuleOptions = {
       }
     })
   ],
-  providers: [
-    LogContextStore,
-    LogContextInterceptor,
-    PinoLoggerService,
-    PinoLogLevelManager
-  ],
-  exports: [
-    ClsModule,
-    LogContextStore,
-    LogContextInterceptor,
-    PinoLoggerService,
-    PinoLogLevelManager
-  ]
 })
 export class LoggerModule {
+
   static forRoot(options: LoggerModuleOptions): DynamicModule {
     const mergedOptions = { ...defaultLoggerModuleOptions, ...options };
 
     return {
       module: LoggerModule,
+      global: mergedOptions.global,
       providers: [
         {
           provide: PinoLoggerService,
           useFactory: () => {
-            return new PinoLoggerService({
-              serviceName: mergedOptions.serviceName,
-              prettyPrint: mergedOptions.prettyPrint,
-              logLevel: mergedOptions.logLevel as any,
-              sensitiveDataOptions: mergedOptions.sensitiveDataOptions
-            });
+            return LoggerModule.getPinoLoggerService(mergedOptions);
           }
         },
         {
           provide: SensitiveDataFilter,
           useFactory: () => {
-            return mergedOptions.sensitiveDataOptions?.enabled !== false ? 
-              new SensitiveDataFilter(mergedOptions.sensitiveDataOptions) : 
-              null;
+            return LoggerModule.getSensitiveDataFilter(mergedOptions);
           }
         },
         LogContextStore,
@@ -91,12 +76,62 @@ export class LoggerModule {
     };
   }
 
-  static forRootAsync(options:LoggerModuleAsyncOptions) {
+  static forRootAsync(options:LoggerModuleAsyncOptions): DynamicModule {
     return {
+      global: options.global,
       module: LoggerModule,
       imports: options.imports,
-      inject: options.inject,
-      useFactory: options.useFactory,
+      providers: [
+        {
+          provide: LOGGER_MODULE_OPTIONS,
+          useFactory: options.useFactory,
+          inject: options.inject,
+        },
+        {
+          provide: PinoLoggerService,
+          useFactory: (options: LoggerModuleOptions) => {
+            return LoggerModule.getPinoLoggerService(options);
+          },
+          inject: [LOGGER_MODULE_OPTIONS],
+        },
+        {
+          provide: SensitiveDataFilter,
+          useFactory: (options: LoggerModuleOptions) => {
+            return LoggerModule.getSensitiveDataFilter(options);
+          },
+          inject: [LOGGER_MODULE_OPTIONS],
+        },
+
+        LogContextStore,
+        LogContextInterceptor,
+        PinoLogLevelManager
+      ],
+      exports: [
+        LOGGER_MODULE_OPTIONS,
+        PinoLoggerService,
+        SensitiveDataFilter,
+        LogContextStore,
+        LogContextInterceptor,
+        PinoLogLevelManager,
+        ClsModule
+      ]
     };
+  }
+
+  private static getPinoLoggerService(options: LoggerModuleOptions): PinoLoggerService { 
+    return new PinoLoggerService({
+      serviceName: options.serviceName,
+      prettyPrint: options.prettyPrint,
+      logLevel: options.logLevel as any,
+      sensitiveDataOptions: options.sensitiveDataOptions
+    });
+  }
+
+  private static getSensitiveDataFilter(options: LoggerModuleOptions): SensitiveDataFilter | null {
+    if(options.sensitiveDataOptions?.enabled === false) {
+      return null;
+    }
+
+    return new SensitiveDataFilter(options.sensitiveDataOptions);
   }
 } 

@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { ClsModule, ClsService } from 'nestjs-cls';
-import { LogContextStore } from './log-context.store';
+import { LogContextStore } from '../../../src/context/store/log-context.store';
 
 describe('LogContextStore', () => {
   let contextStore: LogContextStore;

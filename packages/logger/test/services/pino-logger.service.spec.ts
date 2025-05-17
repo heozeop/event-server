@@ -1,4 +1,4 @@
-import { PinoLoggerService } from './pino-logger.service';
+import { PinoLoggerService } from "../../src";
 
 describe('PinoLoggerService', () => {
   let loggerService: PinoLoggerService;
