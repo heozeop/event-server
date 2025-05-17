@@ -11,6 +11,7 @@ import {
 import { DatabaseModule } from './database/database.module';
 import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
 import { EventService, RewardRequestService, RewardService } from './services';
+import { PipeModule } from '@libs/pipe';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -27,11 +28,6 @@ import { EventService, RewardRequestService, RewardService } from './services';
         serviceName: 'event-service',
         prettyPrint: configService.get('NODE_ENV') !== 'production',
         logLevel: configService.get('LOG_LEVEL') || 'info',
-        fileTransport: {
-          enabled: true,
-          destination: '/logs/event/event.log',
-          mkdir: true,
-        },
         sensitiveDataOptions: {
           enabled: true,
           maskValue: '***MASKED***',
@@ -42,8 +38,14 @@ import { EventService, RewardRequestService, RewardService } from './services';
             'password',
           ],
         },
+        alloyConfig: {
+          enabled: true,
+          messageKey: 'msg',
+          levelKey: 'level',
+        },
       }),
     }),
+    PipeModule
   ],
   providers: [
     EventService,

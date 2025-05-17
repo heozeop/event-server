@@ -1,5 +1,5 @@
 import { LogContextInterceptor, PinoLoggerService } from '@libs/logger';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@libs/pipe';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -18,6 +18,17 @@ async function bootstrap() {
   const logger = app.get(PinoLoggerService);
   logger.log('Starting gateway service...');
 
+  // Log some additional context information for Alloy testing
+  logger.log('Logger configured for Alloy integration', {
+    serviceId: 'gateway',
+    requestId: 'test-request-id',
+    userId: 'test-user-id',
+    path: '/test-path',
+    method: 'GET',
+    clientIp: '127.0.0.1',
+    userAgent: 'test-user-agent',
+  });
+
   // Configure microservice
   app.connectMicroservice({
     transport: Transport.TCP,
@@ -27,12 +38,8 @@ async function bootstrap() {
     },
   });
 
-  // Enable validation globally
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-    }),
-  );
+  // Use the validation pipe from the pipe package
+  app.useGlobalPipes(app.get(ValidationPipe));
 
   // Configure Swagger
   const config = new DocumentBuilder()

@@ -1,4 +1,5 @@
 import { LogContextInterceptor, PinoLoggerService } from '@libs/logger';
+import { ValidationPipe } from '@libs/pipe';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
@@ -22,6 +23,8 @@ async function bootstrap() {
     requestContextInterceptor,
     loggerContextInterceptor,
   );
+
+  app.useGlobalPipes(app.get(ValidationPipe));
 
   await app.listen();
   logger.log('Event microservice is listening', {

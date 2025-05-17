@@ -10,6 +10,7 @@ import { DatabaseModule } from './database/database.module';
 import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
 import { AuthService } from './services/auth.service';
 import { UserService } from './services/user.service';
+import { PipeModule } from '@libs/pipe';
 
 @Module({
   imports: [
@@ -25,11 +26,6 @@ import { UserService } from './services/user.service';
         serviceName: 'auth-service',
         prettyPrint: configService.get('NODE_ENV') !== 'production',
         logLevel: configService.get('LOG_LEVEL') || 'info',
-        fileTransport: {
-          enabled: true,
-          destination: '/logs/auth/auth.log',
-          mkdir: true,
-        },
         sensitiveDataOptions: {
           enabled: true,
           maskValue: '***MASKED***',
@@ -42,6 +38,11 @@ import { UserService } from './services/user.service';
             'password',
             'token',
           ],
+        },
+        alloyConfig: {
+          enabled: true,
+          messageKey: 'msg',
+          levelKey: 'level',
         },
       }),
     }),
@@ -58,6 +59,7 @@ import { UserService } from './services/user.service';
       }),
     }),
     DatabaseModule,
+    PipeModule,
     MicroServiceExceptionModule,
   ],
   controllers: [UserController, AuthController],

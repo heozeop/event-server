@@ -1,5 +1,6 @@
 import { ClientServiceExceptionModule } from '@libs/filter';
 import { LoggerModule } from '@libs/logger';
+import { PipeModule } from '@libs/pipe';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
@@ -19,13 +20,14 @@ import { EventModule } from './event/event.module';
         serviceName: 'gateway',
         logLevel: configService.get('LOG_LEVEL') || 'info',
         prettyPrint: configService.get('NODE_ENV') !== 'production',
-        fileTransport: {
+        alloyConfig: {
           enabled: true,
-          destination: '/logs/gateway/gateway.log',
-          mkdir: true,
+          messageKey: 'msg',
+          levelKey: 'level',
         },
       }),
     }),
+    PipeModule,
     AuthModule,
     EventModule,
     ClientServiceExceptionModule,
