@@ -18,7 +18,6 @@ export class PagingDto {
     required: false,
   })
   @IsNumber()
-  @IsPositive()
   @IsOptional()
   offset?: number;
 }
