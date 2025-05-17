@@ -37,19 +37,26 @@ loki.process "extract_log_fields" {
     expressions = {
       timestamp = "timestamp",
       level     = "level",
-      msg       = "message",
+      msg       = "msg",
       requestId = "requestId",
       serviceId = "serviceId",
       userId    = "userId",
+      path      = "path",
+      method    = "method",
+      clientIp  = "clientIp",
+      userAgent = "userAgent",
+      stack     = "stack",
     }
   }
-
+  
   stage.labels {
     values = {
       level     = "level",
       requestId = "requestId",
       serviceId = "serviceId",
       userId    = "userId",
+      path      = "path",
+      method    = "method",
     }
   }
 

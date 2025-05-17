@@ -142,12 +142,6 @@ services:
       - user-data:/data/db
     networks:
       - event-network
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-        tag: "{{.Name}}"
 
   mongo-event:
     image: mongo:latest
@@ -158,12 +152,6 @@ services:
       - event-data:/data/db
     networks:
       - event-network
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-        tag: "{{.Name}}"
 
 networks:
   event-network:
