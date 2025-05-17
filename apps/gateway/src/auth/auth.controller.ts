@@ -3,6 +3,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
 import { AUTH_CMP } from '@libs/cmd';
+import { CurrentUser } from '@libs/decorator';
 import {
   CreateUserDto,
   LoginDto,
@@ -12,6 +13,7 @@ import {
 } from '@libs/dtos';
 import { Role } from '@libs/enums';
 import { LogExecution, PinoLoggerService } from '@libs/logger';
+import { CurrentUserData } from '@libs/types';
 import {
   Body,
   Controller,
@@ -67,6 +69,23 @@ export class AuthController {
     );
   }
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get current user' })
+  @ApiResponse({ status: 200, description: 'User found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting current user',
+    exitMessage: 'User found',
+  })
+  async getMe(@CurrentUser() user: CurrentUserData) {
+    return await lastValueFrom(
+      this.authClient.send({ cmd: AUTH_CMP.GET_USER_BY_ID }, { id: user.id }),
+    );
+  }
+
   @Post('users')
   @Public()
   @ApiOperation({ summary: 'Create a new user' })
@@ -88,7 +107,7 @@ export class AuthController {
 
   @Get('users/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.USER, Role.ADMIN)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ status: 200, description: 'User found' })
@@ -167,37 +186,5 @@ export class AuthController {
         { id, updateRolesDto },
       ),
     );
-  }
-
-  @Get('test')
-  @Public()
-  @ApiOperation({ summary: 'Test endpoint' })
-  @ApiResponse({ status: 200, description: 'Service is working properly' })
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Testing endpoint',
-    exitMessage: 'Endpoint tested',
-  })
-  async test() {
-    // Add explicit logging for testing Fluentd
-    this.logger.log('Gateway AUTH TEST - Info level log message', {
-      test: true,
-      timestamp: new Date().toISOString(),
-    } as any);
-    this.logger.error('Gateway AUTH TEST - Error level log message', {
-      test: true,
-      timestamp: new Date().toISOString(),
-    } as any);
-    this.logger.warn('Gateway AUTH TEST - Warning level log message', {
-      test: true,
-      timestamp: new Date().toISOString(),
-    } as any);
-    this.logger.debug('Gateway AUTH TEST - Debug level log message', {
-      test: true,
-      timestamp: new Date().toISOString(),
-    } as any);
-
-    return { status: 'ok', service: 'auth' };
   }
 }
