@@ -5,8 +5,11 @@ import {
   CreateEventDto,
   CreateRewardDto,
   CreateRewardRequestDto,
+  EventResponseDto,
   QueryEventDto,
   QueryRewardRequestDto,
+  RewardRequestResponseDto,
+  RewardResponseDto,
 } from '@libs/dtos';
 import { RewardType, Role } from '@libs/enums';
 import { LogExecution, PinoLoggerService } from '@libs/logger';
@@ -63,7 +66,9 @@ export class EventController {
     entryMessage: 'Creating event',
     exitMessage: 'Event created',
   })
-  async createEvent(@Body() createEventDto: CreateEventDto) {
+  async createEvent(
+    @Body() createEventDto: CreateEventDto,
+  ): Promise<EventResponseDto> {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.CREATE_EVENT }, createEventDto),
     );
@@ -81,7 +86,7 @@ export class EventController {
     entryMessage: 'Getting events',
     exitMessage: 'Events retrieved',
   })
-  async getEvents(@Query() query: QueryEventDto) {
+  async getEvents(@Query() query: QueryEventDto): Promise<EventResponseDto[]> {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_EVENTS }, query),
     );
@@ -112,7 +117,7 @@ export class EventController {
   async createReward(
     @Param('type') type: string,
     @Body() rewardData: CreateRewardDto,
-  ) {
+  ): Promise<RewardResponseDto> {
     return await lastValueFrom(
       this.eventClient.send(
         { cmd: EVENT_CMP.CREATE_REWARD },
@@ -141,7 +146,9 @@ export class EventController {
     entryMessage: 'Getting rewards',
     exitMessage: 'Rewards retrieved',
   })
-  async getRewards(@Query() query: QueryRewardRequestDto) {
+  async getRewards(
+    @Query() query: QueryRewardRequestDto,
+  ): Promise<RewardResponseDto[]> {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_REWARDS }, query),
     );
@@ -165,7 +172,7 @@ export class EventController {
   async requestReward(
     @Param('eventId') eventId: string,
     @CurrentUser() user: CurrentUserData,
-  ) {
+  ): Promise<RewardRequestResponseDto> {
     const createRewardRequestDto: CreateRewardRequestDto = {
       eventId,
       userId: user.id,
@@ -199,7 +206,9 @@ export class EventController {
     entryMessage: 'Getting reward requests',
     exitMessage: 'Reward requests retrieved',
   })
-  async getRewardRequests(@Query() query: QueryRewardRequestDto) {
+  async getRewardRequests(
+    @Query() query: QueryRewardRequestDto,
+  ): Promise<RewardRequestResponseDto[]> {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_REWARD_REQUESTS }, query),
     );
@@ -217,7 +226,9 @@ export class EventController {
     entryMessage: 'Getting rewards for event',
     exitMessage: 'Rewards retrieved',
   })
-  async getRewardsForEvent(@Param('eventId') eventId: string) {
+  async getRewardsForEvent(
+    @Param('eventId') eventId: string,
+  ): Promise<RewardResponseDto[]> {
     return await lastValueFrom(
       this.eventClient.send(
         { cmd: EVENT_CMP.GET_REWARDS_BY_EVENT_ID },
@@ -261,7 +272,7 @@ export class EventController {
   async addRewardToEvent(
     @Param('eventId') eventId: string,
     @Body('rewardId') rewardId: string,
-  ) {
+  ): Promise<void> {
     return await lastValueFrom(
       this.eventClient.send(
         { cmd: EVENT_CMP.ADD_REWARD_TO_EVENT },

@@ -10,6 +10,7 @@ import {
   LoginResponseDto,
   QueryUserByEmailDto,
   UpdateRolesDto,
+  UserResponseDto,
 } from '@libs/dtos';
 import { Role } from '@libs/enums';
 import { LogExecution, PinoLoggerService } from '@libs/logger';
@@ -63,7 +64,7 @@ export class AuthController {
     entryMessage: 'User login attempt',
     exitMessage: 'User login successful',
   })
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.LOGIN }, loginDto),
     );
@@ -80,7 +81,7 @@ export class AuthController {
     entryMessage: 'Getting current user',
     exitMessage: 'User found',
   })
-  async getMe(@CurrentUser() user: CurrentUserData) {
+  async getMe(@CurrentUser() user: CurrentUserData): Promise<UserResponseDto> {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.GET_USER_BY_ID }, { id: user.id }),
     );
@@ -99,7 +100,7 @@ export class AuthController {
     entryMessage: 'Creating user',
     exitMessage: 'User created',
   })
-  async createUser(@Body() createUserDto: CreateUserDto) {
+  async createUser(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.CREATE_USER }, createUserDto),
     );
@@ -123,7 +124,7 @@ export class AuthController {
     entryMessage: 'Getting user by ID',
     exitMessage: 'User found',
   })
-  async getUserById(@Param('id') id: string) {
+  async getUserById(@Param('id') id: string): Promise<UserResponseDto> {
     console.log('getUserById', id);
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.GET_USER_BY_ID }, { id }),
@@ -148,7 +149,7 @@ export class AuthController {
     entryMessage: 'Getting user by email',
     exitMessage: 'User found',
   })
-  async getUserByEmail(@Body() queryUserByEmailDto: QueryUserByEmailDto) {
+  async getUserByEmail(@Body() queryUserByEmailDto: QueryUserByEmailDto): Promise<UserResponseDto> {
     return await lastValueFrom(
       this.authClient.send(
         { cmd: AUTH_CMP.GET_USER_BY_EMAIL },
@@ -179,7 +180,7 @@ export class AuthController {
   async updateUserRoles(
     @Param('id') id: string,
     @Body() updateRolesDto: UpdateRolesDto,
-  ) {
+  ): Promise<UserResponseDto> {
     return await lastValueFrom(
       this.authClient.send(
         { cmd: AUTH_CMP.UPDATE_USER_ROLES },
