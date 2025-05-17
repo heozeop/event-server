@@ -10,7 +10,7 @@ import {
   UpdateRolesDto,
 } from '@libs/dtos';
 import { Role } from '@libs/enums';
-import { LogPerformance } from '@libs/logger';
+import { LogPerformance, PinoLoggerService } from '@libs/logger';
 import {
   Body,
   Controller,
@@ -37,6 +37,7 @@ import { lastValueFrom } from 'rxjs';
 export class AuthController {
   constructor(
     @Inject('AUTH_SERVICE') private readonly authClient: ClientProxy,
+    private readonly logger: PinoLoggerService,
   ) {}
 
   @Post('login')

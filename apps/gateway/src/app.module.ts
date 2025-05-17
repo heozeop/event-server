@@ -12,6 +12,7 @@ import { EventModule } from './event/event.module';
       envFilePath: '.env',
     }),
     LoggerModule.forRootAsync({
+      global: true,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

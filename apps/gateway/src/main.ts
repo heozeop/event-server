@@ -13,7 +13,6 @@ async function bootstrap() {
 
   // Get the logger service
   const logger = app.get(PinoLoggerService);
-  app.useLogger(logger);
 
   const loggerInterceptor = app.get(LogContextInterceptor);
   app.useGlobalInterceptors(loggerInterceptor);

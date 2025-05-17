@@ -9,7 +9,7 @@ import {
   QueryRewardRequestDto,
 } from '@libs/dtos';
 import { RewardType, Role } from '@libs/enums';
-import { LogPerformance } from '@libs/logger';
+import { LogPerformance, PinoLoggerService } from '@libs/logger';
 import { CurrentUserData } from '@libs/types';
 import {
   Body,
@@ -41,6 +41,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 export class EventController {
   constructor(
     @Inject('EVENT_SERVICE') private readonly eventClient: ClientProxy,
+    private readonly logger: PinoLoggerService,
   ) {}
 
   @Post('events')
