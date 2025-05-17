@@ -1,16 +1,15 @@
+import { LoggerModule } from '@libs/logger';
 import { Module } from '@nestjs/common';
 import { MicroServiceGlobalExceptionFilterProvider } from './global-exception-filter.provider';
 import { MicroServiceExceptionFilter } from './micro-service-exception.filter';
 
 /**
- * Module for HTTP exception handling
- * Import this module in your application module to apply the HttpExceptionFilter globally
+ * Module for microservice exception handling
+ * Import this module in your application module to apply the MicroserviceExceptionFilter globally
  */
 @Module({
-  providers: [
-    MicroServiceExceptionFilter,
-    MicroServiceGlobalExceptionFilterProvider,
-  ],
+  imports: [LoggerModule],
+  providers: [MicroServiceExceptionFilter, MicroServiceGlobalExceptionFilterProvider],
   exports: [MicroServiceExceptionFilter],
 })
 export class MicroServiceExceptionModule {}

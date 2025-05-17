@@ -11,7 +11,8 @@
   "author": "heozeop",
   "license": "ISC",
   "dependencies": {
-    "@libs/dtos": "workspace:*"
+    "@libs/dtos": "workspace:*",
+    "@libs/logger": "workspace:*"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",

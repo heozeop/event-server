@@ -1,11 +1,12 @@
 import { ExceptionDto } from '@libs/dtos';
+import { PinoLoggerService } from '@libs/logger';
 import {
   ArgumentsHost,
   Catch,
   ExceptionFilter,
   HttpException,
   HttpStatus,
-  Logger,
+  Inject,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
@@ -15,7 +16,9 @@ import { Request, Response } from 'express';
  */
 @Catch()
 export class ClientServiceExceptionFilter implements ExceptionFilter {
-  private readonly logger = new Logger(ClientServiceExceptionFilter.name);
+  constructor(
+    @Inject(PinoLoggerService) private readonly logger: PinoLoggerService
+  ) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -31,11 +34,27 @@ export class ClientServiceExceptionFilter implements ExceptionFilter {
       return response.status(status).json({ message, timestamp, path: request.url });
     }
 
-
     const status =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    // Check if this is a validation error from ValidationPipe
+    if (exception instanceof HttpException && exception.getStatus() === HttpStatus.BAD_REQUEST) {
+      const exceptionResponse = exception.getResponse();
+      
+      // Check if this is our enhanced validation error format with the 'errors' property
+      if (typeof exceptionResponse === 'object' && 
+          exceptionResponse !== null && 
+          'errors' in exceptionResponse) {
+        
+        // This exception already includes formatted errors and has been logged by the ValidationPipe
+        return response.status(status).json({
+          ...exceptionResponse,
+          path: request.url,
+        });
+      }
+    }
 
     const message =
       exception instanceof HttpException
