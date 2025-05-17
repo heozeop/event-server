@@ -1,6 +1,59 @@
-version: '3.8'
+version: '3.9'
 
 services:
+  # Logging infrastructure
+  loki:
+    image: grafana/loki:2.8.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./config/loki/local-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    user: "root"
+    networks:
+      - event-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./config/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./config/grafana/dashboards:/etc/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - loki
+    networks:
+      - event-network
+
+  # Grafana Alloy Agent for log collection
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    volumes:
+      - ./config/alloy/config.river:/etc/alloy/config.river
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data/alloy:/tmp/alloy
+    command: run /etc/alloy/config.river
+    user: root
+    depends_on:
+      - loki
+    networks:
+      - event-network
+    ports:
+      - "12345:12345" # For internal metrics
+    privileged: true # Add privileged mode for better Docker access
+
+  # Application services
   gateway:
     build:
       context: .
@@ -22,40 +75,17 @@ services:
       - event-network
     volumes:
       - .:/app
-      - ./logs/gateway:/logs/gateway
     depends_on:
+      - alloy
       - auth
       - event
     logging:
-      driver: json-file
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-
-  gateway-fluentd:
-    build:
-      context: ./config/fluentd
-      dockerfile: Dockerfile
-    container_name: gateway-fluentd
-    volumes:
-      - ./logs:/logs
-      - /var/log:/var/log:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./logs/system:/fluentd/log/system
-      - ./logs/docker:/fluentd/log/docker
-      - ./logs/nestjs:/fluentd/log/nestjs
-      - ./logs/pos:/fluentd/log/pos
-    ports:
-      - "24221:24220"
-    networks:
-      - event-network
-    depends_on:
-      - gateway
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+        tag: "{{.Name}}"
+        labels: "requestId,serviceId"
 
   auth:
     build:
@@ -69,39 +99,16 @@ services:
       - event-network
     volumes:
       - .:/app
-      - ./logs/auth:/logs/auth
     depends_on:
+      - alloy
       - mongo-user
     logging:
-      driver: json-file
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-
-  auth-fluentd:
-    build:
-      context: ./config/fluentd
-      dockerfile: Dockerfile
-    container_name: auth-fluentd
-    volumes:
-      - ./logs:/logs
-      - /var/log:/var/log:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./logs/system:/fluentd/log/system
-      - ./logs/docker:/fluentd/log/docker
-      - ./logs/nestjs:/fluentd/log/nestjs
-      - ./logs/pos:/fluentd/log/pos
-    ports:
-      - "24222:24220"
-    networks:
-      - event-network
-    depends_on:
-      - auth
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+        tag: "{{.Name}}"
+        labels: "requestId,serviceId"
 
   event:
     build:
@@ -115,39 +122,16 @@ services:
       - event-network
     volumes:
       - .:/app
-      - ./logs/event:/logs/event
     depends_on:
+      - alloy
       - mongo-event
     logging:
-      driver: json-file
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-
-  event-fluentd:
-    build:
-      context: ./config/fluentd
-      dockerfile: Dockerfile
-    container_name: event-fluentd
-    volumes:
-      - ./logs:/logs
-      - /var/log:/var/log:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - ./logs/system:/fluentd/log/system
-      - ./logs/docker:/fluentd/log/docker
-      - ./logs/nestjs:/fluentd/log/nestjs
-      - ./logs/pos:/fluentd/log/pos
-    ports:
-      - "24223:24220"
-    networks:
-      - event-network
-    depends_on:
-      - event
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
+        tag: "{{.Name}}"
+        labels: "requestId,serviceId"
 
   mongo-user:
     image: mongo:latest
@@ -159,10 +143,11 @@ services:
     networks:
       - event-network
     logging:
-      driver: json-file
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+        tag: "{{.Name}}"
 
   mongo-event:
     image: mongo:latest
@@ -174,16 +159,19 @@ services:
     networks:
       - event-network
     logging:
-      driver: json-file
+      driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+        tag: "{{.Name}}"
 
 networks:
   event-network:
     driver: bridge
+    name: event-network
 
 volumes:
   user-data:
   event-data:
-  logs-volume:
+  loki-data:
+  grafana-data:

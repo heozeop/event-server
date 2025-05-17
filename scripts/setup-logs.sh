@@ -15,13 +15,6 @@ rm -rf logs/pos/*
 mkdir -p logs/gateway
 mkdir -p logs/auth
 mkdir -p logs/event
-mkdir -p logs/nestjs/gateway
-mkdir -p logs/nestjs/auth
-mkdir -p logs/nestjs/event
-mkdir -p logs/system
-mkdir -p logs/docker
-mkdir -p logs/unmatched
-mkdir -p logs/pos
 
 # Set permissions
 chmod -R 777 logs

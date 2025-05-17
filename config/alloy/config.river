@@ -1,0 +1,66 @@
+logging { level = "debug" }
+
+// 1) Discover Docker containers
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// 2) Relabel container names → service
+discovery.relabel "docker_service" {
+  targets       = discovery.docker.containers.targets
+  
+  rule {
+    action        = "replace"
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "service"
+    replacement   = "$1"
+  }
+}
+
+// 3) Source logs and apply relabel_rules by reference
+loki.source.docker "container_logs" {
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.containers.targets
+  labels        = { job = "docker" }
+  relabel_rules = discovery.relabel.docker_service.rules
+  forward_to    = [loki.process.extract_log_fields.receiver]
+}
+
+// 4) Process JSON and extract fields
+loki.process "extract_log_fields" {
+  forward_to = [loki.write.local_loki.receiver]
+
+  stage.cri {}
+
+  stage.json {
+    expressions = {
+      timestamp = "timestamp",
+      level     = "level",
+      msg       = "message",
+      requestId = "requestId",
+      serviceId = "serviceId",
+      userId    = "userId",
+    }
+  }
+
+  stage.labels {
+    values = {
+      level     = "level",
+      requestId = "requestId",
+      serviceId = "serviceId",
+      userId    = "userId",
+    }
+  }
+
+  stage.output {
+    source = "msg"
+  }
+}
+
+// 5) Write to Loki
+loki.write "local_loki" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

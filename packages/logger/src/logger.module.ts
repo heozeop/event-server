@@ -11,11 +11,6 @@ export const defaultLoggerModuleOptions: LoggerModuleOptions = {
   serviceName: 'default',
   prettyPrint: true,
   logLevel: 'error',
-  fileTransport: {
-    enabled: false,
-    destination: '/logs/default/default.log',
-    mkdir: true
-  },
   sensitiveDataOptions: {
     enabled: true,
     maskValue: '***MASKED***',
@@ -74,7 +69,6 @@ export class LoggerModule {
       serviceName: options.serviceName,
       prettyPrint: options.prettyPrint,
       logLevel: options.logLevel as any,
-      fileTransport: options.fileTransport,
       sensitiveDataOptions: options.sensitiveDataOptions
     }, contextStore);
   }

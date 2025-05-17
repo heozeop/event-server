@@ -35,11 +35,6 @@ export interface LoggerModuleOptions {
   serviceName: string;
   prettyPrint?: boolean;
   logLevel?: string;
-  fileTransport?: {
-    enabled: boolean;
-    destination: string;
-    mkdir?: boolean;
-  };
   sensitiveDataOptions?: {
     enabled?: boolean;
     maskValue?: string;

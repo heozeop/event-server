@@ -22,10 +22,25 @@ export class LogContextInterceptor implements NestInterceptor {
     // Create context at the beginning of the request
     this.logContextStore.updateContext(logContext);
     
-    // Let the request continue
+    // Let the request continue and add response information to the logs
     return next.handle().pipe(
       tap({
-        // Additional logging could be added here for response if needed
+        next: (data) => {
+          // Add success status and potentially other response data to logs
+          this.logContextStore.updateContext({
+            statusCode: 200,
+            responseStatus: 'success'
+          });
+        },
+        error: (error) => {
+          // Add error status to logs
+          this.logContextStore.updateContext({
+            statusCode: error.status || 500,
+            responseStatus: 'error',
+            errorName: error.name,
+            errorMessage: error.message
+          });
+        }
       })
     );
   }

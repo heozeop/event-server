@@ -72,7 +72,7 @@ export class EventController {
   @Get('events')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all events' })
-  @ApiBody({ type: QueryEventDto })
+  @ApiQuery({ type: QueryEventDto })
   @ApiResponse({ status: 200, description: 'Events retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @LogExecution({

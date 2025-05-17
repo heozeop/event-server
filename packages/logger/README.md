@@ -1,6 +1,200 @@
 # @libs/logger
 
-A logging utility package for microservices based on Pino and integrated with NestJS.
+A logging utility for microservices that integrates with Grafana Alloy, Loki, and Grafana for centralized logging.
+
+## Features
+
+- JSON-structured logging with Pino
+- Automatic request ID propagation across services
+- Request context capture including HTTP method, path, status code
+- Sensitive data masking
+- Integration with Grafana Alloy for log aggregation
+- Log level management
+
+## Installation
+
+```bash
+pnpm add @libs/logger
+```
+
+## Basic Usage
+
+### Module Setup
+
+```typescript
+import { Module } from '@nestjs/common';
+import { LoggerModule } from '@libs/logger';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+@Module({
+  imports: [
+    LoggerModule.forRootAsync({
+      global: true,
+      useFactory: () => ({
+        serviceName: 'my-service', // This will appear as serviceId in logs
+        prettyPrint: process.env.NODE_ENV !== 'production',
+        logLevel: process.env.LOG_LEVEL || 'info',
+        sensitiveDataOptions: {
+          enabled: true,
+          objectPaths: [
+            'req.headers.authorization',
+            'req.body.password',
+          ],
+        },
+      }),
+    }),
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
+```
+
+### Using the Logger
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { PinoLoggerService } from '@libs/logger';
+
+@Injectable()
+export class AppService {
+  constructor(private readonly logger: PinoLoggerService) {
+    // Set static context for all logs from this service
+    this.logger.setContext({ component: 'AppService' });
+  }
+
+  getHello(): string {
+    this.logger.info('Hello world request received');
+    return 'Hello World!';
+  }
+
+  processData(data: any): void {
+    // Add dynamic context to specific log entries
+    this.logger.info('Processing data', { dataId: data.id });
+    
+    try {
+      // Process data...
+    } catch (error) {
+      this.logger.error('Failed to process data', error.stack, { dataId: data.id });
+    }
+  }
+}
+```
+
+## RequestID Propagation
+
+The logger automatically captures request IDs from incoming HTTP requests via the `X-Request-Id` header. If no request ID is present, it generates a new UUID.
+
+To propagate request IDs between services:
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { LogContextStore, RequestIdUtil } from '@libs/logger';
+
+@Injectable()
+export class ApiGatewayService {
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly logContextStore: LogContextStore,
+  ) {}
+
+  async callDownstreamService(data: any): Promise<any> {
+    // Get the current request ID from context
+    const requestId = this.logContextStore.getRequestId();
+    
+    // Add it to outgoing HTTP headers
+    const headers = RequestIdUtil.injectToHttpHeaders({}, requestId);
+    
+    // Make the HTTP request with the propagated requestId
+    return this.httpService.post('http://downstream-service/api/resource', data, { headers }).toPromise();
+  }
+}
+```
+
+## Log Viewing in Grafana
+
+The configured Grafana Alloy agent automatically extracts the following fields from your logs:
+
+- `requestId` - Used for tracing requests across services
+- `serviceId` - Identifies which service generated the log
+- `level` - Log level (info, error, warn, etc.)
+- `msg` - The log message
+- `timestamp` - When the log was generated
+- Other context fields like `userId`, `path`, `method`, etc.
+
+### Useful Loki Queries
+
+To view logs in Grafana:
+
+1. Open Grafana at http://localhost:3000
+2. Navigate to Explore and select the Loki data source
+3. Use these example queries:
+
+#### All logs from a specific service
+
+```
+{service="gateway"}
+```
+
+#### Trace a request across all services
+
+```
+{requestId="abc123"}
+```
+
+#### All error logs
+
+```
+{level="error"}
+```
+
+#### Combine filters
+
+```
+{service="auth"} |= "login" | logfmt | userId=~".*"
+```
+
+#### Show all requests from a specific user
+
+```
+{userId="user123"}
+```
+
+## Configuration
+
+The logger is configured to work with the Grafana Alloy agent, which extracts fields from JSON logs and forwards them to Loki. The Alloy configuration is in `config/alloy/config.river`.
+
+Key points about the configuration:
+
+- Logs are automatically collected from all Docker containers
+- Container names are used as service labels
+- JSON logs are parsed to extract structured fields
+- The `requestId` and `serviceId` fields are extracted for correlation
+
+## Troubleshooting
+
+If logs are not appearing in Grafana:
+
+1. Ensure containers are configured with the JSON log driver:
+
+```yaml
+logging:
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+    tag: "{{.Name}}"
+```
+
+2. Verify the Alloy agent is running: `docker ps | grep alloy`
+3. Check Loki is receiving logs: `curl http://localhost:3100/loki/api/v1/query?query={container=~".+"}`
+4. Ensure your logs are properly formatted as JSON (the logger handles this automatically)
+
+## Advanced Usage
+
+For more advanced usage, refer to the API documentation in the source code.
 
 ## Features
 

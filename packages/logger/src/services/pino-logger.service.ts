@@ -10,11 +10,6 @@ export interface PinoLoggerOptions {
   prettyPrint?: boolean;
   logLevel?: LogLevel;
   customTransports?: pino.TransportSingleOptions[];
-  fileTransport?: {
-    enabled: boolean;
-    destination: string;
-    mkdir?: boolean;
-  };
   sensitiveDataOptions?: {
     maskValue?: string;
     sensitiveKeys?: string[];
@@ -63,48 +58,10 @@ export class PinoLoggerService implements LoggerService {
     };
 
     // Configure transports based on options
-    if (options.prettyPrint && options.fileTransport?.enabled) {
-      // Both pretty print for console and file output for Fluentd
+    if (options.prettyPrint) {
+      // Pretty print console output for development
       this.logger = pino.pino({
-        ...baseConfig, // Use base config without formatters
-        transport: {
-          targets: [
-            {
-              target: 'pino-pretty',
-              options: {
-                colorize: true,
-                translateTime: 'SYS:standard',
-                ignore: 'pid,hostname'
-              },
-              level: this.logLevelManager.getLogLevel()
-            },
-            {
-              target: 'pino/file',
-              options: {
-                destination: options.fileTransport.destination,
-                mkdir: options.fileTransport.mkdir || true
-              },
-              level: this.logLevelManager.getLogLevel()
-            }
-          ]
-        }
-      });
-    } else if (options.fileTransport?.enabled) {
-      // File output only for Fluentd
-      this.logger = pino.pino({
-        ...baseConfig, // Use base config without formatters
-        transport: {
-          target: 'pino/file',
-          options: {
-            destination: options.fileTransport.destination,
-            mkdir: options.fileTransport.mkdir || true
-          }
-        }
-      });
-    } else if (options.prettyPrint) {
-      // Pretty print console output only
-      this.logger = pino.pino({
-        ...baseConfig, // Use base config without formatters
+        ...baseConfig,
         transport: {
           target: 'pino-pretty',
           options: {
@@ -117,13 +74,13 @@ export class PinoLoggerService implements LoggerService {
     } else if (options.customTransports && options.customTransports.length > 0) {
       // Custom transports specified
       this.logger = pino.pino({
-        ...baseConfig, // Use base config without formatters
+        ...baseConfig,
         transport: {
           targets: options.customTransports
         }
       });
     } else {
-      // Default JSON logger (no transport, can use formatters)
+      // Default JSON logger for production (captured by Grafana Alloy)
       this.logger = pino.pino(fullConfig);
     }
   }
@@ -205,4 +162,4 @@ export class PinoLoggerService implements LoggerService {
   getLogLevelManager(): PinoLogLevelManager {
     return this.logLevelManager;
   }
-} 
+}
