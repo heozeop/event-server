@@ -1,9 +1,9 @@
 import { PinoLoggerService } from '@libs/logger';
 import {
-    BadRequestException,
-    Injectable,
-    ValidationPipe as NestValidationPipe,
-    ValidationError,
+  BadRequestException,
+  Injectable,
+  ValidationPipe as NestValidationPipe,
+  ValidationError
 } from '@nestjs/common';
 
 @Injectable()
@@ -46,4 +46,4 @@ export class ValidationPipe extends NestValidationPipe {
       },
     });
   }
-} 
+}
