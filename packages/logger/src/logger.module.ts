@@ -30,46 +30,15 @@ const LOGGER_MODULE_OPTIONS = Symbol('LOGGER_MODULE_OPTIONS');
   providers: [],
 })
 export class LoggerModule {
-
-  static forRoot(options: LoggerModuleOptions): DynamicModule {
-    const mergedOptions = { ...defaultLoggerModuleOptions, ...options };
-
-    return {
-      module: LoggerModule,
-      global: mergedOptions.global,
-      providers: [
-        {
-          provide: PinoLoggerService,
-          useFactory: () => {
-            return LoggerModule.getPinoLoggerService(mergedOptions);
-          }
-        },
-        {
-          provide: SensitiveDataFilter,
-          useFactory: () => {
-            return LoggerModule.getSensitiveDataFilter(mergedOptions);
-          }
-        },
-        LogContextStore,
-        LogContextInterceptor,
-        PinoLogLevelManager
-      ],
-      exports: [
-        PinoLoggerService,
-        SensitiveDataFilter,
-        LogContextStore,
-        LogContextInterceptor,
-        PinoLogLevelManager
-      ]
-    };
-  }
-
   static forRootAsync(options:LoggerModuleAsyncOptions): DynamicModule {
     return {
       global: options.global,
       module: LoggerModule,
       imports: options.imports,
       providers: [
+        LogContextStore,
+        PinoLogLevelManager,
+        LogContextInterceptor,
         {
           provide: LOGGER_MODULE_OPTIONS,
           useFactory: options.useFactory,
@@ -77,10 +46,10 @@ export class LoggerModule {
         },
         {
           provide: PinoLoggerService,
-          useFactory: (options: LoggerModuleOptions) => {
-            return LoggerModule.getPinoLoggerService(options);
+          useFactory: (options: LoggerModuleOptions, contextStore: LogContextStore) => {
+            return LoggerModule.getPinoLoggerService(options, contextStore);
           },
-          inject: [LOGGER_MODULE_OPTIONS],
+          inject: [LOGGER_MODULE_OPTIONS, LogContextStore],
         },
         {
           provide: SensitiveDataFilter,
@@ -90,28 +59,25 @@ export class LoggerModule {
           inject: [LOGGER_MODULE_OPTIONS],
         },
 
-        LogContextStore,
-        LogContextInterceptor,
-        PinoLogLevelManager
       ],
       exports: [
         LOGGER_MODULE_OPTIONS,
         PinoLoggerService,
         SensitiveDataFilter,
         LogContextStore,
-        LogContextInterceptor,
-        PinoLogLevelManager
+        PinoLogLevelManager,
+        LogContextInterceptor
       ]
     };
   }
 
-  private static getPinoLoggerService(options: LoggerModuleOptions): PinoLoggerService { 
+  private static getPinoLoggerService(options: LoggerModuleOptions, contextStore: LogContextStore): PinoLoggerService { 
     return new PinoLoggerService({
       serviceName: options.serviceName,
       prettyPrint: options.prettyPrint,
       logLevel: options.logLevel as any,
       sensitiveDataOptions: options.sensitiveDataOptions
-    });
+    }, contextStore);
   }
 
   private static getSensitiveDataFilter(options: LoggerModuleOptions): SensitiveDataFilter | null {

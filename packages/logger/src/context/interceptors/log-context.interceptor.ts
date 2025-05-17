@@ -1,5 +1,5 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { LogContext, RequestIdUtil } from '../..';
 import { LogContextStore } from '../store/log-context.store';
 import { RequestMetadataUtil } from '../utils/request-metadata.util';
@@ -19,11 +19,15 @@ export class LogContextInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const logContext = this.createLogContextFromRequest(context);
     
-    // Set the log context
+    // Create context at the beginning of the request
     this.logContextStore.updateContext(logContext);
     
-    // Continue with the request
-    return next.handle();
+    // Let the request continue
+    return next.handle().pipe(
+      tap({
+        // Additional logging could be added here for response if needed
+      })
+    );
   }
   
   /**

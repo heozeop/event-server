@@ -1,4 +1,6 @@
+import { Injectable, Scope } from '@nestjs/common';
 import * as pino from 'pino';
+import { LogContextStore } from '../context/store/log-context.store';
 import { LogLevel, PinoLogLevelManager } from '../core/log-level-manager';
 import { SensitiveDataFilter } from '../filters';
 import { LogContext, LoggerService } from '../interfaces';
@@ -17,16 +19,19 @@ export interface PinoLoggerOptions {
   };
 }
 
+@Injectable({ scope: Scope.DEFAULT })
 export class PinoLoggerService implements LoggerService {
   private readonly logger: pino.Logger;
   private readonly serviceName: string;
   private logLevelManager: PinoLogLevelManager;
   private baseContext: LogContext = {};
   private sensitiveDataFilter: SensitiveDataFilter | null = null;
+  private contextStore?: LogContextStore;
 
-  constructor(options: PinoLoggerOptions) {
+  constructor(options: PinoLoggerOptions, contextStore?: LogContextStore) {
     this.serviceName = options.serviceName;
     this.logLevelManager = new PinoLogLevelManager(options.logLevel);
+    this.contextStore = contextStore;
 
     // Initialize sensitive data filter if enabled
     if (options.sensitiveDataOptions?.enabled !== false) {
@@ -71,11 +76,26 @@ export class PinoLoggerService implements LoggerService {
   }
 
   private formatContext(context?: LogContext): LogContext {
+    // Start with the base context
     const mergedContext = {
       ...this.baseContext,
-      ...context,
       serviceId: this.serviceName
     };
+    
+    // Try to get request context if contextStore is available
+    if (this.contextStore) {
+      try {
+        const requestContext = this.contextStore.getContext();
+        Object.assign(mergedContext, requestContext);
+      } catch (error) {
+        // Silently handle any errors getting context
+      }
+    }
+    
+    // Add explicit context (highest priority)
+    if (context) {
+      Object.assign(mergedContext, context);
+    }
 
     // Apply sensitive data masking if enabled
     if (this.sensitiveDataFilter) {

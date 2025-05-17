@@ -8,10 +8,10 @@ import { LogContext } from '../..';
 @Injectable()
 export class LogContextStore {
   private static instance: LogContextStore;
-  private readonly storage: AsyncLocalStorage<Map<string, any>>;
+  private readonly storage: AsyncLocalStorage<Record<string, any>>;
 
   constructor() {
-    this.storage = new AsyncLocalStorage<Map<string, any>>();
+    this.storage = new AsyncLocalStorage<Record<string, any>>();
   }
 
   /**
@@ -30,17 +30,14 @@ export class LogContextStore {
    * @param callback Function to run with context
    */
   run<T>(context: LogContext, callback: () => T): T {
-    const store = new Map<string, any>();
-    store.set('logContext', context);
-    return this.storage.run(store, callback);
+    return this.storage.run(context, callback);
   }
 
   /**
    * Gets current log context or empty object if none exists
    */
   getContext(): LogContext {
-    const store = this.storage.getStore();
-    return (store?.get('logContext') || {}) as LogContext;
+    return this.storage.getStore() || {};
   }
 
   /**
@@ -48,16 +45,14 @@ export class LogContextStore {
    * @param contextUpdate Partial context updates
    */
   updateContext(contextUpdate: Partial<LogContext>): void {
-    const store = this.storage.getStore();
-    if (!store) {
-      return;
+    const currentStore = this.storage.getStore();
+    if (!currentStore) {
+      // If no store exists yet, create one
+      this.storage.enterWith({...contextUpdate});
+    } else {
+      // Update existing store
+      Object.assign(currentStore, contextUpdate);
     }
-    
-    const currentContext = this.getContext();
-    store.set('logContext', {
-      ...currentContext,
-      ...contextUpdate,
-    });
   }
 
   /**
