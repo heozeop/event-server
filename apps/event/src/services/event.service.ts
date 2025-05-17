@@ -4,7 +4,7 @@ import {
   QueryEventDto,
   UpdateEventDto,
 } from '@libs/dtos';
-import { LogExecution } from '@libs/logger';
+import { LogExecution, PinoLoggerService } from '@libs/logger';
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
@@ -16,6 +16,7 @@ export class EventService {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: EntityRepository<Event>,
+    private readonly logger: PinoLoggerService,
   ) {}
 
   /**

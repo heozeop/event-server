@@ -5,7 +5,7 @@ import {
   UpdateRewardRequestStatusDto,
 } from '@libs/dtos';
 import { EventStatus, RewardRequestStatus } from '@libs/enums';
-import { LogExecution } from '@libs/logger';
+import { LogExecution, PinoLoggerService } from '@libs/logger';
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
@@ -23,6 +23,7 @@ export class RewardRequestService {
     @InjectRepository(RewardRequest)
     private readonly rewardRequestRepository: EntityRepository<RewardRequest>,
     private readonly eventService: EventService,
+    private readonly logger: PinoLoggerService,
   ) {}
 
   /**

@@ -1,6 +1,7 @@
 import {
   BadgeReward,
   CouponReward,
+  Event,
   EventReward,
   ItemReward,
   PointReward,
@@ -38,14 +39,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     MikroOrmModule.forFeature({
       entities: [
         Event,
-        RewardRequest,
         EventReward,
         PointReward,
         ItemReward,
         CouponReward,
         BadgeReward,
+        RewardRequest,
       ],
     }),
   ],
+  exports: [MikroOrmModule],
 })
 export class DatabaseModule {}
