@@ -1,7 +1,7 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
 import { Observable } from 'rxjs';
 import { LogContext, RequestIdUtil } from '../..';
+import { LogContextStore } from '../store/log-context.store';
 import { RequestMetadataUtil } from '../utils/request-metadata.util';
 
 /**
@@ -9,7 +9,7 @@ import { RequestMetadataUtil } from '../utils/request-metadata.util';
  */
 @Injectable()
 export class LogContextInterceptor implements NestInterceptor {
-  constructor(private readonly cls: ClsService) {}
+  constructor(private readonly logContextStore: LogContextStore) {}
 
   /**
    * Intercepts incoming requests and sets up log context
@@ -19,8 +19,8 @@ export class LogContextInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const logContext = this.createLogContextFromRequest(context);
     
-    // Set the log context in CLS
-    this.cls.set('logContext', logContext);
+    // Set the log context
+    this.logContextStore.updateContext(logContext);
     
     // Continue with the request
     return next.handle();

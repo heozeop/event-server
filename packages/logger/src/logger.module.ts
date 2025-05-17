@@ -1,6 +1,4 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { ClsModule } from 'nestjs-cls';
-import { v4 as uuidv4 } from 'uuid';
 import { LogContextInterceptor } from './context/interceptors/log-context.interceptor';
 import { LogContextStore } from './context/store/log-context.store';
 import { PinoLogLevelManager } from './core/log-level-manager';
@@ -29,16 +27,7 @@ export const defaultLoggerModuleOptions: LoggerModuleOptions = {
 const LOGGER_MODULE_OPTIONS = Symbol('LOGGER_MODULE_OPTIONS');
 
 @Module({
-  imports: [
-    ClsModule.forRoot({
-      global: true,
-      middleware: {
-        mount: true,
-        generateId: true,
-        idGenerator: uuidv4
-      }
-    })
-  ],
+  providers: [],
 })
 export class LoggerModule {
 
@@ -70,8 +59,7 @@ export class LoggerModule {
         SensitiveDataFilter,
         LogContextStore,
         LogContextInterceptor,
-        PinoLogLevelManager,
-        ClsModule
+        PinoLogLevelManager
       ]
     };
   }
@@ -112,8 +100,7 @@ export class LoggerModule {
         SensitiveDataFilter,
         LogContextStore,
         LogContextInterceptor,
-        PinoLogLevelManager,
-        ClsModule
+        PinoLogLevelManager
       ]
     };
   }

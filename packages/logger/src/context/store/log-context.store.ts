@@ -1,26 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { ClsService } from 'nestjs-cls';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { LogContext } from '../..';
 
 /**
- * Store for managing log context across async operations using NestJS CLS
+ * Store for managing log context across async operations using AsyncLocalStorage
  */
 @Injectable()
 export class LogContextStore {
   private static instance: LogContextStore;
+  private readonly storage: AsyncLocalStorage<Map<string, any>>;
 
-  constructor(private readonly cls: ClsService) {}
+  constructor() {
+    this.storage = new AsyncLocalStorage<Map<string, any>>();
+  }
 
   /**
    * Gets the singleton instance of LogContextStore
-   * @param cls ClsService instance
    */
-  static getInstance(cls?: ClsService): LogContextStore {
+  static getInstance(): LogContextStore {
     if (!LogContextStore.instance) {
-      if (!cls) {
-        throw new Error('ClsService must be provided when initializing LogContextStore');
-      }
-      LogContextStore.instance = new LogContextStore(cls);
+      LogContextStore.instance = new LogContextStore();
     }
     return LogContextStore.instance;
   }
@@ -31,17 +30,17 @@ export class LogContextStore {
    * @param callback Function to run with context
    */
   run<T>(context: LogContext, callback: () => T): T {
-    return this.cls.run(() => {
-      this.updateContext(context);
-      return callback();
-    });
+    const store = new Map<string, any>();
+    store.set('logContext', context);
+    return this.storage.run(store, callback);
   }
 
   /**
    * Gets current log context or empty object if none exists
    */
   getContext(): LogContext {
-    return this.cls.get('logContext') || {};
+    const store = this.storage.getStore();
+    return (store?.get('logContext') || {}) as LogContext;
   }
 
   /**
@@ -49,8 +48,13 @@ export class LogContextStore {
    * @param contextUpdate Partial context updates
    */
   updateContext(contextUpdate: Partial<LogContext>): void {
+    const store = this.storage.getStore();
+    if (!store) {
+      return;
+    }
+    
     const currentContext = this.getContext();
-    this.cls.set('logContext', {
+    store.set('logContext', {
       ...currentContext,
       ...contextUpdate,
     });

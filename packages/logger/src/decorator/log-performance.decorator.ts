@@ -18,7 +18,6 @@ export function LogPerformance(category: string = 'default') {
     // Replace the method with a wrapped version
     descriptor.value = async function (this: WithLogger, ...args: any[]) {
       const startTime = Date.now();
-      this.logger.log('LogPerformance', args);
 
       try {
         // Execute the original method
