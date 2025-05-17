@@ -18,16 +18,13 @@ import { UserService } from './services/user.service';
       envFilePath: '.env',
     }),
     LoggerModule.forRootAsync({
+      global: true,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         serviceName: 'auth-service',
         prettyPrint: configService.get('NODE_ENV') !== 'production',
         logLevel: configService.get('LOG_LEVEL') || 'info',
-        sensitiveDataOptions: {
-          enabled: true,
-          maskValue: '******',
-        },
       }),
     }),
     JwtModule.registerAsync({

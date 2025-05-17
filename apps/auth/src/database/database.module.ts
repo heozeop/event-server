@@ -30,5 +30,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
     MikroOrmModule.forFeature([User]),
   ],
+  exports: [MikroOrmModule],
 })
 export class DatabaseModule {}
