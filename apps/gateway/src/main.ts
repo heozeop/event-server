@@ -12,11 +12,10 @@ async function bootstrap() {
   });
 
   // Get the logger service
+  const loggerMiddleware = app.get(LogContextInterceptor);
+  app.useGlobalInterceptors(loggerMiddleware);
+
   const logger = app.get(PinoLoggerService);
-
-  const loggerInterceptor = app.get(LogContextInterceptor);
-  app.useGlobalInterceptors(loggerInterceptor);
-
   logger.log('Starting gateway service...');
 
   // Configure microservice

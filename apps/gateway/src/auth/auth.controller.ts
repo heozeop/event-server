@@ -10,7 +10,7 @@ import {
   UpdateRolesDto,
 } from '@libs/dtos';
 import { Role } from '@libs/enums';
-import { LogPerformance, PinoLoggerService } from '@libs/logger';
+import { LogExecution, PinoLoggerService } from '@libs/logger';
 import {
   Body,
   Controller,
@@ -49,7 +49,12 @@ export class AuthController {
     type: LoginResponseDto,
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  @LogPerformance('auth-login')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'User login attempt',
+    exitMessage: 'User login successful',
+  })
   async login(@Body() loginDto: LoginDto) {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.LOGIN }, loginDto),
@@ -62,7 +67,12 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User successfully created' })
   @ApiResponse({ status: 400, description: 'Bad request - invalid data' })
   @ApiResponse({ status: 409, description: 'Conflict - user already exists' })
-  @LogPerformance('auth-create-user')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Creating user',
+    exitMessage: 'User created',
+  })
   async createUser(@Body() createUserDto: CreateUserDto) {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.CREATE_USER }, createUserDto),
@@ -81,7 +91,12 @@ export class AuthController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @LogPerformance('auth-get-user-by-id')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting user by ID',
+    exitMessage: 'User found',
+  })
   async getUserById(@Param('id') id: string) {
     console.log('getUserById', id);
     return await lastValueFrom(
@@ -101,7 +116,12 @@ export class AuthController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @LogPerformance('auth-get-user-by-email')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting user by email',
+    exitMessage: 'User found',
+  })
   async getUserByEmail(@Param('email') email: string) {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.GET_USER_BY_EMAIL }, { email }),
@@ -120,7 +140,12 @@ export class AuthController {
     description: 'Forbidden - insufficient permissions',
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  @LogPerformance('auth-update-user-roles')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Updating user roles',
+    exitMessage: 'User roles updated',
+  })
   async updateUserRoles(
     @Param('id') id: string,
     @Body() updateRolesDto: UpdateRolesDto,
@@ -137,7 +162,12 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'Test endpoint' })
   @ApiResponse({ status: 200, description: 'Service is working properly' })
-  @LogPerformance('auth-test')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Testing endpoint',
+    exitMessage: 'Endpoint tested',
+  })
   async test() {
     return { status: 'ok', service: 'auth' };
   }

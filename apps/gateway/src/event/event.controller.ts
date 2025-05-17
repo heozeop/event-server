@@ -9,7 +9,7 @@ import {
   QueryRewardRequestDto,
 } from '@libs/dtos';
 import { RewardType, Role } from '@libs/enums';
-import { LogPerformance, PinoLoggerService } from '@libs/logger';
+import { LogExecution, PinoLoggerService } from '@libs/logger';
 import { CurrentUserData } from '@libs/types';
 import {
   Body,
@@ -54,7 +54,12 @@ export class EventController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
-  @LogPerformance('event-create')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Creating event',
+    exitMessage: 'Event created',
+  })
   async createEvent(@Body() createEventDto: CreateEventDto) {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.CREATE_EVENT }, createEventDto),
@@ -66,7 +71,12 @@ export class EventController {
   @ApiOperation({ summary: 'Get all events' })
   @ApiResponse({ status: 200, description: 'Events retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @LogPerformance('event')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting events',
+    exitMessage: 'Events retrieved',
+  })
   async getEvents(@Query() query: QueryEventDto) {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_EVENTS }, query),
@@ -89,7 +99,12 @@ export class EventController {
     description: 'Forbidden - insufficient permissions',
   })
   @UsePipes(RewardValidationPipe)
-  @LogPerformance('reward-create')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Creating reward',
+    exitMessage: 'Reward created',
+  })
   async createReward(
     @Param('type') type: string,
     @Body() rewardData: CreateRewardDto,
@@ -115,7 +130,12 @@ export class EventController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
-  @LogPerformance('reward-list')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting rewards',
+    exitMessage: 'Rewards retrieved',
+  })
   async getRewards(@Query() query: QueryRewardRequestDto) {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_REWARDS }, query),
@@ -131,7 +151,12 @@ export class EventController {
     description: 'Reward request successfully created',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @LogPerformance('reward-request')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Requesting reward',
+    exitMessage: 'Reward requested',
+  })
   async requestReward(
     @Param('eventId') eventId: string,
     @CurrentUser() user: CurrentUserData,
@@ -162,7 +187,12 @@ export class EventController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
-  @LogPerformance('reward-request-list')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting reward requests',
+    exitMessage: 'Reward requests retrieved',
+  })
   async getRewardRequests(@Query() query: QueryRewardRequestDto) {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_REWARD_REQUESTS }, query),
@@ -175,7 +205,12 @@ export class EventController {
   @ApiParam({ name: 'eventId', description: 'ID of the event' })
   @ApiResponse({ status: 200, description: 'Rewards retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @LogPerformance('event-rewards')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting rewards for event',
+    exitMessage: 'Rewards retrieved',
+  })
   async getRewardsForEvent(@Param('eventId') eventId: string) {
     return await lastValueFrom(
       this.eventClient.send(
@@ -200,7 +235,12 @@ export class EventController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
-  @LogPerformance('event-add-reward')
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Adding reward to event',
+    exitMessage: 'Reward added to event',
+  })
   async addRewardToEvent(
     @Param('eventId') eventId: string,
     @Body('rewardId') rewardId: string,
