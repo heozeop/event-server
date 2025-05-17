@@ -45,3 +45,6 @@ keys/
 
 # ts config buildinfo
 tsconfig.tsbuildinfo
+
+# Logs
+logs
