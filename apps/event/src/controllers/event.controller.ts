@@ -1,6 +1,6 @@
 import { EventService } from '@/services/event.service';
 import { EVENT_CMP } from '@libs/cmd';
-import { QueryByIdDto } from '@libs/dtos';
+import { EventResponseDto, QueryByIdDto } from '@libs/dtos';
 import {
   CreateEventDto,
   QueryEventDto,
@@ -23,8 +23,12 @@ export class EventController {
     entryMessage: 'Creating event',
     exitMessage: 'Event created',
   })
-  async createEvent(@Payload() createEventDto: CreateEventDto) {
-    return this.eventService.createEvent(createEventDto);
+  async createEvent(
+    @Payload() createEventDto: CreateEventDto,
+  ): Promise<EventResponseDto> {
+    const event = await this.eventService.createEvent(createEventDto);
+
+    return EventResponseDto.fromEntity(event);
   }
 
   @EventPattern({ cmd: EVENT_CMP.GET_EVENT_BY_ID })
@@ -34,8 +38,12 @@ export class EventController {
     entryMessage: 'Getting event by ID',
     exitMessage: 'Event retrieved',
   })
-  async getEventById(@Payload() getEventByIdDto: QueryByIdDto) {
-    return this.eventService.getEventById(getEventByIdDto);
+  async getEventById(
+    @Payload() getEventByIdDto: QueryByIdDto,
+  ): Promise<EventResponseDto> {
+    const event = await this.eventService.getEventById(getEventByIdDto);
+
+    return EventResponseDto.fromEntity(event);
   }
 
   @EventPattern({ cmd: EVENT_CMP.GET_EVENTS })
@@ -45,8 +53,12 @@ export class EventController {
     entryMessage: 'Getting events',
     exitMessage: 'Events retrieved',
   })
-  async getEvents(@Payload() getEventsDto: QueryEventDto) {
-    return this.eventService.getEvents(getEventsDto);
+  async getEvents(
+    @Payload() getEventsDto: QueryEventDto,
+  ): Promise<EventResponseDto[]> {
+    const events = await this.eventService.getEvents(getEventsDto);
+
+    return events.events.map(EventResponseDto.fromEntity);
   }
 
   @EventPattern({ cmd: EVENT_CMP.UPDATE_EVENT })
@@ -56,8 +68,12 @@ export class EventController {
     entryMessage: 'Updating event',
     exitMessage: 'Event updated',
   })
-  async updateEvent(@Payload() updateEventDto: UpdateEventDto) {
-    return this.eventService.updateEvent(updateEventDto);
+  async updateEvent(
+    @Payload() updateEventDto: UpdateEventDto,
+  ): Promise<EventResponseDto> {
+    const event = await this.eventService.updateEvent(updateEventDto);
+
+    return EventResponseDto.fromEntity(event);
   }
 
   @EventPattern({ cmd: EVENT_CMP.REMOVE_EVENT })
@@ -67,7 +83,7 @@ export class EventController {
     entryMessage: 'Removing event',
     exitMessage: 'Event removed',
   })
-  async removeEvent(@Payload() removeEventDto: QueryByIdDto) {
-    return this.eventService.deleteEvent(removeEventDto);
+  async removeEvent(@Payload() removeEventDto: QueryByIdDto): Promise<void> {
+    await this.eventService.deleteEvent(removeEventDto);
   }
 }

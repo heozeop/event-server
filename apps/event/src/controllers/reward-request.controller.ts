@@ -1,6 +1,6 @@
 import { RewardRequestService } from '@/services';
 import { EVENT_CMP } from '@libs/cmd';
-import { QueryByIdDto } from '@libs/dtos';
+import { QueryByIdDto, RewardRequestResponseDto } from '@libs/dtos';
 import {
   CreateRewardRequestDto,
   QueryRewardRequestDto,
@@ -26,10 +26,12 @@ export class RewardRequestController {
   })
   async createRewardRequest(
     @Payload() createRewardRequestDto: CreateRewardRequestDto,
-  ) {
-    return this.rewardRequestService.createRewardRequest(
+  ): Promise<RewardRequestResponseDto> {
+    const rewardRequest = await this.rewardRequestService.createRewardRequest(
       createRewardRequestDto,
     );
+
+    return RewardRequestResponseDto.fromEntity(rewardRequest);
   }
 
   @EventPattern({ cmd: EVENT_CMP.GET_REWARD_REQUEST_BY_ID })
@@ -39,10 +41,14 @@ export class RewardRequestController {
     entryMessage: 'Getting reward request by ID',
     exitMessage: 'Reward request retrieved',
   })
-  async getRewardRequestById(@Payload() getRewardRequestByIdDto: QueryByIdDto) {
-    return this.rewardRequestService.getRewardRequestById(
+  async getRewardRequestById(
+    @Payload() getRewardRequestByIdDto: QueryByIdDto,
+  ): Promise<RewardRequestResponseDto> {
+    const rewardRequest = await this.rewardRequestService.getRewardRequestById(
       getRewardRequestByIdDto,
     );
+
+    return RewardRequestResponseDto.fromEntity(rewardRequest);
   }
 
   @EventPattern({ cmd: EVENT_CMP.GET_REWARD_REQUESTS })
@@ -54,8 +60,11 @@ export class RewardRequestController {
   })
   async getRewardRequests(
     @Payload() getRewardRequestsDto: QueryRewardRequestDto,
-  ) {
-    return this.rewardRequestService.getRewardRequests(getRewardRequestsDto);
+  ): Promise<RewardRequestResponseDto[]> {
+    const rewardRequests =
+      await this.rewardRequestService.getRewardRequests(getRewardRequestsDto);
+
+    return rewardRequests.requests.map(RewardRequestResponseDto.fromEntity);
   }
 
   @EventPattern({ cmd: EVENT_CMP.UPDATE_REWARD_REQUEST_STATUS })
@@ -67,9 +76,12 @@ export class RewardRequestController {
   })
   async updateRewardRequestStatus(
     @Payload() updateRewardRequestStatusDto: UpdateRewardRequestStatusDto,
-  ) {
-    return this.rewardRequestService.updateRewardRequestStatus(
-      updateRewardRequestStatusDto,
-    );
+  ): Promise<RewardRequestResponseDto> {
+    const rewardRequest =
+      await this.rewardRequestService.updateRewardRequestStatus(
+        updateRewardRequestStatusDto,
+      );
+
+    return RewardRequestResponseDto.fromEntity(rewardRequest);
   }
 }

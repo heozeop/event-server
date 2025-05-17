@@ -1,6 +1,6 @@
 import { RewardService } from '@/services';
 import { EVENT_CMP } from '@libs/cmd';
-import { QueryByIdDto } from '@libs/dtos';
+import { QueryByIdDto, RewardResponseDto } from '@libs/dtos';
 import { CreateRewardDto } from '@libs/dtos/dist/event/request';
 import { RewardType } from '@libs/enums';
 import { LogExecution, PinoLoggerService } from '@libs/logger';
@@ -24,8 +24,10 @@ export class RewardController {
   async createReward(
     @Payload()
     { type, rewardData }: { type: RewardType; rewardData: CreateRewardDto },
-  ) {
-    return this.rewardService.createReward({ type, rewardData });
+  ): Promise<RewardResponseDto> {
+    const reward = await this.rewardService.createReward({ type, rewardData });
+
+    return RewardResponseDto.fromEntity(reward);
   }
 
   @EventPattern({ cmd: EVENT_CMP.GET_REWARDS })
@@ -48,8 +50,15 @@ export class RewardController {
       limit: number;
       offset: number;
     },
-  ) {
-    return this.rewardService.getRewards({ type, name, limit, offset });
+  ): Promise<RewardResponseDto[]> {
+    const rewards = await this.rewardService.getRewards({
+      type,
+      name,
+      limit,
+      offset,
+    });
+
+    return rewards.rewards.map(RewardResponseDto.fromEntity);
   }
 
   @EventPattern({ cmd: EVENT_CMP.GET_REWARD_BY_ID })
@@ -59,8 +68,12 @@ export class RewardController {
     entryMessage: 'Getting reward by ID',
     exitMessage: 'Reward retrieved',
   })
-  async getRewardById(@Payload() { id }: { id: string }) {
-    return this.rewardService.getRewardById({ id });
+  async getRewardById(
+    @Payload() { id }: { id: string },
+  ): Promise<RewardResponseDto> {
+    const reward = await this.rewardService.getRewardById({ id });
+
+    return RewardResponseDto.fromEntity(reward);
   }
 
   @EventPattern({ cmd: EVENT_CMP.ADD_REWARD_TO_EVENT })
@@ -72,8 +85,8 @@ export class RewardController {
   })
   async addRewardToEvent(
     @Payload() { eventId, rewardId }: { eventId: string; rewardId: string },
-  ) {
-    return this.rewardService.addRewardToEvent({ eventId, rewardId });
+  ): Promise<void> {
+    await this.rewardService.addRewardToEvent({ eventId, rewardId });
   }
 
   @EventPattern({ cmd: EVENT_CMP.REMOVE_REWARD_FROM_EVENT })
@@ -85,8 +98,8 @@ export class RewardController {
   })
   async removeRewardFromEvent(
     @Payload() { eventId, rewardId }: { eventId: string; rewardId: string },
-  ) {
-    return this.rewardService.removeRewardFromEvent({ eventId, rewardId });
+  ): Promise<void> {
+    await this.rewardService.removeRewardFromEvent({ eventId, rewardId });
   }
 
   @EventPattern({ cmd: EVENT_CMP.GET_REWARDS_BY_EVENT_ID })
@@ -96,7 +109,11 @@ export class RewardController {
     entryMessage: 'Getting rewards by event ID',
     exitMessage: 'Rewards retrieved by event ID',
   })
-  async getRewardsByEventId(@Payload() { id }: QueryByIdDto) {
-    return this.rewardService.getRewardsByEventId({ id });
+  async getRewardsByEventId(
+    @Payload() { id }: QueryByIdDto,
+  ): Promise<RewardResponseDto[]> {
+    const rewards = await this.rewardService.getRewardsByEventId({ id });
+
+    return rewards.map(RewardResponseDto.fromEntity);
   }
 }
