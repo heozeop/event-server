@@ -11,6 +11,11 @@ export const defaultLoggerModuleOptions: LoggerModuleOptions = {
   serviceName: 'default',
   prettyPrint: true,
   logLevel: 'error',
+  fileTransport: {
+    enabled: false,
+    destination: '/logs/default/default.log',
+    mkdir: true
+  },
   sensitiveDataOptions: {
     enabled: true,
     maskValue: '***MASKED***',
@@ -39,6 +44,7 @@ export class LoggerModule {
         LogContextStore,
         PinoLogLevelManager,
         LogContextInterceptor,
+        SensitiveDataFilter,
         {
           provide: LOGGER_MODULE_OPTIONS,
           useFactory: options.useFactory,
@@ -51,14 +57,6 @@ export class LoggerModule {
           },
           inject: [LOGGER_MODULE_OPTIONS, LogContextStore],
         },
-        {
-          provide: SensitiveDataFilter,
-          useFactory: (options: LoggerModuleOptions) => {
-            return LoggerModule.getSensitiveDataFilter(options);
-          },
-          inject: [LOGGER_MODULE_OPTIONS],
-        },
-
       ],
       exports: [
         LOGGER_MODULE_OPTIONS,
@@ -76,15 +74,8 @@ export class LoggerModule {
       serviceName: options.serviceName,
       prettyPrint: options.prettyPrint,
       logLevel: options.logLevel as any,
+      fileTransport: options.fileTransport,
       sensitiveDataOptions: options.sensitiveDataOptions
     }, contextStore);
-  }
-
-  private static getSensitiveDataFilter(options: LoggerModuleOptions): SensitiveDataFilter | null {
-    if(options.sensitiveDataOptions?.enabled === false) {
-      return null;
-    }
-
-    return new SensitiveDataFilter(options.sensitiveDataOptions);
   }
 } 

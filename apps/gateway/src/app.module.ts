@@ -17,8 +17,13 @@ import { EventModule } from './event/event.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         serviceName: 'gateway',
-        logLevel: configService.get('LOG_LEVEL'),
+        logLevel: configService.get('LOG_LEVEL') || 'info',
         prettyPrint: configService.get('NODE_ENV') !== 'production',
+        fileTransport: {
+          enabled: true,
+          destination: '/logs/gateway/gateway.log',
+          mkdir: true,
+        },
       }),
     }),
     AuthModule,

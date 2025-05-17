@@ -20,12 +20,28 @@ import { EventService, RewardRequestService, RewardService } from './services';
     DatabaseModule,
     MicroServiceExceptionModule,
     LoggerModule.forRootAsync({
+      global: true,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         serviceName: 'event-service',
         prettyPrint: configService.get('NODE_ENV') !== 'production',
         logLevel: configService.get('LOG_LEVEL') || 'info',
+        fileTransport: {
+          enabled: true,
+          destination: '/logs/event/event.log',
+          mkdir: true,
+        },
+        sensitiveDataOptions: {
+          enabled: true,
+          maskValue: '***MASKED***',
+          objectPaths: [
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'token',
+            'password',
+          ],
+        },
       }),
     }),
   ],
@@ -33,10 +49,6 @@ import { EventService, RewardRequestService, RewardService } from './services';
     EventService,
     RewardRequestService,
     RewardService,
-    RequestContextInterceptor,
-  ],
-  controllers: [EventController, RewardRequestController, RewardController],
-  exports: [
     {
       provide: RequestContextInterceptor,
       useFactory: (orm: MikroORM) => {
@@ -45,5 +57,6 @@ import { EventService, RewardRequestService, RewardService } from './services';
       inject: [MikroORM],
     },
   ],
+  controllers: [EventController, RewardRequestController, RewardController],
 })
 export class AppModule {}

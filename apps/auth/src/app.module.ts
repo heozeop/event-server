@@ -25,6 +25,24 @@ import { UserService } from './services/user.service';
         serviceName: 'auth-service',
         prettyPrint: configService.get('NODE_ENV') !== 'production',
         logLevel: configService.get('LOG_LEVEL') || 'info',
+        fileTransport: {
+          enabled: true,
+          destination: '/logs/auth/auth.log',
+          mkdir: true,
+        },
+        sensitiveDataOptions: {
+          enabled: true,
+          maskValue: '***MASKED***',
+          objectPaths: [
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'req.body.password',
+            'req.body.accessToken',
+            'req.body.refreshToken',
+            'password',
+            'token',
+          ],
+        },
       }),
     }),
     JwtModule.registerAsync({

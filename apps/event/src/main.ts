@@ -1,4 +1,4 @@
-import { LogContextInterceptor } from '@libs/logger';
+import { LogContextInterceptor, PinoLoggerService } from '@libs/logger';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
@@ -11,8 +11,10 @@ async function bootstrap() {
       host: process.env.EVENT_SERVICE_HOST ?? '0.0.0.0',
       port: process.env.EVENT_SERVICE_PORT ?? 3002,
     },
+    bufferLogs: true,
   });
 
+  const logger = app.get(PinoLoggerService);
   const requestContextInterceptor = app.get(RequestContextInterceptor);
   const loggerContextInterceptor = app.get(LogContextInterceptor);
 
@@ -22,6 +24,10 @@ async function bootstrap() {
   );
 
   await app.listen();
+  logger.log('Event microservice is listening', {
+    host: process.env.EVENT_SERVICE_HOST ?? '0.0.0.0',
+    port: process.env.EVENT_SERVICE_PORT ?? 3002,
+  });
 }
 
 bootstrap();

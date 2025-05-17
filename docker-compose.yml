@@ -22,9 +22,35 @@ services:
       - event-network
     volumes:
       - .:/app
+      - ./logs/gateway:/logs/gateway
     depends_on:
       - auth
       - event
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  gateway-fluentd:
+    build:
+      context: ./config/fluentd
+      dockerfile: Dockerfile
+    container_name: gateway-fluentd
+    volumes:
+      - ./logs:/logs
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./logs/system:/fluentd/log/system
+      - ./logs/docker:/fluentd/log/docker
+      - ./logs/nestjs:/fluentd/log/nestjs
+      - ./logs/pos:/fluentd/log/pos
+    ports:
+      - "24221:24220"
+    networks:
+      - event-network
+    depends_on:
+      - gateway
     logging:
       driver: json-file
       options:
@@ -43,8 +69,34 @@ services:
       - event-network
     volumes:
       - .:/app
+      - ./logs/auth:/logs/auth
     depends_on:
       - mongo-user
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  auth-fluentd:
+    build:
+      context: ./config/fluentd
+      dockerfile: Dockerfile
+    container_name: auth-fluentd
+    volumes:
+      - ./logs:/logs
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./logs/system:/fluentd/log/system
+      - ./logs/docker:/fluentd/log/docker
+      - ./logs/nestjs:/fluentd/log/nestjs
+      - ./logs/pos:/fluentd/log/pos
+    ports:
+      - "24222:24220"
+    networks:
+      - event-network
+    depends_on:
+      - auth
     logging:
       driver: json-file
       options:
@@ -63,8 +115,34 @@ services:
       - event-network
     volumes:
       - .:/app
+      - ./logs/event:/logs/event
     depends_on:
       - mongo-event
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  event-fluentd:
+    build:
+      context: ./config/fluentd
+      dockerfile: Dockerfile
+    container_name: event-fluentd
+    volumes:
+      - ./logs:/logs
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./logs/system:/fluentd/log/system
+      - ./logs/docker:/fluentd/log/docker
+      - ./logs/nestjs:/fluentd/log/nestjs
+      - ./logs/pos:/fluentd/log/pos
+    ports:
+      - "24223:24220"
+    networks:
+      - event-network
+    depends_on:
+      - event
     logging:
       driver: json-file
       options:
@@ -108,3 +186,4 @@ networks:
 volumes:
   user-data:
   event-data:
+  logs-volume:

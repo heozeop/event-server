@@ -296,4 +296,158 @@ import { LoggerModule } from '@libs/logger';
   ]
 })
 export class AppModule {}
+```
+
+## Logger Package with Fluentd Integration
+
+This package provides a unified logging solution for microservices with Fluentd integration for centralized log collection.
+
+### Features
+
+- NestJS integration with ready-to-use module
+- Pino-based logging with customizable log formats
+- Context-aware logging with request tracking
+- Sensitive data masking
+- File transport for Fluentd integration
+- Sidecar pattern for log collection
+
+### Installation
+
+```bash
+pnpm install @libs/logger
+```
+
+### Basic Usage
+
+```typescript
+import { Module } from '@nestjs/common';
+import { LoggerModule } from '@libs/logger';
+
+@Module({
+  imports: [
+    LoggerModule.forRootAsync({
+      global: true,
+      imports: [],
+      inject: [],
+      useFactory: async () => ({
+        serviceName: 'my-service',
+        prettyPrint: process.env.NODE_ENV !== 'production',
+        logLevel: process.env.LOG_LEVEL || 'info',
+        fileTransport: {
+          enabled: true,
+          destination: `/logs/${process.env.SERVICE_NAME}/${process.env.SERVICE_NAME}.log`,
+          mkdir: true
+        },
+        sensitiveDataOptions: {
+          enabled: true,
+          maskValue: '***MASKED***',
+          objectPaths: [
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'req.body.password',
+          ],
+        },
+      }),
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+### Fluentd Integration
+
+This logger package has been configured to work with Fluentd for centralized log collection. The system uses a sidecar pattern where each service has its own Fluentd container that collects and processes logs.
+
+Key features of the Fluentd integration:
+- Application logs are written to files in the `/logs` directory
+- Fluentd collects logs from these files and Docker container logs
+- Logs are stored in a structured format for easy querying and analysis
+
+For detailed information on the Fluentd integration, see the [Fluentd Guide](../../config/fluentd/FLUENTD_GUIDE.md).
+
+#### Sidecar Architecture
+
+The logger uses a sidecar pattern where:
+1. Your service writes logs to a local file using Pino
+2. A Fluentd container (sidecar) monitors these log files
+3. Fluentd processes and forwards logs to the configured destination
+
+#### Directory Structure
+
+The logs are stored in the following structure:
+```
+/logs/{service-name}/{YYYY-MM-DD}/
+```
+
+#### Setup Fluentd Sidecar
+
+Add the following to your docker-compose.yml:
+
+```yaml
+services:
+  my-service:
+    # Your service configuration
+    volumes:
+      - ./logs:/logs
+
+  fluentd-sidecar:
+    build:
+      context: ./path/to/logger/fluentd
+      dockerfile: Dockerfile
+    volumes:
+      - ./logs:/logs
+    ports:
+      - "24220:24220"  # For monitoring
+```
+
+#### Configuration
+
+The Fluentd container is configured with:
+- Log directory monitoring
+- JSON parsing
+- Daily log rotation
+- Monitoring endpoint at port 24220
+
+#### Customization
+
+To customize the Fluentd configuration, modify the `fluent.conf` file and rebuild the container.
+
+### Advanced Options
+
+#### Custom Log Formatters
+
+You can customize the log format by configuring the `PinoLoggerService`:
+
+```typescript
+const logger = new PinoLoggerService({
+  serviceName: 'my-service',
+  prettyPrint: true,
+  logLevel: 'debug',
+  fileTransport: {
+    enabled: true,
+    destination: '/logs/my-service/my-service.log',
+    mkdir: true
+  },
+  sensitiveDataOptions: {
+    enabled: true,
+    maskValue: '***MASKED***',
+    objectPaths: ['password', 'token'],
+  },
+});
+```
+
+#### Context-Aware Logging
+
+The logger supports context-aware logging through the NestJS request context:
+
+```typescript
+@Injectable()
+export class MyService {
+  constructor(private readonly logger: PinoLoggerService) {}
+
+  someMethod() {
+    // The logger automatically includes request context (requestId, etc.)
+    this.logger.info('This log includes request context');
+  }
+}
 ``` 
