@@ -1,7 +1,7 @@
 import { EventStatus } from "@libs/enums";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
-import { PagingDto } from "../../common";
+import { BooleanTransformer, PagingDto } from "../../common";
 
 export class QueryEventDto extends PagingDto {
   @ApiProperty({
@@ -30,5 +30,6 @@ export class QueryEventDto extends PagingDto {
   })
   @IsBoolean()
   @IsOptional()
-  active?: boolean;
+  @BooleanTransformer()
+  inPeriod?: boolean;
 }
