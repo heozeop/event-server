@@ -34,19 +34,6 @@ services:
     depends_on:
       - prometheus
 
-  loki:
-    image: grafana/loki:2.8.0
-    container_name: loki
-    ports:
-      - "3100:3100"
-    volumes:
-      - ./infrastructure/loki/local-config.yaml:/etc/loki/local-config.yaml
-      - loki-data:/loki
-    command: -config.file=/etc/loki/local-config.yaml
-    user: "root"
-    networks:
-      - event-network
-
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
@@ -61,29 +48,8 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_SECURITY_ADMIN_USER=admin
       - GF_USERS_ALLOW_SIGN_UP=false
-    depends_on:
-      - loki
     networks:
       - event-network
-
-  # Grafana Alloy Agent for log collection
-  # alloy:
-  #   image: grafana/alloy:latest
-  #   container_name: alloy
-  #   volumes:
-  #     - ./infrastructure/alloy/config.river:/etc/alloy/config.river
-  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
-  #     - /var/run/docker.sock:/var/run/docker.sock:ro
-  #     - ./data/alloy:/tmp/alloy
-  #   command: run /etc/alloy/config.river
-  #   user: root
-  #   depends_on:
-  #     - loki
-  #   networks:
-  #     - event-network
-  #   ports:
-  #     - "12345:12345" # For internal metrics
-  #   privileged: true # Add privileged mode for better Docker access
 
   # Application services
   gateway:
@@ -163,7 +129,7 @@ services:
         labels: "requestId,serviceId"
 
   mongo-user:
-    image: mongo:latest
+    image: mongo:8.0.9
     container_name: mongo-user
     ports:
       - "27017:27017"
@@ -173,7 +139,7 @@ services:
       - event-network
 
   mongo-event:
-    image: mongo:latest
+    image: mongo:8.0.9
     container_name: mongo-event
     ports:
       - "27018:27017"
