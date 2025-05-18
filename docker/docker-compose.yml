@@ -60,6 +60,7 @@ services:
     ports:
       - "3010:3000"
       - "3333:3333"
+      - "9222:9229"
     environment:
       - NODE_ENV=development
       - GATEWAY_HOST=0.0.0.0
@@ -89,6 +90,8 @@ services:
       context: ../
       dockerfile: apps/auth/docker/Dockerfile.dev
     container_name: auth
+    ports:
+      - "9223:9229"
     environment:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://mongo-user:27017
@@ -111,6 +114,8 @@ services:
       context: ../
       dockerfile: apps/event/docker/Dockerfile.dev
     container_name: event
+    ports:
+      - "9224:9229"
     environment:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://mongo-event:27017
