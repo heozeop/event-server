@@ -1,5 +1,5 @@
 {
-  "name": "test",
+  "name": "@test/k6",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -28,7 +28,6 @@
     "glob": "^10.3.10",
     "k6-html-reporter": "^1.0.5",
     "mongodb": "^6.5.0",
-    "mongodb-memory-server": "^9.1.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
     "uuid": "^11.0.5"
