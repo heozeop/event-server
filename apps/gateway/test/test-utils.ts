@@ -32,6 +32,21 @@ export class MockAppGuard implements CanActivate {
   }
 }
 
+// Test override providers
+export const testOverrideProviders = [
+  {
+    provide: 'EVENT_SERVICE',
+    useValue: {
+      send: jest.fn().mockImplementation((pattern) => {
+        if (pattern.cmd === 'test') {
+          return { status: 'ok', service: 'event' };
+        }
+        return {};
+      }),
+    },
+  },
+];
+
 // Helper function to set up the test application
 export function setupTestApp(app: INestApplication): INestApplication {
   app.useGlobalPipes(

@@ -47,6 +47,20 @@ export class AuthController {
     private readonly logger: PinoLoggerService,
   ) {}
 
+  @Get('test')
+  @Public()
+  @ApiOperation({
+    summary: 'Test endpoint',
+    description: 'Smoke test endpoint for the auth service',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Service is operational',
+  })
+  async test() {
+    return { status: 'ok', service: 'auth' };
+  }
+
   @Post('login')
   @Public()
   @ApiOperation({

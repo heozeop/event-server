@@ -12,7 +12,7 @@ import { MockJwtAuthGuard, MockRolesGuard, setupTestApp } from './test-utils';
 // Ensure NODE_ENV is set to test
 process.env.NODE_ENV = 'test';
 
-describe('AuthController (e2e)', () => {
+describe('인증 컨트롤러 (e2e)', () => {
   let app: INestApplication;
   let authClientMock: Partial<ClientProxy>;
 
@@ -74,7 +74,7 @@ describe('AuthController (e2e)', () => {
 
   // Smoke test
   describe('/auth/test (GET)', () => {
-    it('should return OK from the test endpoint', () => {
+    it('테스트 엔드포인트에서 OK를 반환해야 함', () => {
       return request(app.getHttpServer())
         .get('/auth/test')
         .expect(200)
@@ -86,7 +86,7 @@ describe('AuthController (e2e)', () => {
   });
 
   describe('/auth/login (POST)', () => {
-    it('should return access token and user information on successful login', () => {
+    it('로그인 성공 시 액세스 토큰과 사용자 정보를 반환해야 함', () => {
       return request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -103,7 +103,7 @@ describe('AuthController (e2e)', () => {
         });
     });
 
-    it('should validate login inputs', () => {
+    it('로그인 입력을 검증해야 함', () => {
       return request(app.getHttpServer())
         .post('/auth/login')
         .send({
@@ -115,7 +115,7 @@ describe('AuthController (e2e)', () => {
   });
 
   describe('/auth/users (POST)', () => {
-    it('should create a new user', () => {
+    it('새 사용자를 생성해야 함', () => {
       return request(app.getHttpServer())
         .post('/auth/users')
         .send({
@@ -132,7 +132,7 @@ describe('AuthController (e2e)', () => {
   });
 
   describe('/auth/users/:id (GET)', () => {
-    it('should return user data', () => {
+    it('사용자 데이터를 반환해야 함', () => {
       return request(app.getHttpServer())
         .get('/auth/users/1')
         .set('Authorization', 'Bearer test-token')
