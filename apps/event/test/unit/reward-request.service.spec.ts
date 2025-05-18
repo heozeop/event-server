@@ -68,10 +68,8 @@ describe('RewardRequestService', () => {
       const event = await eventService.createEvent({
         name: 'Active Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date(now.getTime() - 3600000).toISOString(), // 1 hour ago
-          end: tomorrow.toISOString(),
-        },
+        periodStart: new Date(now.getTime() - 3600000), // 1 hour ago
+        periodEnd: tomorrow,
         status: EventStatus.ACTIVE,
       });
 
@@ -104,10 +102,8 @@ describe('RewardRequestService', () => {
       const event = await eventService.createEvent({
         name: 'Inactive Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.INACTIVE,
       });
 
@@ -131,10 +127,8 @@ describe('RewardRequestService', () => {
       const event = await eventService.createEvent({
         name: 'Future Event',
         condition: { type: 'login' },
-        period: {
-          start: tomorrow.toISOString(),
-          end: dayAfterTomorrow.toISOString(),
-        },
+        periodStart: tomorrow,
+        periodEnd: dayAfterTomorrow,
         status: EventStatus.ACTIVE,
       });
 
@@ -158,10 +152,8 @@ describe('RewardRequestService', () => {
       const event = await eventService.createEvent({
         name: 'Past Event',
         condition: { type: 'login' },
-        period: {
-          start: twoDaysAgo.toISOString(),
-          end: yesterday.toISOString(),
-        },
+        periodStart: twoDaysAgo,
+        periodEnd: yesterday,
         status: EventStatus.ACTIVE,
       });
 
@@ -181,10 +173,8 @@ describe('RewardRequestService', () => {
       const event = await eventService.createEvent({
         name: 'Active Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 3600000), // 1 hour ago
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -223,10 +213,8 @@ describe('RewardRequestService', () => {
       const event = await eventService.createEvent({
         name: 'Active Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 3600000), // 1 hour ago
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -269,20 +257,16 @@ describe('RewardRequestService', () => {
       const activeEvent = await eventService.createEvent({
         name: 'Active Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date(Date.now() - 3600000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 3600000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
       const activeEvent2 = await eventService.createEvent({
         name: 'Active Event 2',
         condition: { type: 'purchase' },
-        period: {
-          start: new Date(Date.now() - 3600000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 3600000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -342,10 +326,8 @@ describe('RewardRequestService', () => {
       const activeEvent = await eventService.createEvent({
         name: 'Active Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date(Date.now() - 3600000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 3600000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -387,10 +369,8 @@ describe('RewardRequestService', () => {
       const activeEvent = await eventService.createEvent({
         name: 'Active Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date(Date.now() - 3600000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 3600000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -467,10 +447,8 @@ describe('RewardRequestService', () => {
       const event = await eventService.createEvent({
         name: 'Active Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date(Date.now() - 3600000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 3600000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -509,10 +487,8 @@ describe('RewardRequestService', () => {
       const event = await eventService.createEvent({
         name: 'Active Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date(Date.now() - 3600000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 3600000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -568,10 +544,8 @@ describe('RewardRequestService', () => {
       const 이벤트 = await eventService.createEvent({
         name: '신규 사용자 가입 이벤트',
         condition: { newUser: true },
-        period: {
-          start: new Date(현재시간.getTime() - 86400000).toISOString(), // 1일 전 시작
-          end: 이벤트종료일.toISOString(),
-        },
+        periodStart: new Date(현재시간.getTime() - 86400000), // 1일 전 시작
+        periodEnd: 이벤트종료일,
         status: EventStatus.ACTIVE,
       });
 
@@ -598,20 +572,16 @@ describe('RewardRequestService', () => {
       const 이벤트1 = await eventService.createEvent({
         name: '여름 이벤트',
         condition: { season: 'summer' },
-        period: {
-          start: new Date(Date.now() - 86400000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 86400000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
       const 이벤트2 = await eventService.createEvent({
         name: '가을 이벤트',
         condition: { season: 'autumn' },
-        period: {
-          start: new Date(Date.now() - 86400000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 86400000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -657,10 +627,8 @@ describe('RewardRequestService', () => {
       const 이벤트 = await eventService.createEvent({
         name: '종료된 이벤트',
         condition: { type: 'any' },
-        period: {
-          start: 이벤트시작일.toISOString(),
-          end: 이벤트종료일.toISOString(),
-        },
+        periodStart: 이벤트시작일,
+        periodEnd: 이벤트종료일,
         status: EventStatus.ACTIVE,
       });
 
@@ -682,10 +650,8 @@ describe('RewardRequestService', () => {
       const 이벤트 = await eventService.createEvent({
         name: '중복 요청 테스트 이벤트',
         condition: { type: 'any' },
-        period: {
-          start: new Date(Date.now() - 86400000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 86400000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -714,10 +680,8 @@ describe('RewardRequestService', () => {
       const 이벤트 = await eventService.createEvent({
         name: '상태 필터 테스트 이벤트',
         condition: { type: 'any' },
-        period: {
-          start: new Date(Date.now() - 86400000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 86400000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -780,20 +744,16 @@ describe('RewardRequestService', () => {
       const 이벤트1 = await eventService.createEvent({
         name: '이벤트 필터 테스트 1',
         condition: { type: 'any' },
-        period: {
-          start: new Date(Date.now() - 86400000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 86400000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
       const 이벤트2 = await eventService.createEvent({
         name: '이벤트 필터 테스트 2',
         condition: { type: 'any' },
-        period: {
-          start: new Date(Date.now() - 86400000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 86400000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -842,10 +802,8 @@ describe('RewardRequestService', () => {
       const 이벤트 = await eventService.createEvent({
         name: '승인 테스트 이벤트',
         condition: { type: 'any' },
-        period: {
-          start: new Date(Date.now() - 86400000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 86400000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -879,10 +837,8 @@ describe('RewardRequestService', () => {
       const 이벤트 = await eventService.createEvent({
         name: '거절 테스트 이벤트',
         condition: { type: 'any' },
-        period: {
-          start: new Date(Date.now() - 86400000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 86400000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -916,10 +872,8 @@ describe('RewardRequestService', () => {
       const 이벤트 = await eventService.createEvent({
         name: '중복 처리 방지 테스트 이벤트',
         condition: { type: 'any' },
-        period: {
-          start: new Date(Date.now() - 86400000).toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(Date.now() - 86400000),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 

@@ -20,21 +20,18 @@ export class EventService {
   /**
    * Create a new event
    */
-  async createEvent(createEventDto: CreateEventDto): Promise<Event> {
+  async createEvent({name, condition, periodStart, periodEnd, status}: CreateEventDto): Promise<Event> {
     const event = this.eventRepository.create({
-      name: createEventDto.name,
-      condition: createEventDto.condition,
-      period: {
-        start: new Date(createEventDto.period.start),
-        end: new Date(createEventDto.period.end),
-      },
-      status: createEventDto.status,
+      name,
+      condition,
+      periodStart,
+      periodEnd: periodEnd ?? null,
+      status,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    await this.eventRepository.create(event);
-    await this.eventRepository.getEntityManager().flush();
+    await this.eventRepository.getEntityManager().persistAndFlush(event);
 
     return event;
   }
@@ -72,10 +69,15 @@ export class EventService {
 
     if (inPeriod) {
       const now = new Date();
-      query.period = {
-        start: { $lte: now },
-        end: { $gte: now },
-      };
+      query.$and = [
+        { periodStart: { $lte: now } },
+        {
+          $or: [
+            { periodEnd: { $gte: now } },
+            { periodEnd: { $exists: false } },
+          ],
+        },
+      ];
     }
 
     if (name) {
@@ -97,7 +99,8 @@ export class EventService {
     id,
     name,
     condition,
-    period,
+    periodStart,
+    periodEnd,
     status,
   }: UpdateEventDto): Promise<Event> {
     const event = await this.getEventById({ id });
@@ -110,11 +113,12 @@ export class EventService {
       event.condition = condition;
     }
 
-    if (period) {
-      event.period = {
-        start: new Date(period.start),
-        end: new Date(period.end),
-      };
+    if (periodStart) {
+      event.periodStart = new Date(periodStart);
+    }
+
+    if (periodEnd) {
+      event.periodEnd = new Date(periodEnd);
     }
 
     if (status) {

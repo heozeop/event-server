@@ -15,10 +15,10 @@ export class Event implements EventEntity {
   condition!: Record<string, any>;
 
   @Property()
-  period!: {
-    start: Date;
-    end: Date;
-  };
+  periodStart!: Date;
+
+  @Property()
+  periodEnd!: Date | null;
 
   @Property()
   status!: EventStatus;

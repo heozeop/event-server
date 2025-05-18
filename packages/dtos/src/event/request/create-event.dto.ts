@@ -1,36 +1,14 @@
 import { EventStatus } from "@libs/enums";
 import { EventEntity } from "@libs/types";
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
 import {
   IsDateString,
   IsEnum,
   IsNotEmpty,
   IsObject,
-  IsString,
-  ValidateNested,
+  IsOptional,
+  IsString
 } from "class-validator";
-
-/**
- * DTO to represent the event period
- */
-export class EventPeriodDto {
-  @ApiProperty({
-    example: "2023-10-01T00:00:00Z",
-    description: "The start date of the event period",
-  })
-  @IsDateString()
-  @IsNotEmpty()
-  start!: string;
-
-  @ApiProperty({
-    example: "2023-10-31T23:59:59Z",
-    description: "The end date of the event period",
-  })
-  @IsDateString()
-  @IsNotEmpty()
-  end!: string;
-}
 
 /**
  * DTO for creating a new event
@@ -54,12 +32,19 @@ export class CreateEventDto
   condition!: Record<string, any>;
 
   @ApiProperty({
-    type: EventPeriodDto,
     description: "The period of the event",
   })
-  @ValidateNested()
-  @Type(() => EventPeriodDto)
-  period!: EventPeriodDto;
+  @IsDateString()
+  @IsNotEmpty()
+  periodStart!: Date;
+
+  @ApiProperty({
+    example: "2023-10-31T23:59:59Z",
+    description: "The end date of the event period",
+  })
+  @IsDateString()
+  @IsOptional()
+  periodEnd: Date | null = null;
 
   @ApiProperty({
     enum: EventStatus,

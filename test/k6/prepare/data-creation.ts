@@ -132,10 +132,8 @@ function generateEvents(count: number, users: UserEntity[]): EventEntity[] {
         minPurchase: faker.number.int({ min: 100, max: 10000 }),
         maxRewards: faker.number.int({ min: 1, max: 5 }),
       },
-      period: {
-        start: startDate,
-        end: endDate,
-      },
+      periodStart: startDate,
+      periodEnd: endDate,
       status: faker.helpers.arrayElement(Object.values(EventStatus)),
       createdAt: faker.date.past(),
       updatedAt: new Date(),

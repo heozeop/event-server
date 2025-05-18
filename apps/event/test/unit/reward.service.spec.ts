@@ -265,10 +265,8 @@ describe('RewardService', () => {
       const event = await eventService.createEvent({
         name: 'Test Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -311,10 +309,8 @@ describe('RewardService', () => {
       const event = await eventService.createEvent({
         name: 'Test Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -361,10 +357,8 @@ describe('RewardService', () => {
       const event = await eventService.createEvent({
         name: 'Test Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
       const dto: CreateEventRewardDto = {
@@ -386,10 +380,8 @@ describe('RewardService', () => {
       const event = await eventService.createEvent({
         name: 'Test Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -443,10 +435,8 @@ describe('RewardService', () => {
       const event = await eventService.createEvent({
         name: 'Test Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -475,10 +465,8 @@ describe('RewardService', () => {
       const event = await eventService.createEvent({
         name: 'Test Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -514,10 +502,8 @@ describe('RewardService', () => {
       const event = await eventService.createEvent({
         name: 'Test Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       });
       const reward = await service.createPointReward({
@@ -682,10 +668,8 @@ describe('RewardService', () => {
       const event = await eventService.createEvent({
         name: '신규 사용자 가입 이벤트',
         condition: { newUser: true },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 30 * 86400000).toISOString(), // 30일 후
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 30 * 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -750,20 +734,16 @@ describe('RewardService', () => {
       const event1 = await eventService.createEvent({
         name: '여름 방학 이벤트',
         condition: { type: 'season', season: 'summer' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 30 * 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 30 * 86400000),
         status: EventStatus.ACTIVE,
       });
 
       const event2 = await eventService.createEvent({
         name: '가을 시즌 이벤트',
         condition: { type: 'season', season: 'autumn' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 60 * 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 60 * 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -803,10 +783,8 @@ describe('RewardService', () => {
       const event = await eventService.createEvent({
         name: '테스트 이벤트',
         condition: { type: 'test' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 30 * 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 30 * 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -902,10 +880,8 @@ describe('RewardService', () => {
       const event = await eventService.createEvent({
         name: '중복 리워드 테스트 이벤트',
         condition: { type: 'test' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 30 * 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 30 * 86400000),
         status: EventStatus.ACTIVE,
       });
 
@@ -944,10 +920,8 @@ describe('RewardService', () => {
       const event = await eventService.createEvent({
         name: '테스트 이벤트',
         condition: { type: 'test' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 30 * 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 30 * 86400000),
         status: EventStatus.ACTIVE,
       });
 

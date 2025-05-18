@@ -51,10 +51,8 @@ describe('EventService', () => {
       const createEventDto: CreateEventDto = {
         name: 'Test Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date().toISOString(),
-          end: new Date(Date.now() + 86400000).toISOString(),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
       };
 
@@ -76,10 +74,8 @@ describe('EventService', () => {
       const event = eventRepository.create({
         name: 'Test Event',
         condition: { type: 'login' },
-        period: {
-          start: new Date(),
-          end: new Date(Date.now() + 86400000),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -116,10 +112,8 @@ describe('EventService', () => {
         eventRepository.create({
           name: '이벤트 1',
           condition: { type: 'login' },
-          period: {
-            start: new Date(),
-            end: new Date(Date.now() + 86400000),
-          },
+          periodStart: new Date(),
+          periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -127,10 +121,8 @@ describe('EventService', () => {
         eventRepository.create({
           name: '이벤트 2',
           condition: { type: 'signup' },
-          period: {
-            start: new Date(),
-            end: new Date(Date.now() + 86400000),
-          },
+          periodStart: new Date(),
+          periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.INACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -155,10 +147,8 @@ describe('EventService', () => {
         eventRepository.create({
           name: '활성 이벤트',
           condition: { type: 'login' },
-          period: {
-            start: new Date(),
-            end: new Date(Date.now() + 86400000),
-          },
+          periodStart: new Date(),
+          periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -166,10 +156,8 @@ describe('EventService', () => {
         eventRepository.create({
           name: '비활성 이벤트',
           condition: { type: 'signup' },
-          period: {
-            start: new Date(),
-            end: new Date(Date.now() + 86400000),
-          },
+          periodStart: new Date(),
+          periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.INACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -202,10 +190,8 @@ describe('EventService', () => {
         eventRepository.create({
           name: '진행 중 이벤트',
           condition: { type: 'login' },
-          period: {
-            start: yesterday,
-            end: tomorrow,
-          },
+          periodStart: yesterday,
+          periodEnd: tomorrow,
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -214,10 +200,8 @@ describe('EventService', () => {
         eventRepository.create({
           name: '미래 이벤트',
           condition: { type: 'signup' },
-          period: {
-            start: tomorrow,
-            end: nextWeek,
-          },
+          periodStart: tomorrow,
+          periodEnd: nextWeek,
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -226,10 +210,8 @@ describe('EventService', () => {
         eventRepository.create({
           name: '지난 이벤트',
           condition: { type: 'signup' },
-          period: {
-            start: lastWeek,
-            end: yesterday,
-          },
+          periodStart: lastWeek,
+          periodEnd: yesterday,
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -255,10 +237,8 @@ describe('EventService', () => {
         eventRepository.create({
           name: '여름 방학 특별 이벤트',
           condition: { type: 'login' },
-          period: {
-            start: new Date(),
-            end: new Date(Date.now() + 86400000),
-          },
+          periodStart: new Date(),
+          periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -266,10 +246,8 @@ describe('EventService', () => {
         eventRepository.create({
           name: '겨울 방학 특별 이벤트',
           condition: { type: 'signup' },
-          period: {
-            start: new Date(),
-            end: new Date(Date.now() + 86400000),
-          },
+          periodStart: new Date(),
+          periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -277,10 +255,8 @@ describe('EventService', () => {
         eventRepository.create({
           name: '신규 가입 이벤트',
           condition: { type: 'signup' },
-          period: {
-            start: new Date(),
-            end: new Date(Date.now() + 86400000),
-          },
+          periodStart: new Date(),
+          periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -311,10 +287,8 @@ describe('EventService', () => {
         eventRepository.create({
           name: `이벤트 ${i + 1}`,
           condition: { type: 'login' },
-          period: {
-            start: new Date(),
-            end: new Date(Date.now() + 86400000),
-          },
+          periodStart: new Date(),
+          periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -351,10 +325,8 @@ describe('EventService', () => {
       const event = eventRepository.create({
         name: '원래 이벤트 이름',
         condition: { type: 'login' },
-        period: {
-          start: new Date(),
-          end: new Date(Date.now() + 86400000),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -379,10 +351,8 @@ describe('EventService', () => {
       const event = eventRepository.create({
         name: '테스트 이벤트',
         condition: { type: 'login' },
-        period: {
-          start: new Date(),
-          end: new Date(Date.now() + 86400000),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -407,10 +377,8 @@ describe('EventService', () => {
       const event = eventRepository.create({
         name: '테스트 이벤트',
         condition: { type: 'login' },
-        period: {
-          start: new Date(),
-          end: new Date(Date.now() + 86400000),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -425,17 +393,15 @@ describe('EventService', () => {
       // Act
       const updatedEvent = await service.updateEvent({
         id: event._id.toString(),
-        period: {
-          start: newStart.toISOString(),
-          end: newEnd.toISOString(),
-        },
+        periodStart: newStart,
+        periodEnd: newEnd,
       });
 
       // Assert
-      expect(updatedEvent.period.start.toISOString()).toBe(
+      expect(updatedEvent.periodStart.toISOString()).toBe(
         newStart.toISOString(),
       );
-      expect(updatedEvent.period.end.toISOString()).toBe(newEnd.toISOString());
+      expect(updatedEvent.periodEnd?.toISOString()).toBe(newEnd.toISOString());
     });
 
     // 이벤트 조건 업데이트 테스트
@@ -445,10 +411,8 @@ describe('EventService', () => {
       const event = eventRepository.create({
         name: '테스트 이벤트',
         condition: { type: 'login' },
-        period: {
-          start: new Date(),
-          end: new Date(Date.now() + 86400000),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -491,10 +455,8 @@ describe('EventService', () => {
       const event = eventRepository.create({
         name: '삭제할 이벤트',
         condition: { type: 'login' },
-        period: {
-          start: new Date(),
-          end: new Date(Date.now() + 86400000),
-        },
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),

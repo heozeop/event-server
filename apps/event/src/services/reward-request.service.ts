@@ -38,8 +38,8 @@ export class RewardRequestService {
     const now = new Date();
     if (
       event.status !== EventStatus.ACTIVE ||
-      now < event.period.start ||
-      now > event.period.end
+      now < event.periodStart ||
+      (event.periodEnd && now > event.periodEnd)
     ) {
       throw new BadRequestException('Event is not active');
     }
