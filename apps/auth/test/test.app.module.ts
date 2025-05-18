@@ -1,5 +1,9 @@
-import { LoggerModule } from '@libs/logger';
-import { MongoMemoryOrmModule } from '@libs/test';
+import { PinoLoggerService } from '@libs/logger';
+import {
+  MockLoggerModule,
+  MockPinoLoggerService,
+  MongoMemoryOrmModule,
+} from '@libs/test';
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -33,36 +37,16 @@ export class TestAppModule {
             },
           }),
         }),
-        LoggerModule.forRootAsync({
-          global: true,
-          imports: [ConfigModule],
-          inject: [ConfigService],
-          useFactory: (configService: ConfigService) => ({
-            serviceName: 'auth-service',
-            prettyPrint: configService.get('NODE_ENV') !== 'production',
-            logLevel: configService.get('LOG_LEVEL') || 'info',
-            sensitiveDataOptions: {
-              enabled: true,
-              maskValue: '***MASKED***',
-              objectPaths: [
-                'req.headers.authorization',
-                'req.headers.cookie',
-                'req.body.password',
-                'req.body.accessToken',
-                'req.body.refreshToken',
-                'password',
-                'token',
-              ],
-            },
-            alloyConfig: {
-              enabled: true,
-              messageKey: 'msg',
-              levelKey: 'level',
-            },
-          }),
-        }),
+        MockLoggerModule.forRoot(),
       ],
-      providers: [UserService, AuthService],
+      providers: [
+        {
+          provide: PinoLoggerService,
+          useValue: new MockPinoLoggerService(),
+        },
+        UserService,
+        AuthService,
+      ],
     };
   }
 }

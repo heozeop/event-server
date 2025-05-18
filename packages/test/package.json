@@ -21,7 +21,8 @@
   "license": "ISC",
   "devDependencies": {
     "typescript": "^5.7.3",
-    "mongodb-memory-server": "^10.1.4"
+    "mongodb-memory-server": "^10.1.4",
+    "@libs/logger": "workspace:*"
   },
   "peerDependencies": {
     "@mikro-orm/core": "^6.4.15",

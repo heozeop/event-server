@@ -1,7 +1,11 @@
-import { LoggerModule } from '@libs/logger';
-import { MongoMemoryOrmModule } from '@libs/test';
+import { PinoLoggerService } from '@libs/logger';
+import {
+  MockLoggerModule,
+  MockPinoLoggerService,
+  MongoMemoryOrmModule,
+} from '@libs/test';
 import { DynamicModule, Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { EventReward } from '../src/entities/event-reward.entity';
 import { Event } from '../src/entities/event.entity';
 import { RewardRequest } from '../src/entities/reward-request.entity';
@@ -39,33 +43,17 @@ export class TestAppModule {
         }),
         mongoMemoryOrmModule.getMikroOrmModule(entities),
         mongoMemoryOrmModule.getMikroOrmFeatureModule(entities),
-        LoggerModule.forRootAsync({
-          global: true,
-          imports: [ConfigModule],
-          inject: [ConfigService],
-          useFactory: (configService: ConfigService) => ({
-            serviceName: 'event-service',
-            prettyPrint: configService.get('NODE_ENV') !== 'production',
-            logLevel: configService.get('LOG_LEVEL') || 'info',
-            sensitiveDataOptions: {
-              enabled: true,
-              maskValue: '***MASKED***',
-              objectPaths: [
-                'req.headers.authorization',
-                'req.headers.cookie',
-                'token',
-                'password',
-              ],
-            },
-            alloyConfig: {
-              enabled: true,
-              messageKey: 'msg',
-              levelKey: 'level',
-            },
-          }),
-        }),
+        MockLoggerModule.forRoot(),
       ],
-      providers: [EventService, RewardRequestService, RewardService],
+      providers: [
+        {
+          provide: PinoLoggerService,
+          useValue: new MockPinoLoggerService(),
+        },
+        EventService,
+        RewardRequestService,
+        RewardService,
+      ],
     };
   }
 }

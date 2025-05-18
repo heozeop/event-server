@@ -10,7 +10,7 @@ import {
   RemoveRewardDto,
 } from '@libs/dtos';
 import { RewardType } from '@libs/enums';
-import { LogExecution } from '@libs/logger';
+import { LogExecution, PinoLoggerService } from '@libs/logger';
 import { EntityManager, EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
@@ -43,6 +43,7 @@ export class RewardService {
     private readonly eventRewardRepository: EntityRepository<EventReward>,
     private readonly em: EntityManager,
     private readonly eventService: EventService,
+    private readonly logger: PinoLoggerService,
   ) {}
 
   /**
