@@ -5,19 +5,24 @@ import * as path from 'path';
 // Configuration for database connections
 const config = {
   user: {
-    uri: process.env.USER_DB_URI || 'mongodb://localhost:27017',
-    dbName: process.env.USER_DB_NAME || 'auth',
-    collection: process.env.USER_COLLECTION || 'users'
+    uri: process.env.USER_DB_URI || 'mongodb://mongo-user:27017',
+    dbName: process.env.USER_DB_NAME || 'user-db',
+    collection: process.env.USER_COLLECTION || 'user'
   },
   event: {
-    uri: process.env.EVENT_DB_URI || 'mongodb://localhost:27018',
-    dbName: process.env.EVENT_DB_NAME || 'event',
-    collection: process.env.EVENT_COLLECTION || 'events'
+    uri: process.env.EVENT_DB_URI || 'mongodb://mongo-event:27017',
+    dbName: process.env.EVENT_DB_NAME || 'event-db',
+    collection: process.env.EVENT_COLLECTION || 'event'
   },
   reward: {
-    uri: process.env.REWARD_DB_URI || 'mongodb://localhost:27019',
-    dbName: process.env.REWARD_DB_NAME || 'event',
+    uri: process.env.REWARD_DB_URI || 'mongodb://mongo-event:27017',
+    dbName: process.env.REWARD_DB_NAME || 'event-db',
     collection: process.env.REWARD_COLLECTION || 'rewards'
+  },
+  eventReward: {
+    uri: process.env.EVENT_REWARD_DB_URI || 'mongodb://mongo-event:27017',
+    dbName: process.env.EVENT_REWARD_DB_NAME || 'event-db',
+    collection: process.env.EVENT_REWARD_COLLECTION || 'event-reward'
   }
 };
 
@@ -51,6 +56,7 @@ function loadDataFile(filePath: string): any[] {
 const userData = loadDataFile('./data/users.json');
 const eventData = loadDataFile('./data/events.json');
 const rewardData = loadDataFile('./data/rewards.json');
+const eventRewardData = loadDataFile('./data/event-rewards.json');
 
 async function seedDatabase() {
   console.log('Starting database seeding...');
@@ -75,7 +81,7 @@ async function seedDatabase() {
     const userCollection = userDb.collection(config.user.collection);
     
     // Drop existing collection if it exists
-    await userCollection.drop().catch(() => console.log('No existing users collection to drop'));
+    await userCollection.deleteMany({});
     
     // Prepare user data - convert string IDs to ObjectIds
     const preparedUserData = userData.map(user => ({
@@ -92,7 +98,7 @@ async function seedDatabase() {
     const eventCollection = eventDb.collection(config.event.collection);
     
     // Drop existing collection if it exists
-    await eventCollection.drop().catch(() => console.log('No existing events collection to drop'));
+    await eventCollection.deleteMany({});
     
     // Prepare event data - convert string IDs to ObjectIds and format dates
     const preparedEventData = eventData.map(event => ({
@@ -115,7 +121,7 @@ async function seedDatabase() {
     const rewardCollection = rewardDb.collection(config.reward.collection);
 
     // Drop existing collection if it exists
-    await rewardCollection.drop().catch(() => console.log('No existing rewards collection to drop'));
+    await rewardCollection.deleteMany({});
     const preparedRewardData = rewardData.map(reward => ({
       ...reward,
       _id: new ObjectId(reward.id),
@@ -125,7 +131,24 @@ async function seedDatabase() {
     
     const rewardResult = await rewardCollection.insertMany(preparedRewardData);
     console.log(`${rewardResult.insertedCount} rewards inserted successfully`);
+
+    // Insert event rewards data
+    const eventRewardDb = eventClient.db(config.eventReward.dbName);
+    const eventRewardCollection = eventRewardDb.collection(config.eventReward.collection);
+
+    // Drop existing collection if it exists
+    await eventRewardCollection.deleteMany({});
+
+    const preparedEventRewardData = eventRewardData.map(eventReward => ({
+      ...eventReward,
+      _id: new ObjectId(eventReward.id),
+      createdAt: new Date(eventReward.createdAt),
+      updatedAt: new Date(),
+    }));
     
+    const eventRewardResult = await eventRewardCollection.insertMany(preparedEventRewardData);
+    console.log(`${eventRewardResult.insertedCount} event rewards inserted successfully`);
+
     console.log('Database seeding completed successfully!');
   } catch (error) {
     console.error('Error seeding database:', error);

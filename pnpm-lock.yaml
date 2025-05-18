@@ -735,20 +735,20 @@ importers:
         specifier: ^5.7.3
         version: 5.8.3
 
-  test:
+  test/k6:
     devDependencies:
       '@faker-js/faker':
         specifier: ^9.8.0
         version: 9.8.0
       '@libs/dtos':
         specifier: workspace:*
-        version: link:../packages/dtos
+        version: link:../../packages/dtos
       '@libs/enums':
         specifier: workspace:*
-        version: link:../packages/enums
+        version: link:../../packages/enums
       '@libs/types':
         specifier: workspace:*
-        version: link:../packages/types
+        version: link:../../packages/types
       '@types/k6':
         specifier: ^0.47.3
         version: 0.47.3

@@ -1,22 +1,22 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "es2020",
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "../dist",
-    "rootDir": "./",
+    "rootDir": "../../",
     "baseUrl": "./",
     "paths": {
       "@/*": ["./scripts/*"],
-      "@libs/dtos": ["../packages/dtos/src"],
-      "@libs/dtos/*": ["../packages/dtos/src/*"],
-      "@libs/enums": ["../packages/enums/src"],
-      "@libs/enums/*": ["../packages/enums/src/*"],
-      "@libs/types": ["../packages/types/src"],
-      "@libs/types/*": ["../packages/types/src/*"]
+      "@libs/dtos": ["../../packages/dtos/src"],
+      "@libs/dtos/*": ["../../packages/dtos/src/*"],
+      "@libs/enums": ["../../packages/enums/src"],
+      "@libs/enums/*": ["../../packages/enums/src/*"],
+      "@libs/types": ["../../packages/types/src"],
+      "@libs/types/*": ["../../packages/types/src/*"]
     }
   },
   "include": ["./**/*"],

@@ -8,6 +8,8 @@
     "build": "pnpm build:k6",
     "build:k6": "node esbuild.config.js",
     "test:k6": "k6 run dist/scripts/auth/login.bundle.js",
+    "test:k6:rewards": "k6 run dist/scripts/rewards/rewards-list-performance-test.bundle.js",
+    "test:k6:all": "find dist/scripts -type f -name \"*.js\" | xargs -I {} sh -c 'echo \"\\nRunning test: {}\"; k6 run {} --iterations=1 --duration=10s'",
     "seed:db": "rm -rf prepare/data && ts-node --project tsconfig.json prepare/data-creation.ts && ts-node --project tsconfig.json prepare/db-seed.ts"
   },
   "keywords": [],

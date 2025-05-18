@@ -19,7 +19,7 @@ const options = {
   platform: 'neutral',
   format: 'esm',
   sourcemap: true,
-  target: 'es2015',
+  target: 'es2020',
   minify: false,
   external: [
     'k6',

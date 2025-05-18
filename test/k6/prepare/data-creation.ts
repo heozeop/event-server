@@ -1,8 +1,11 @@
 import { faker } from '@faker-js/faker';
 import { EventStatus, RewardType, Role } from '@libs/enums';
-import { BadgeRewardEntity, CouponRewardEntity, EventEntity, ItemRewardEntity, PointRewardEntity, RewardBaseEntity, UserEntity } from '@libs/types';
+import { BadgeRewardEntity, CouponRewardEntity, EventEntity, EventRewardEntity, ItemRewardEntity, PointRewardEntity, RewardBaseEntity, UserEntity } from '@libs/types';
+import * as bcrypt from 'bcryptjs';
 import * as fs from 'fs';
 import { ObjectId } from 'mongodb';
+import { TEST_PASSWORD } from './constants';
+
 
 // Number of test entities to generate
 const NUM_USERS = 100;
@@ -11,12 +14,13 @@ const NUM_EVENTS = 50;
 // Function to generate random users
 function generateUsers(count: number): UserEntity[] {
   const users: UserEntity[] = [];
+  const testPasswordHash = bcrypt.hashSync(TEST_PASSWORD, 10);
   
   for (let i = 0; i < count; i++) {
     const user: UserEntity = {
       _id: new ObjectId(),
       email: faker.internet.email(),
-      passwordHash: '$2a$10$aUQWDfWYBq5TF8QwLkq1YO', // For testing purposes, don't need real hash
+      passwordHash: testPasswordHash, // For testing purposes, don't need real hash
       roles: [Role.USER],
       createdAt: faker.date.past(),
       updatedAt: new Date(),
@@ -29,7 +33,7 @@ function generateUsers(count: number): UserEntity[] {
   const adminUser: UserEntity = {
     _id: new ObjectId(),
     email: 'admin@example.com',
-    passwordHash: '$2a$10$aUQWDfWYBq5TF8QwLkq1YO',
+    passwordHash: testPasswordHash,
     roles: [Role.ADMIN],
     createdAt: faker.date.past(),
     updatedAt: new Date(),
@@ -135,6 +139,23 @@ function generateEvents(count: number, users: UserEntity[]): EventEntity[] {
   return events;
 }
 
+function generateEventRewards(count: number, events: EventEntity[], rewards: RewardBaseEntity[]): EventRewardEntity[] {
+  const rewardEvents: EventRewardEntity[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const rewardEvent: EventRewardEntity = {
+      _id: new ObjectId(),
+      event: faker.helpers.arrayElement(events),
+      reward: faker.helpers.arrayElement(rewards),
+      createdAt: faker.date.past(),
+      updatedAt: new Date(),
+    };
+    
+    rewardEvents.push(rewardEvent);
+  }
+  return rewardEvents;
+}
+
 // Function to export data for k6 tests
 function exportDataForK6Tests(users: UserEntity[], events: EventEntity[], rewards: RewardBaseEntity[]): void {
   const dataDir = `${__dirname}/data`;
@@ -165,15 +186,26 @@ function exportDataForK6Tests(users: UserEntity[], events: EventEntity[], reward
     status: event.status,
     createdAt: event.createdAt,
   }));
+
+  const eventRewards = generateEventRewards(NUM_EVENTS, events, rewards);
   
   // Create export files that include helper functions
   const usersExport = JSON.stringify(userData)
   const eventsExport = JSON.stringify(eventData)
   const rewardsExport = JSON.stringify(rewards)
+  // Convert to a format with IDs for export
+  const eventRewardsExport = JSON.stringify(eventRewards.map(er => ({
+    _id: er._id.toString(),
+    event: er.event._id.toString(),
+    reward: er.reward._id.toString(),
+    createdAt: er.createdAt,
+    updatedAt: er.updatedAt
+  })))
   
   fs.writeFileSync(`${dataDir}/users.json`, usersExport);
   fs.writeFileSync(`${dataDir}/events.json`, eventsExport);
   fs.writeFileSync(`${dataDir}/rewards.json`, rewardsExport);
+  fs.writeFileSync(`${dataDir}/event-rewards.json`, eventRewardsExport);
 
   console.log('✅ Test data exported for k6 tests');
 }

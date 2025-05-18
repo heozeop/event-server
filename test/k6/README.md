@@ -55,6 +55,36 @@ You can run all tests or specific tests using the provided script:
 ./scripts/run-load-test.sh login create-event
 ```
 
+#### Using the k6 Test Runner Script
+
+Alternatively, you can use the k6 test runner script in the test/k6 directory:
+
+```bash
+# Show help
+./run-k6-tests.sh --help
+
+# Run all tests in quick mode (short duration)
+./run-k6-tests.sh --all
+
+# Run all tests with their full duration
+./run-k6-tests.sh --all --full
+
+# Run specific test(s)
+./run-k6-tests.sh auth/login-performance-test.js event/event-creation-test.js
+
+# Run with custom duration and virtual users
+./run-k6-tests.sh --duration 30s --vus 10 auth/login-performance-test.js
+
+# Run tests with a custom base URL
+./run-k6-tests.sh --url http://localhost:3000/api --all
+
+# Run tests with native k6 instead of Docker
+./run-k6-tests.sh --native --all
+
+# Run tests with a custom Docker Compose file
+./run-k6-tests.sh --compose-file custom-compose.yml --all
+```
+
 ### Environment Variables
 
 The tests use the following environment variables:
@@ -70,6 +100,61 @@ export BASE_URL=http://staging-api.example.com/api
 ./scripts/run-load-test.sh
 ```
 
+## Running with Docker Compose (Default Mode)
+
+The test suite runs using Docker Compose by default, which includes Prometheus for metrics collection and monitoring.
+
+### Prerequisites for Docker Mode
+
+- Docker and Docker Compose installed
+- `docker-compose.k6.yml` file in your project root (or specify a custom file with `--compose-file`)
+
+### Running Tests with Docker
+
+To run tests with Docker Compose (default mode):
+
+```bash
+# Start the Docker Compose environment first (optional)
+docker compose -f docker-compose.k6.yml up -d prometheus
+
+# Run all tests (Docker is the default)
+./run-k6-tests.sh --all
+
+# Run a specific test with Docker
+./run-k6-tests.sh auth/login-performance-test.js
+```
+
+### Running Tests with Native k6
+
+If you prefer to use a locally installed k6 binary instead of Docker:
+
+```bash
+# Run all tests with native k6
+./run-k6-tests.sh --native --all
+
+# Run a specific test with native k6
+./run-k6-tests.sh --native auth/login-performance-test.js
+```
+
+### Viewing Metrics
+
+When running with Docker Compose, performance metrics will be sent to Prometheus. You can access the Prometheus dashboard at:
+
+```
+http://localhost:9090
+```
+
+### Environment Variables for Docker
+
+Additional environment variables can be set in the `docker-compose.k6.yml` file:
+
+```yaml
+environment:
+  - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
+  - K6_OUT=output-prometheus-remote
+  - BASE_URL=http://your-api-server:3000/api
+```
+
 ## Available Tests
 
 ### Authentication Tests
@@ -81,6 +166,7 @@ export BASE_URL=http://staging-api.example.com/api
 
 - **create-event.ts** - Tests creating new events with random data
 - **request-reward.ts** - Tests requesting rewards for random events
+- **event-rewards-list-performance-test.ts** - Tests the performance of listing event rewards (20 req/s, 120ms response time)
 
 ## Monitoring Results
 
