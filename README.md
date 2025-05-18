@@ -1,26 +1,69 @@
-# Event Rewards Platform
+# 이벤트 리워드 플랫폼
 
-A microservices-based application for managing events and rewards using NestJS.
+NestJS를 사용한 이벤트 및 리워드 관리를 위한 마이크로서비스 기반 애플리케이션입니다.
 
-## Architecture
+## 아키텍처
 
-This platform consists of three main services:
+이 플랫폼은 세 가지 주요 서비스로 구성됩니다:
 
-1. **Gateway Service**: Acts as the API Gateway and handles HTTP requests from clients
-2. **Auth Service**: Handles authentication and user management
-3. **Event Service**: Manages events and rewards
+1. **게이트웨이 서비스**: API 게이트웨이 역할을 하며 클라이언트의 HTTP 요청을 처리합니다.
+2. **인증 서비스**: 인증 및 사용자 관리를 담당합니다.
+3. **이벤트 서비스**: 이벤트 및 리워드를 관리합니다.
 
-## Development Setup
+### 상세 아키텍처
 
-### Prerequisites
+- **마이크로서비스 통신**: 서비스 간 통신은 TCP/IP 프로토콜을 통해 이루어집니다.
+- **데이터베이스**: 각 서비스는 자체 MongoDB 인스턴스를 사용합니다.
+- **로깅**: 중앙 집중식 로깅 시스템은 Grafana Loki와 Alloy를 사용합니다.
+- **API 게이트웨이**: REST API와 Swagger 문서를 제공합니다.
+
+## 개발 환경 설정
+
+### 필수 조건
 
 - Node.js (v18+)
 - pnpm
-- Docker and Docker Compose
+- Docker 및 Docker Compose
 
-### Installation
+### Makefile을 사용한 초기화 및 관리
 
-Clone the repository and install dependencies:
+프로젝트를 쉽게 초기화하고 관리하기 위해 Makefile을 제공합니다:
+
+```bash
+# 키 생성 및 서비스 시작 (초기 설정)
+make init
+
+# 모든 서비스 시작
+make up
+
+# 로깅 서비스와 함께 시작
+make up-with-logs
+
+# 모든 서비스 중지
+make down
+
+# 모든 서비스 재시작
+make restart
+
+# 로그 확인
+make logs
+
+# 로그 실시간 확인
+make logs-follow
+
+# 실행 중인 서비스 목록 확인
+make ps
+
+# k6 테스트 실행 (테스트 데이터 시드 포함)
+make k6
+
+# 모든 테스트 실행 (단위 테스트 및 유스케이스 테스트)
+make test
+```
+
+### 수동 설치
+
+저장소를 복제하고 종속성을 설치합니다:
 
 ```bash
 git clone <repository-url>
@@ -28,64 +71,96 @@ cd event-server
 pnpm install
 ```
 
-### Running the Application
+## 테스트 실행
 
-Use the provided script to start all services in Docker:
+### 단위 테스트 및 통합 테스트
 
 ```bash
-./rebuild-and-start.sh
+# 모든 테스트 실행 (테스트 유저 시드 및 유스케이스 테스트 포함)
+make test
+
+# 또는 pnpm으로 직접 실행
+pnpm test
+
+# 특정 서비스의 테스트 실행
+pnpm test:auth
+pnpm test:event
+pnpm test:gateway
+
+# 테스트 커버리지 확인
+pnpm test:cov
 ```
 
-This will:
+### 유스케이스 테스트
 
-- Build and start all services
-- Start MongoDB instances for each service
-- Configure the network
+유스케이스 테스트는 특정 비즈니스 시나리오를 검증합니다:
 
-## API Documentation
+```bash
+# 모든 유스케이스 테스트 실행
+pnpm test:usecase
 
-Swagger documentation is available at:
+# 또는 스크립트 직접 실행
+bash scripts/run-usecase-tests.sh
+
+# 특정 유스케이스 테스트 실행
+pnpm test:usecase:event-creation
+pnpm test:usecase:reward-distribution
+```
+
+### 성능 테스트 (k6)
+
+k6를 사용하여 성능 테스트를 실행합니다:
+
+```bash
+# k6 성능 테스트 실행 (테스트 데이터 자동 시드)
+make k6
+
+# 또는 스크립트 직접 실행
+bash scripts/run-k6-tests.sh
+```
+
+## API 문서
+
+Swagger 문서는 다음에서 확인할 수 있습니다:
 
 ```
 http://localhost:3333/docs
 ```
 
-The Swagger UI provides:
+Swagger UI는 다음을 제공합니다:
+- 대화형 API 문서
+- 모든 엔드포인트 테스트 기능
+- JWT 토큰을 사용한 인증
 
-- Interactive API documentation
-- Ability to test all endpoints
-- Authentication using JWT tokens
+## 로깅 시스템
 
-## Logging System
+애플리케이션은 중앙 집중식 로그 관리를 위해 Grafana Loki 및 Grafana Alloy와 함께 구조화된 JSON 로깅을 사용합니다. 기능은 다음과 같습니다:
 
-The application uses structured JSON logging with Grafana Loki and Grafana Alloy for centralized log management. Features include:
+- **JSON 형식**: 모든 로그는 쉬운 구문 분석 및 분석을 위해 JSON 형식입니다.
+- **요청 추적**: 각 로그에는 서비스 간 요청을 추적하기 위한 requestId가 포함됩니다.
+- **중앙 집중식 로깅**: 모든 로그는 Grafana Alloy에 의해 수집되어 Loki에 저장됩니다.
+- **대시보드**: 로그 분석을 위한 사전 구성된 Grafana 대시보드
+- **성능 추적**: `@LogPerformance()` 데코레이터를 사용하여 메서드 실행 시간을 추적할 수 있습니다.
+- **민감한 데이터 수정**: 비밀번호 및 토큰과 같은 민감한 정보는 자동으로 수정됩니다.
+- **로그 레벨**: 환경에 따른 다른 로그 레벨(개발 환경에서는 debug, 프로덕션 환경에서는 info)
+- **보기 좋은 형식**: 개발 로그는 가독성을 위해 형식을 지정할 수 있습니다.
 
-- **JSON Format**: All logs are in JSON format for easy parsing and analysis
-- **Request Tracing**: Each log includes a requestId to trace requests across services
-- **Centralized Logging**: All logs are collected by Grafana Alloy and stored in Loki
-- **Dashboards**: Pre-configured Grafana dashboards for log analysis
-- **Performance Tracking**: The `@LogPerformance()` decorator can be used to track method execution time
-- **Sensitive Data Redaction**: Sensitive information like passwords and tokens are automatically redacted
-- **Log Levels**: Different log levels based on environment (debug in development, info in production)
-- **Pretty Printing**: Development logs can be formatted for readability
+### 로그 보기
 
-### Viewing Logs
+Grafana는 `http://localhost:3000`에서 기본 자격 증명 `admin/admin`으로 사용할 수 있습니다.
 
-Grafana is available at `http://localhost:3000` with default credentials `admin/admin`.
+사전 구성된 대시보드에는 다음이 포함됩니다:
+- 요청 추적 대시보드: 서비스 간 요청을 추적하기 위해 requestId별로 그룹화된 로그 표시
+- 로그 뷰어: 필터링 기능이 있는 일반 로그 뷰어
 
-Pre-configured dashboards include:
+### Loki 쿼리 예
 
-- Request Tracing Dashboard: Shows logs grouped by requestId for tracing requests across services
-- Log Viewer: General log viewer with filtering capabilities
+- 모든 로그: `{container=~".+"}`
+- 특정 서비스의 로그: `{container="gateway"}`
+- 특정 요청 추적: `{requestId="specific-request-id"}`
+- 오류 로그: `{container=~".+"} |= "error"`
 
-### Example Loki Queries
-
-- All logs: `{container=~".+"}`
-- Logs from a specific service: `{container="gateway"}`
-- Tracing a specific request: `{requestId="specific-request-id"}`
-- Error logs: `{container=~".+"} |= "error"`
-
-### Logging API Usage
+### 로깅 API 사용법
 
 ```typescript
 import { LogPerformance } from "./common/logging";
@@ -97,37 +172,38 @@ export class MyController {
   @Get("resource")
   @LogPerformance("category")
   async getResource() {
-    // Method execution time will be logged
-    this.logger.log("Getting resource", { resourceId: "123" });
+    // 메서드 실행 시간이 로깅됩니다
+    this.logger.log("리소스를 가져오는 중", { resourceId: "123" });
     return this.service.fetchResource();
   }
 }
 ```
 
-## Services
+## 서비스
 
-### Gateway Service
+### 게이트웨이 서비스
 
-- Microservice Port: 3010 (mapped to internal port 3000)
-- HTTP Port: 3333 (for REST API and Swagger)
+- 마이크로서비스 포트: 3010 (내부 포트 3000에 매핑됨)
+- HTTP 포트: 3333 (REST API 및 Swagger용)
 
-### Auth Service
+### 인증 서비스
 
-- Microservice Port: 3001
+- 마이크로서비스 포트: 3001
 
-### Event Service
+### 이벤트 서비스
 
-- Microservice Port: 3002
+- 마이크로서비스 포트: 3002
 
-## Database
+## 데이터베이스
 
-Each service has its own MongoDB instance:
+각 서비스에는 자체 MongoDB 인스턴스가 있습니다:
 
-- Auth Service: mongodb://mongo-user:27017/user-db
-- Event Service: mongodb://mongo-event:27017/event-db
+- 인증 서비스: mongodb://mongo-user:27017/user-db
+- 이벤트 서비스: mongodb://mongo-event:27017/event-db
 
-## Useful Commands
+## 유용한 명령어
 
-- Start all services: `./rebuild-and-start.sh`
-- View logs: `docker compose logs -f`
-- Stop all services: `docker compose down`
+- 모든 서비스 시작: `make up` 또는 `./rebuild-and-start.sh`
+- 로그 보기: `make logs` 또는 `make logs-follow`
+- 모든 서비스 중지: `make down`
+- 모든 테스트 실행: `make test`
