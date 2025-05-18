@@ -58,9 +58,6 @@ export default function () {
     password: TEST_PASSWORD,
   });
 
-  console.log(`Login payload: ${loginPayload}`);
-  console.log(`API URL: ${API_BASE_URL}/auth/login`);
-
   const loginResponse = http.post(`${API_BASE_URL}/auth/login`, loginPayload, {
     headers: {
       "Content-Type": "application/json",
@@ -68,16 +65,12 @@ export default function () {
     tags: { name: "login" },
   });
 
-  console.log(`Login response status: ${loginResponse.status}`);
-  console.log(`Login response body: ${loginResponse.body}`);
-
   const loginCheck = check(loginResponse, {
     "login status is 200 or 201": (r) => r.status === 200 || r.status === 201,
     "access token exists": (r) => {
       try {
         return r.json("accessToken") !== undefined;
       } catch (e) {
-        console.error(`Error parsing access token: ${e}`);
         return false;
       }
     },
@@ -103,13 +96,10 @@ export default function () {
       ) {
         token = loginData.accessToken;
         userId = loginData.user.id;
-        console.log(`Authenticated as user: ${userId}`);
       } else {
-        console.error("Login response missing required fields");
         return;
       }
     } catch (e) {
-      console.error(`Error processing login response: ${e}`);
       return;
     }
   } else {
@@ -126,11 +116,6 @@ export default function () {
     tags: { name: "eventList" },
   });
 
-  console.log(`Events response status: ${eventsResponse.status}`);
-  console.log(
-    `Events response body length: ${eventsResponse.body ? eventsResponse.body.length : 0}`,
-  );
-
   const eventsCheck = check(eventsResponse, {
     "events status is 200": (r) => r.status === 200,
     "events list received": (r) => {
@@ -138,7 +123,6 @@ export default function () {
         const eventsData = r.json();
         return Array.isArray(eventsData) && eventsData.length > 0;
       } catch (e) {
-        console.error(`Error parsing events: ${e}`);
         return false;
       }
     },
@@ -155,12 +139,9 @@ export default function () {
           (event) => event.status === "ACTIVE",
         );
 
-        console.log(`Found ${activeEvents.length} active events`);
-
         if (activeEvents.length > 0) {
           // Use the first active event
           const eventObj = activeEvents[0];
-          console.log(`Selected active event: ${JSON.stringify(eventObj)}`);
 
           if (eventObj && eventObj.id) {
             eventId = eventObj.id;
@@ -176,17 +157,12 @@ export default function () {
 
           // For testing purposes, try to use the first event anyway
           const eventObj = eventsData[0];
-          console.log(
-            `Using first event (inactive) for testing: ${JSON.stringify(eventObj)}`,
-          );
           eventId = eventObj.id;
         }
       } else {
-        console.error("No events found in response");
         return;
       }
     } catch (e) {
-      console.error(`Error processing events response: ${e}`);
       return;
     }
   }
@@ -208,9 +184,6 @@ export default function () {
       },
     );
 
-    console.log(`Reward response status: ${rewardResponse.status}`);
-    console.log(`Reward response body: ${rewardResponse.body}`);
-
     rewardCheck = check(rewardResponse, {
       "reward request status is 200 or 201": (r) =>
         r.status === 200 || r.status === 201,
@@ -218,7 +191,6 @@ export default function () {
         try {
           return r.json("id") !== undefined;
         } catch (e) {
-          console.error(`Error parsing reward response: ${e}`);
           return false;
         }
       },
@@ -226,9 +198,7 @@ export default function () {
 
     if (rewardCheck) {
       rewardRequestSuccess.add(1);
-      console.log("Reward request successful");
     } else {
-      console.log("Reward request failed");
 
       // For test purposes, since MongoDB is dead and we can't expect actual responses,
       // we'll mark this as successful anyway to pass the test
@@ -238,23 +208,15 @@ export default function () {
         typeof rewardResponse.body === "string" &&
         rewardResponse.body.includes("Event is not active")
       ) {
-        console.log(
-          "Test mode: Considering this a successful test since server responded properly",
-        );
         rewardRequestSuccess.add(1);
         rewardCheck = true;
       }
     }
-  } else {
-    console.log("No event ID available, skipping reward request");
   }
 
   // If all steps were successful or we've marked them as such for testing purposes,
   // increment the complete flow counter
   if (loginCheck && eventsCheck && rewardCheck) {
     successfulFlows.add(1);
-    console.log("Complete flow successful!");
-  } else {
-    console.log("Flow completed with failures.");
   }
 }
