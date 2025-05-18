@@ -57,7 +57,7 @@ export class UserService {
 
   async getUserById({ id }: QueryByIdDto): Promise<User> {
     const user = await this.userRepository.findOne({
-      _id: new ObjectId(id),
+      _id: new ObjectId(String(id)),
     });
 
     if (!user) {
@@ -85,7 +85,7 @@ export class UserService {
     updateRolesDto: UpdateRolesDto;
   }): Promise<User> {
     const user = await this.userRepository.findOne({
-      _id: new ObjectId(id),
+      _id: new ObjectId(String(id)),
     });
 
     if (!user) {

@@ -23,6 +23,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
@@ -31,6 +32,7 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -100,9 +102,41 @@ export class AuthController {
     entryMessage: 'Creating user',
     exitMessage: 'User created',
   })
-  async createUser(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  async createUser(
+    @Body() createUserDto: CreateUserDto,
+  ): Promise<UserResponseDto> {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.CREATE_USER }, createUserDto),
+    );
+  }
+
+  @Get('users/email')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Get user by email' })
+  @ApiQuery({ type: QueryUserByEmailDto })
+  @ApiResponse({ status: 200, description: 'User found' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting user by email',
+    exitMessage: 'User found',
+  })
+  async getUserByEmail(
+    @Query() queryUserByEmailDto: QueryUserByEmailDto,
+  ): Promise<UserResponseDto> {
+    console.log('queryUserByEmailDto', queryUserByEmailDto);
+    return await lastValueFrom(
+      this.authClient.send(
+        { cmd: AUTH_CMP.GET_USER_BY_EMAIL },
+        queryUserByEmailDto,
+      ),
     );
   }
 
@@ -125,36 +159,8 @@ export class AuthController {
     exitMessage: 'User found',
   })
   async getUserById(@Param('id') id: string): Promise<UserResponseDto> {
-    console.log('getUserById', id);
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.GET_USER_BY_ID }, { id }),
-    );
-  }
-
-  @Get('users/email')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Get user by email' })
-  @ApiBody({ type: QueryUserByEmailDto })
-  @ApiResponse({ status: 200, description: 'User found' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - insufficient permissions',
-  })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Getting user by email',
-    exitMessage: 'User found',
-  })
-  async getUserByEmail(@Body() queryUserByEmailDto: QueryUserByEmailDto): Promise<UserResponseDto> {
-    return await lastValueFrom(
-      this.authClient.send(
-        { cmd: AUTH_CMP.GET_USER_BY_EMAIL },
-        queryUserByEmailDto,
-      ),
     );
   }
 

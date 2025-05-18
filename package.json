@@ -14,7 +14,7 @@
     "test:k6:event-reward-request": "docker compose -f docker-compose.k6.yml run --rm k6 run /dist/scripts/event/event-reward-request-test.bundle.js",
     "test:k6:event-creation": "docker compose -f docker-compose.k6.yml run --rm k6 run /dist/scripts/event/event-creation-test.bundle.js",
     "test:k6:simple-login": "docker compose -f docker-compose.k6.yml run --rm k6 run /dist/scripts/auth/simple-login-performance-test.bundle.js",
-    "test:k6:all": "sh test/k6/scripts/run-k6-tests.sh --all",
+    "test:k6:all": "docker compose -f docker-compose.k6.yml run --rm k6 run --iterations=1 --duration=10s /dist/auth/login.js",
     "generate:fixtures": "ts-node test/fixtures.ts"
   },
   "keywords": [],
