@@ -27,6 +27,7 @@ graph LR
   subgraph "Databases"
     UDB[(MongoDB: user-db)]
     EDB[(MongoDB: event-db)]
+    RDB[(Redis: token-db)]
   end
 
   subgraph "Monitoring"
@@ -38,6 +39,7 @@ graph LR
   GW -->|HTTP/TCP| AU
   GW -->|HTTP/TCP| EV
   AU -->|reads/writes| UDB
+  AU -->|reads/writes| RDB
   EV -->|reads/writes| EDB
   
   PROM --> GW
@@ -57,8 +59,9 @@ graph LR
 | 아키텍처 패턴  | Microservices Architecture              |
 | ORM            | MikroORM 6                              |
 | 데이터베이스   | MongoDB 8.0.9 (2 인스턴스: user-db, event-db) |
+| 인메모리 DB    | Redis 7.2 (token-db)                    |
 | 컨테이너화     | Docker & Docker Compose                 |
-| 테스트         | Jest + SuperTest + k6                   |
+| 테스트         | Jest + SuperTest + k6 + redis-mock      |
 | 언어           | TypeScript                              |
 | 모니터링       | Prometheus + Grafana + cAdvisor         |
 | 패키지 관리자  | pnpm 8.15.9                            |
@@ -66,6 +69,7 @@ graph LR
 
 1. DB 구분 사유
    - user db의 경우, RDB를 사용하는 등의 변경이 발생할 수 있다는 점 고려
+   - token db는 Redis를 사용하여 빠른 액세스 토큰 검증 및 무효화 지원
 
 ---
 
@@ -134,8 +138,11 @@ services:
     environment:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://mongo-user:27017
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - mongo-user
+      - redis
 
   event:
     build:
@@ -160,6 +167,14 @@ services:
       - "27018:27017"
     volumes:
       - event-data:/data/db
+      
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
 
 networks:
   event-network:
@@ -169,6 +184,7 @@ volumes:
   event-data:
   grafana-data:
   prometheus-data:
+  redis-data:
 ```
 
 ---
@@ -412,17 +428,24 @@ export class RewardRequest {
 
 ### 7.1 토큰 관리
 
-- **Access Token**: 짧은 수명(15분)의 JWT 토큰, API 접근에 사용
-- **Refresh Token**: 긴 수명(7일)의 토큰, 새로운 Access Token 발급에 사용
-- **토큰 무효화**: 새 Access Token 발급 시 이전 토큰 무효화 (한 번에 하나의 유효한 세션만 허용)
-- **토큰 저장소**: Refresh Token은 MongoDB에 저장되며 사용자당 하나의 유효한 토큰만 유지
+- **Access Token**: 짧은 수명(15분)의 JWT 토큰, API 접근에 사용, Redis에 저장 및 관리
+- **Refresh Token**: 긴 수명(7일)의 토큰, 새로운 Access Token 발급에 사용, MongoDB에 저장
+- **토큰 무효화**: 
+  - 새 Access Token 발급 시 이전 토큰 무효화 (한 번에 하나의 유효한 세션만 허용)
+  - 로그아웃 시 Redis에서 액세스 토큰 즉시 무효화
+  - Redis에서 JWT 데이터 관리로 블랙리스트 및 유효성 검증 최적화
+- **토큰 저장소**: 
+  - Refresh Token은 MongoDB에 저장되며 사용자당 하나의 유효한 토큰만 유지
+  - Access Token은 Redis에 저장되어 빠른 검증 및 무효화 지원
 
 ### 7.2 Auth Service API 확장
 
 - `POST /auth/refresh`: Refresh Token으로 새 Access Token 발급
-- `POST /auth/logout`: 현재 사용자의 모든 토큰 무효화
+- `POST /auth/logout`: 현재 사용자의 모든 토큰 무효화 (Redis에서 즉시 무효화)
 
 ### 7.3 사용자 토큰 데이터 모델
+
+#### MongoDB (UserToken)
 
 ```ts
 @Entity()
@@ -447,12 +470,102 @@ export class UserToken {
 }
 ```
 
+#### Redis (AccessToken)
+
+Redis 키-값 구조:
+- 키: `access_token:{userId}`
+- 값: JSON 구조
+  ```json
+  {
+    "token": "jwt_token_string",
+    "issuedAt": "timestamp",
+    "expiresAt": "timestamp"
+  }
+  ```
+
+### 7.4 Redis 구현 및 테스트
+
+Redis 클라이언트는 `ioredis` 라이브러리를 사용하여 구현합니다:
+
+```ts
+import { Redis } from 'ioredis';
+
+@Injectable()
+export class TokenService {
+  private readonly redis: Redis;
+  
+  constructor(
+    @Inject('REDIS_CLIENT') redisClient: Redis,
+    private configService: ConfigService,
+  ) {
+    this.redis = redisClient;
+  }
+  
+  async saveAccessToken(userId: string, token: string): Promise<void> {
+    const key = `access_token:${userId}`;
+    const tokenData = {
+      token,
+      issuedAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15분
+    };
+    
+    await this.redis.set(key, JSON.stringify(tokenData), 'EX', 15 * 60); // 15분 후 자동 만료
+  }
+  
+  async invalidateAccessToken(userId: string): Promise<void> {
+    const key = `access_token:${userId}`;
+    await this.redis.del(key);
+  }
+  
+  async validateAccessToken(userId: string, token: string): Promise<boolean> {
+    const key = `access_token:${userId}`;
+    const tokenDataStr = await this.redis.get(key);
+    
+    if (!tokenDataStr) {
+      return false;
+    }
+    
+    const tokenData = JSON.parse(tokenDataStr);
+    return tokenData.token === token;
+  }
+}
+```
+
+테스트 환경에서는 `redis-mock` 패키지를 사용하여 인메모리 Redis 서버를 실행:
+
+```ts
+import * as RedisMock from 'redis-mock';
+import { Redis } from 'ioredis';
+import IoRedis from 'ioredis-mock';
+
+// 테스트 모듈 설정
+@Module({
+  providers: [
+    {
+      provide: 'REDIS_CLIENT',
+      useFactory: () => {
+        if (process.env.NODE_ENV === 'test') {
+          return new IoRedis(); // ioredis-mock 사용
+        }
+        return new Redis({
+          host: process.env.REDIS_HOST || 'localhost',
+          port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        });
+      },
+    },
+    TokenService,
+  ],
+  exports: [TokenService],
+})
+export class TokenModule {}
+```
+
 ---
 
 ## 8. 테스트 전략
 
-- 단위 테스트: Jest로 서비스, 컨트롤러, mongodb-memory-server로 동작 검증
-- 통합 테스트: mongodb-memory-server + SuperTest
+- 단위 테스트: Jest로 서비스, 컨트롤러, mongodb-memory-server & ioredis-mock으로 동작 검증
+- 통합 테스트: mongodb-memory-server + ioredis-mock + SuperTest
 - 성능 테스트: k6를 사용한 부하 테스트
 - E2E 테스트: Docker Compose로 전체 스택 기동 후 SuperTest로 시나리오 실행
 
