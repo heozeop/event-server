@@ -88,6 +88,10 @@ export class UserService {
     id: string;
     updateRolesDto: UpdateRolesDto;
   }): Promise<User> {
+    if (updateRolesDto.roles.length < 1) {
+      throw new BadRequestException('roles should be more than 1');
+    }
+
     const user = await this.userRepository.findOne({
       _id: this.transformIdToObjectId(id),
     });
