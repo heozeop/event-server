@@ -8,7 +8,7 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - ./config/loki/local-config.yaml:/etc/loki/local-config.yaml
+      - ./infrastructure/loki/local-config.yaml:/etc/loki/local-config.yaml
       - loki-data:/loki
     command: -config.file=/etc/loki/local-config.yaml
     user: "root"
@@ -22,9 +22,9 @@ services:
       - "3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./config/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
-      - ./config/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
-      - ./config/grafana/dashboards:/etc/grafana/dashboards
+      - ./infrastructure/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ./infrastructure/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./infrastructure/grafana/dashboards:/etc/grafana/dashboards
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_SECURITY_ADMIN_USER=admin
@@ -39,7 +39,7 @@ services:
     image: grafana/alloy:latest
     container_name: alloy
     volumes:
-      - ./config/alloy/config.river:/etc/alloy/config.river
+      - ./infrastructure/alloy/config.river:/etc/alloy/config.river
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./data/alloy:/tmp/alloy
