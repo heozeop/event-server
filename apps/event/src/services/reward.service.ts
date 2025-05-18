@@ -125,7 +125,7 @@ export class RewardService {
     }
 
     if (name) {
-      query.name = { $ilike: name };
+      query.name = new RegExp(name, 'i');
     }
 
     const rewards = await this.em.find(RewardBase, query, {
@@ -187,6 +187,11 @@ export class RewardService {
    * Get rewards for an event
    */
   async getRewardsByEventId({ id }: QueryByIdDto): Promise<RewardBase[]> {
+    const isEventExist = await this.eventService.isEventExist({ id });
+    if (!isEventExist) {
+      throw new NotFoundException(`Event with ID ${id} not found`);
+    }
+
     const eventRewards = await this.eventRewardRepository.find(
       { event: id },
       { populate: ['reward'], fields: ['reward'] },

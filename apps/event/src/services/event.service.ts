@@ -20,7 +20,13 @@ export class EventService {
   /**
    * Create a new event
    */
-  async createEvent({name, condition, periodStart, periodEnd, status}: CreateEventDto): Promise<Event> {
+  async createEvent({
+    name,
+    condition,
+    periodStart,
+    periodEnd,
+    status,
+  }: CreateEventDto): Promise<Event> {
     const event = this.eventRepository.create({
       name,
       condition,
@@ -49,6 +55,19 @@ export class EventService {
     }
 
     return event;
+  }
+
+  async isEventExist({ id }: QueryByIdDto): Promise<boolean> {
+    const event = await this.eventRepository.findOne(
+      {
+        _id: new ObjectId(id),
+      },
+      {
+        fields: ['_id'],
+      },
+    );
+
+    return event !== null;
   }
 
   /**

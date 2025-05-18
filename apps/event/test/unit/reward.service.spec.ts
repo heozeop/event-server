@@ -65,7 +65,7 @@ describe('RewardService', () => {
   });
 
   describe('createPointReward', () => {
-    it('should create a point reward', async () => {
+    it('포인트 리워드를 생성해야 함', async () => {
       // Arrange
       const dto: CreatePointRewardDto = {
         name: 'Test Point Reward',
@@ -90,7 +90,7 @@ describe('RewardService', () => {
   });
 
   describe('createItemReward', () => {
-    it('should create an item reward', async () => {
+    it('아이템 리워드를 생성해야 함', async () => {
       // Arrange
       const dto: CreateItemRewardDto = {
         name: 'Test Item Reward',
@@ -110,7 +110,7 @@ describe('RewardService', () => {
   });
 
   describe('createCouponReward', () => {
-    it('should create a coupon reward', async () => {
+    it('쿠폰 리워드를 생성해야 함', async () => {
       // Arrange
       const expiry = new Date(Date.now() + 86400000); // tomorrow
       const dto: CreateCouponRewardDto = {
@@ -131,7 +131,7 @@ describe('RewardService', () => {
   });
 
   describe('createBadgeReward', () => {
-    it('should create a badge reward', async () => {
+    it('배지 리워드를 생성해야 함', async () => {
       // Arrange
       const dto: CreateBadgeRewardDto = {
         name: 'Test Badge Reward',
@@ -149,7 +149,7 @@ describe('RewardService', () => {
   });
 
   describe('createReward', () => {
-    it('should create a reward of the specified type', async () => {
+    it('지정된 유형의 리워드를 생성해야 함', async () => {
       // Arrange
       const pointsDto: CreatePointRewardDto = {
         name: 'Test Point Reward',
@@ -209,7 +209,7 @@ describe('RewardService', () => {
       expect((badgeReward as BadgeReward).badgeId).toBe(badgeDto.badgeId);
     });
 
-    it('should throw BadRequestException for invalid reward type', async () => {
+    it('유효하지 않은 리워드 타입에 대해 BadRequestException을 발생시켜야 함', async () => {
       // Arrange
       const invalidType = 'INVALID' as RewardType;
       const dto: CreatePointRewardDto = {
@@ -228,7 +228,7 @@ describe('RewardService', () => {
   });
 
   describe('getRewardById', () => {
-    it('should return a reward by id', async () => {
+    it('ID로 리워드를 반환해야 함', async () => {
       // Arrange
       const pointReward = new PointReward('Test Point Reward', 150);
       const rewardRepository = orm.em.getRepository(RewardBase);
@@ -247,7 +247,7 @@ describe('RewardService', () => {
       expect((result as PointReward).points).toBe(150);
     });
 
-    it('should throw NotFoundException if reward not found', async () => {
+    it('리워드를 찾을 수 없는 경우 NotFoundException을 발생시켜야 함', async () => {
       // Arrange
       const id = new ObjectId().toString();
 
@@ -259,7 +259,7 @@ describe('RewardService', () => {
   });
 
   describe('addRewardToEvent', () => {
-    it('should add a reward to an event', async () => {
+    it('이벤트에 리워드를 추가해야 함', async () => {
       // Arrange
       // 1. Create an event
       const event = await eventService.createEvent({
@@ -303,7 +303,7 @@ describe('RewardService', () => {
       );
     });
 
-    it('should return existing EventReward if it already exists', async () => {
+    it('이미 존재하는 경우 기존 EventReward를 반환해야 함', async () => {
       // Arrange
       // 1. Create an event
       const event = await eventService.createEvent({
@@ -335,7 +335,7 @@ describe('RewardService', () => {
       expect(result._id.toString()).toBe(initialEventReward._id.toString());
     });
 
-    it('should throw NotFoundException if event not found', async () => {
+    it('이벤트를 찾을 수 없는 경우 NotFoundException을 발생시켜야 함', async () => {
       // Arrange
       const reward = await service.createPointReward({
         name: 'Test Point Reward',
@@ -352,7 +352,7 @@ describe('RewardService', () => {
       );
     });
 
-    it('should throw NotFoundException if reward not found', async () => {
+    it('리워드를 찾을 수 없는 경우 NotFoundException을 발생시켜야 함', async () => {
       // Arrange
       const event = await eventService.createEvent({
         name: 'Test Event',
@@ -374,7 +374,7 @@ describe('RewardService', () => {
   });
 
   describe('getRewardsByEventId', () => {
-    it('should return rewards for an event', async () => {
+    it('이벤트에 대한 리워드를 반환해야 함', async () => {
       // Arrange
       // 1. Create an event
       const event = await eventService.createEvent({
@@ -430,7 +430,7 @@ describe('RewardService', () => {
       expect(rewardIds).toContain(badgeReward._id.toString());
     });
 
-    it('should return empty array if no rewards for event', async () => {
+    it('이벤트에 리워드가 없는 경우 빈 배열을 반환해야 함', async () => {
       // Arrange
       const event = await eventService.createEvent({
         name: 'Test Event',
@@ -450,7 +450,7 @@ describe('RewardService', () => {
       expect(rewards.length).toBe(0);
     });
 
-    it('should throw NotFoundException if event not found', async () => {
+    it('이벤트를 찾을 수 없는 경우 NotFoundException을 발생시켜야 함', async () => {
       // Act & Assert
       await expect(
         service.getRewardsByEventId({ id: new ObjectId().toString() }),
@@ -459,7 +459,7 @@ describe('RewardService', () => {
   });
 
   describe('removeRewardFromEvent', () => {
-    it('should remove a reward from an event', async () => {
+    it('이벤트에서 리워드를 제거해야 함', async () => {
       // Arrange
       // 1. Create an event
       const event = await eventService.createEvent({
@@ -497,7 +497,7 @@ describe('RewardService', () => {
       expect(eventReward).toBeNull();
     });
 
-    it('should throw NotFoundException if event-reward relation not found', async () => {
+    it('이벤트-리워드 관계를 찾을 수 없는 경우 NotFoundException을 발생시켜야 함', async () => {
       // Arrange
       const event = await eventService.createEvent({
         name: 'Test Event',
@@ -921,7 +921,6 @@ describe('RewardService', () => {
         name: '테스트 이벤트',
         condition: { type: 'test' },
         periodStart: new Date(),
-        periodEnd: new Date(Date.now() + 30 * 86400000),
         status: EventStatus.ACTIVE,
       });
 

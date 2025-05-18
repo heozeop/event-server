@@ -18,7 +18,7 @@ export class Event implements EventEntity {
   periodStart!: Date;
 
   @Property()
-  periodEnd!: Date | null;
+  periodEnd: Date | null = null;
 
   @Property()
   status!: EventStatus;

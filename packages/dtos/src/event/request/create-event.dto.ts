@@ -14,7 +14,7 @@ import {
  * DTO for creating a new event
  */
 export class CreateEventDto
-  implements Omit<EventEntity, "_id" | "period" | "createdAt" | "updatedAt">
+  implements Omit<EventEntity, "_id" | "periodEnd" | "createdAt" | "updatedAt">
 {
   @ApiProperty({
     example: "Summer Promotion",
@@ -44,7 +44,7 @@ export class CreateEventDto
   })
   @IsDateString()
   @IsOptional()
-  periodEnd: Date | null = null;
+  periodEnd?: Date;
 
   @ApiProperty({
     enum: EventStatus,

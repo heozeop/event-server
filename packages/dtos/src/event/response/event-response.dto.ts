@@ -38,10 +38,14 @@ export class EventResponseDto {
     },
   })
   @Expose()
-  period!: {
-    start: Date;
-    end: Date;
-  };
+  periodStart!: Date;
+
+  @ApiProperty({
+    description: "The end date of the event period",
+    example: "2023-10-31T23:59:59Z",
+  })
+  @Expose()
+  periodEnd?: Date;
 
   @ApiProperty({
     description: "The status of the event",
@@ -61,7 +65,8 @@ export class EventResponseDto {
       id: event._id.toString(),
       name: event.name,
       condition: event.condition,
-      period: event.period,
+      periodStart: event.periodStart,
+      periodEnd: event.periodEnd ?? undefined,
       status: event.status,
     });
 
