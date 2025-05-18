@@ -1,5 +1,5 @@
 # Event Server Makefile
-.PHONY: init up down restart logs ps k6 seed-test-users seed-docker-test generate-keys help
+.PHONY: init up down restart logs ps k6 seed-test-users seed-docker-test generate-keys help test
 
 # Docker Compose Files
 COMPOSE_FILE=docker/docker-compose.yml
@@ -47,6 +47,7 @@ ps:
 
 # Testing and Seeding Operations
 k6: seed-k6-test
+	docker compose -f ${COMPOSE_K6_FILE} up -d
 	bash scripts/run-k6-tests.sh
 
 seed-test-users:
@@ -57,3 +58,8 @@ seed-k6-test:
 
 generate-keys:
 	bash scripts/generate-keys.sh 
+
+test: seed-test-users
+	pnpm run test
+	bash scripts/run-usecase-tests.sh
+
