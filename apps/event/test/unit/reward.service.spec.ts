@@ -534,4 +534,435 @@ describe('RewardService', () => {
       ).rejects.toThrow(NotFoundException);
     });
   });
+
+  // 추가 테스트 케이스 - 운영자 시나리오 기반
+  describe('운영자 리워드 관리 테스트', () => {
+    // 포인트 리워드 생성 테스트
+    it('포인트 리워드를 생성하고 값이 정확히 저장되어야 함', async () => {
+      // Arrange
+      const pointsDto: CreatePointRewardDto = {
+        name: '회원가입 축하 포인트',
+        points: 1000,
+      };
+
+      // Act
+      const result = await service.createPointReward(pointsDto);
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.name).toBe(pointsDto.name);
+      expect(result.points).toBe(pointsDto.points);
+      expect(result.type).toBe(RewardType.POINT);
+    });
+
+    // 쿠폰 리워드 생성 테스트 (한국어 이름과 유효 기간)
+    it('유효 기간이 있는 쿠폰 리워드를 생성할 수 있어야 함', async () => {
+      // Arrange
+      const expiry = new Date(Date.now() + 30 * 86400000); // 30일 후
+      const couponDto: CreateCouponRewardDto = {
+        name: '여름 방학 특별 할인 쿠폰',
+        couponCode: 'SUMMER2023',
+        expiry,
+      };
+
+      // Act
+      const result = await service.createCouponReward(couponDto);
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.name).toBe(couponDto.name);
+      expect(result.couponCode).toBe(couponDto.couponCode);
+      expect(result.expiry.getTime()).toBe(expiry.getTime());
+      expect(result.type).toBe(RewardType.COUPON);
+    });
+
+    // 배지 리워드 생성 테스트 (한국어 이름)
+    it('배지 리워드를 생성하고 정확히 저장되어야 함', async () => {
+      // Arrange
+      const badgeDto: CreateBadgeRewardDto = {
+        name: '첫 구매 완료 배지',
+        badgeId: 'first-purchase-badge',
+      };
+
+      // Act
+      const result = await service.createBadgeReward(badgeDto);
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.name).toBe(badgeDto.name);
+      expect(result.badgeId).toBe(badgeDto.badgeId);
+      expect(result.type).toBe(RewardType.BADGE);
+    });
+
+    // 아이템 리워드 생성 테스트 (한국어 이름과 수량)
+    it('수량이 있는 아이템 리워드를 생성할 수 있어야 함', async () => {
+      // Arrange
+      const itemDto: CreateItemRewardDto = {
+        name: '특별 아이템 선물',
+        itemId: 'special-item-123',
+        quantity: 5,
+      };
+
+      // Act
+      const result = await service.createItemReward(itemDto);
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.name).toBe(itemDto.name);
+      expect(result.itemId).toBe(itemDto.itemId);
+      expect(result.quantity).toBe(itemDto.quantity);
+      expect(result.type).toBe(RewardType.ITEM);
+    });
+
+    // 리워드 목록 조회 및 필터링 테스트
+    it('리워드 타입별로 필터링하여 조회할 수 있어야 함', async () => {
+      // Arrange
+      await service.createPointReward({
+        name: '포인트 리워드 1',
+        points: 100,
+      });
+      await service.createPointReward({
+        name: '포인트 리워드 2',
+        points: 200,
+      });
+      await service.createItemReward({
+        name: '아이템 리워드',
+        itemId: 'item-123',
+        quantity: 1,
+      });
+
+      // Act
+      const pointRewards = await service.getRewards({
+        type: RewardType.POINT,
+      });
+
+      // Assert
+      expect(pointRewards.rewards).toBeDefined();
+      expect(pointRewards.rewards.length).toBe(2);
+      expect(pointRewards.rewards[0].type).toBe(RewardType.POINT);
+      expect(pointRewards.rewards[1].type).toBe(RewardType.POINT);
+    });
+
+    // 이름으로 리워드 검색 테스트
+    it('이름으로 리워드를 검색할 수 있어야 함', async () => {
+      // Arrange
+      await service.createPointReward({
+        name: '여름 특별 포인트',
+        points: 300,
+      });
+      await service.createPointReward({
+        name: '겨울 특별 포인트',
+        points: 500,
+      });
+      await service.createPointReward({
+        name: '신규 가입 포인트',
+        points: 1000,
+      });
+
+      // Act
+      const results = await service.getRewards({
+        name: '특별',
+      });
+
+      // Assert
+      expect(results.rewards).toBeDefined();
+      expect(results.rewards.length).toBe(2);
+      // 이름에 '특별'이 포함된 리워드만 반환되는지 확인
+      expect(
+        results.rewards.every((r) => r.name.includes('특별')),
+      ).toBeTruthy();
+    });
+  });
+
+  // 추가 테스트 케이스 - 이벤트와 리워드 연결 관련 시나리오 기반
+  describe('이벤트-리워드 연결 관리 테스트', () => {
+    // 다양한 유형의 리워드를 단일 이벤트에 추가 테스트
+    it('한 이벤트에 다양한 유형의 리워드를 추가할 수 있어야 함', async () => {
+      // Arrange
+      const event = await eventService.createEvent({
+        name: '신규 사용자 가입 이벤트',
+        condition: { newUser: true },
+        period: {
+          start: new Date().toISOString(),
+          end: new Date(Date.now() + 30 * 86400000).toISOString(), // 30일 후
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      // 여러 타입의 리워드 생성
+      const pointReward = await service.createPointReward({
+        name: '가입 축하 포인트',
+        points: 1000,
+      });
+
+      const couponReward = await service.createCouponReward({
+        name: '신규 가입자 할인 쿠폰',
+        couponCode: 'NEWUSER2023',
+        expiry: new Date(Date.now() + 60 * 86400000), // 60일 후
+      });
+
+      const badgeReward = await service.createBadgeReward({
+        name: '신규 회원 배지',
+        badgeId: 'new-member-badge',
+      });
+
+      // Act - 모든 리워드를 이벤트에 추가
+      await service.addRewardToEvent({
+        eventId: event._id.toString(),
+        rewardId: pointReward._id.toString(),
+      });
+
+      await service.addRewardToEvent({
+        eventId: event._id.toString(),
+        rewardId: couponReward._id.toString(),
+      });
+
+      await service.addRewardToEvent({
+        eventId: event._id.toString(),
+        rewardId: badgeReward._id.toString(),
+      });
+
+      // 이벤트의 리워드 조회
+      const eventRewards = await service.getRewardsByEventId({
+        id: event._id.toString(),
+      });
+
+      // Assert
+      expect(eventRewards).toBeDefined();
+      expect(eventRewards.length).toBe(3);
+
+      // 각 타입의 리워드가 존재하는지 확인
+      const rewardTypes = eventRewards.map((r) => r.type);
+      expect(rewardTypes).toContain(RewardType.POINT);
+      expect(rewardTypes).toContain(RewardType.COUPON);
+      expect(rewardTypes).toContain(RewardType.BADGE);
+    });
+
+    // 여러 이벤트에 동일한 리워드 추가 테스트
+    it('동일한 리워드를 여러 이벤트에 추가할 수 있어야 함', async () => {
+      // Arrange
+      const reward = await service.createPointReward({
+        name: '공통 포인트 리워드',
+        points: 500,
+      });
+
+      // 여러 이벤트 생성
+      const event1 = await eventService.createEvent({
+        name: '여름 방학 이벤트',
+        condition: { type: 'season', season: 'summer' },
+        period: {
+          start: new Date().toISOString(),
+          end: new Date(Date.now() + 30 * 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      const event2 = await eventService.createEvent({
+        name: '가을 시즌 이벤트',
+        condition: { type: 'season', season: 'autumn' },
+        period: {
+          start: new Date().toISOString(),
+          end: new Date(Date.now() + 60 * 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      // Act - 동일한 리워드를 두 이벤트에 추가
+      await service.addRewardToEvent({
+        eventId: event1._id.toString(),
+        rewardId: reward._id.toString(),
+      });
+
+      await service.addRewardToEvent({
+        eventId: event2._id.toString(),
+        rewardId: reward._id.toString(),
+      });
+
+      // 각 이벤트의 리워드 조회
+      const event1Rewards = await service.getRewardsByEventId({
+        id: event1._id.toString(),
+      });
+
+      const event2Rewards = await service.getRewardsByEventId({
+        id: event2._id.toString(),
+      });
+
+      // Assert
+      expect(event1Rewards).toBeDefined();
+      expect(event1Rewards.length).toBe(1);
+      expect(event1Rewards[0]._id.toString()).toBe(reward._id.toString());
+
+      expect(event2Rewards).toBeDefined();
+      expect(event2Rewards.length).toBe(1);
+      expect(event2Rewards[0]._id.toString()).toBe(reward._id.toString());
+    });
+
+    // 이벤트에서 리워드 제거 후 다시 추가 테스트
+    it('이벤트에서 리워드를 제거한 후 다시 추가할 수 있어야 함', async () => {
+      // Arrange
+      const event = await eventService.createEvent({
+        name: '테스트 이벤트',
+        condition: { type: 'test' },
+        period: {
+          start: new Date().toISOString(),
+          end: new Date(Date.now() + 30 * 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      const reward = await service.createPointReward({
+        name: '테스트 포인트',
+        points: 300,
+      });
+
+      // 리워드를 이벤트에 추가
+      await service.addRewardToEvent({
+        eventId: event._id.toString(),
+        rewardId: reward._id.toString(),
+      });
+
+      // Act 1 - 리워드를 이벤트에서 제거
+      await service.removeRewardFromEvent({
+        eventId: event._id.toString(),
+        rewardId: reward._id.toString(),
+      });
+
+      // 이벤트의 리워드 확인 - 제거 후
+      const rewardsAfterRemove = await service.getRewardsByEventId({
+        id: event._id.toString(),
+      });
+
+      // Act 2 - 리워드를 이벤트에 다시 추가
+      await service.addRewardToEvent({
+        eventId: event._id.toString(),
+        rewardId: reward._id.toString(),
+      });
+
+      // 이벤트의 리워드 확인 - 다시 추가 후
+      const rewardsAfterReAdd = await service.getRewardsByEventId({
+        id: event._id.toString(),
+      });
+
+      // Assert
+      expect(rewardsAfterRemove).toBeDefined();
+      expect(rewardsAfterRemove.length).toBe(0);
+
+      expect(rewardsAfterReAdd).toBeDefined();
+      expect(rewardsAfterReAdd.length).toBe(1);
+      expect(rewardsAfterReAdd[0]._id.toString()).toBe(reward._id.toString());
+    });
+  });
+
+  // 추가 테스트 케이스 - 엣지 케이스 및 오류 시나리오
+  describe('리워드 관리 엣지 케이스 테스트', () => {
+    // 음수 포인트 처리 테스트
+    it('음수 포인트를 가진.포인트 리워드를 생성해도 유효하게 처리되어야 함', async () => {
+      // Arrange
+      const negativePointsDto: CreatePointRewardDto = {
+        name: '포인트 차감 패널티',
+        points: -100,
+      };
+
+      // Act
+      const result = await service.createPointReward(negativePointsDto);
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(result.points).toBe(negativePointsDto.points);
+      expect(result.points).toBeLessThan(0);
+    });
+
+    // 같은 이름의 여러 리워드 생성 테스트
+    it('동일한 이름을 가진 여러 리워드를 생성할 수 있어야 함', async () => {
+      // Arrange
+      const name = '중복 이름 리워드';
+
+      // Act
+      const reward1 = await service.createPointReward({
+        name,
+        points: 100,
+      });
+
+      const reward2 = await service.createPointReward({
+        name,
+        points: 200,
+      });
+
+      // Assert
+      expect(reward1).toBeDefined();
+      expect(reward2).toBeDefined();
+      expect(reward1.name).toBe(name);
+      expect(reward2.name).toBe(name);
+      expect(reward1._id.toString()).not.toBe(reward2._id.toString());
+    });
+
+    // 이벤트에 동일한 리워드 중복 추가 테스트
+    it('이벤트에 이미 추가된 리워드를 다시 추가해도 오류가 발생하지 않아야 함', async () => {
+      // Arrange
+      const event = await eventService.createEvent({
+        name: '중복 리워드 테스트 이벤트',
+        condition: { type: 'test' },
+        period: {
+          start: new Date().toISOString(),
+          end: new Date(Date.now() + 30 * 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      const reward = await service.createPointReward({
+        name: '중복 추가 포인트',
+        points: 300,
+      });
+
+      // 첫 번째 추가
+      const firstAdd = await service.addRewardToEvent({
+        eventId: event._id.toString(),
+        rewardId: reward._id.toString(),
+      });
+
+      // Act - 두 번째 중복 추가
+      const secondAdd = await service.addRewardToEvent({
+        eventId: event._id.toString(),
+        rewardId: reward._id.toString(),
+      });
+
+      // Assert
+      expect(firstAdd).toBeDefined();
+      expect(secondAdd).toBeDefined();
+      expect(firstAdd._id.toString()).toBe(secondAdd._id.toString());
+
+      // 중복 추가 후 이벤트의 리워드 개수 확인
+      const eventRewards = await service.getRewardsByEventId({
+        id: event._id.toString(),
+      });
+      expect(eventRewards.length).toBe(1);
+    });
+
+    // 존재하지 않는 이벤트-리워드 관계 제거 시도 테스트
+    it('존재하지 않는 이벤트-리워드 관계 제거 시 NotFoundException 발생해야 함', async () => {
+      // Arrange
+      const event = await eventService.createEvent({
+        name: '테스트 이벤트',
+        condition: { type: 'test' },
+        period: {
+          start: new Date().toISOString(),
+          end: new Date(Date.now() + 30 * 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      const reward = await service.createPointReward({
+        name: '테스트 포인트',
+        points: 300,
+      });
+
+      // Act & Assert - 연결되지 않은 이벤트-리워드 관계 제거 시도
+      await expect(
+        service.removeRewardFromEvent({
+          eventId: event._id.toString(),
+          rewardId: reward._id.toString(),
+        }),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
 });
