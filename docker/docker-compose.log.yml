@@ -7,22 +7,21 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - ./infrastructure/loki/local-config.yaml:/etc/loki/local-config.yaml
+      - ../infrastructure/loki/local-config.yaml:/etc/loki/local-config.yaml
       - loki-data:/loki
     command: -config.file=/etc/loki/local-config.yaml
     user: "root"
     networks:
       - event-network
 
-  Grafana Alloy Agent for log collection
   alloy:
     image: grafana/alloy:latest
     container_name: alloy
     volumes:
-      - ./infrastructure/alloy/config.river:/etc/alloy/config.river
+      - ../infrastructure/alloy/config.river:/etc/alloy/config.river
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./data/alloy:/tmp/alloy
+      - ../data/alloy:/tmp/alloy
     command: run /etc/alloy/config.river
     user: root
     depends_on:

@@ -7,9 +7,9 @@ services:
     ports:
       - "6565:6565"
     volumes:
-      - ./test/k6:/test
-      - ./test/k6/dist:/dist
-      - ./test/k6/prepare/data:/data
+      - ../test/k6:/test
+      - ../test/k6/dist:/dist
+      - ../test/k6/prepare/data:/data
     environment:
       - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
     networks:

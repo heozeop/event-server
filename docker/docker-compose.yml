@@ -73,7 +73,7 @@ services:
     networks:
       - event-network
     volumes:
-      - ..:/app
+      - ../:/app
     depends_on:
       - auth
       - event
