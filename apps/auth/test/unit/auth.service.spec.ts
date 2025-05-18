@@ -36,7 +36,7 @@ describe('AuthService', () => {
       await orm.getSchemaGenerator().createSchema();
       await app.init();
     } catch (error) {
-      console.error('Error initializing app:', error);
+      console.error('앱 초기화 오류:', error);
       throw error;
     }
   });
@@ -69,13 +69,13 @@ describe('AuthService', () => {
   beforeEach(async () => {
     await orm.getSchemaGenerator().clearDatabase();
 
-    // Create regular user (has USER role by default)
+    // 일반 사용자 생성 (기본적으로 USER 역할을 가짐)
     await userService.createUser({
       email: mockUser.email,
       password: 'password123',
     });
 
-    // Create admin user
+    // 관리자 사용자 생성
     const adminUser = await userService.createUser({
       email: mockAdminUser.email,
       password: 'password123',
@@ -85,7 +85,7 @@ describe('AuthService', () => {
       updateRolesDto: { roles: [Role.ADMIN] },
     });
 
-    // Create operator user
+    // 운영자 사용자 생성
     const operatorUser = await userService.createUser({
       email: mockOperatorUser.email,
       password: 'password123',
@@ -95,7 +95,7 @@ describe('AuthService', () => {
       updateRolesDto: { roles: [Role.OPERATOR] },
     });
 
-    // Create auditor user
+    // 감사자 사용자 생성
     const auditorUser = await userService.createUser({
       email: mockAuditorUser.email,
       password: 'password123',
@@ -124,11 +124,11 @@ describe('AuthService', () => {
       password: 'password123',
     };
 
-    it('should login successfully and return access token', async () => {
-      // Act
+    it('로그인에 성공하고 액세스 토큰을 반환해야 함', async () => {
+      // 행동
       const result = await service.login(loginDto);
 
-      // Assert
+      // 검증
       expect(result).toBeDefined();
       expect(result.accessToken).toBeDefined();
       expect(result.user).toBeDefined();
@@ -136,11 +136,11 @@ describe('AuthService', () => {
       expect(result.user.roles).toEqual(mockUser.roles);
     });
 
-    it('should pass through exceptions from user validation', async () => {
-      // Arrange
-      const validationError = new UnauthorizedException('Invalid credentials');
+    it('사용자 유효성 검사의 예외를 전달해야 함', async () => {
+      // 준비
+      const validationError = new UnauthorizedException('잘못된 자격 증명');
 
-      // Act & Assert
+      // 행동 및 검증
       await expect(
         service.login({
           email: loginDto.email,
@@ -150,86 +150,86 @@ describe('AuthService', () => {
     });
 
     it('일반 사용자가 로그인 성공 시 USER 역할이 포함된 토큰을 반환해야 함', async () => {
-      // Arrange
+      // 준비
       const userLoginDto: LoginDto = {
         email: mockUser.email,
         password: 'password123',
       };
 
-      // Act
+      // 행동
       const result = await service.login(userLoginDto);
 
-      // Assert
+      // 검증
       expect(result.accessToken).toBeDefined();
       expect(result.user.roles).toContain(Role.USER);
 
-      // Verify token contains proper role
+      // 토큰에 적절한 역할이 포함되어 있는지 확인
       const payload = jwtService.decode(result.accessToken);
       expect(payload.roles).toContain(Role.USER);
     });
 
     it('관리자가 로그인 성공 시 ADMIN 역할이 포함된 토큰을 반환해야 함', async () => {
-      // Arrange
+      // 준비
       const adminLoginDto: LoginDto = {
         email: mockAdminUser.email,
         password: 'password123',
       };
 
-      // Act
+      // 행동
       const result = await service.login(adminLoginDto);
 
-      // Assert
+      // 검증
       expect(result.accessToken).toBeDefined();
       expect(result.user.roles).toContain(Role.ADMIN);
 
-      // Verify token contains proper role
+      // 토큰에 적절한 역할이 포함되어 있는지 확인
       const payload = jwtService.decode(result.accessToken);
       expect(payload.roles).toContain(Role.ADMIN);
     });
 
     it('운영자가 로그인 성공 시 OPERATOR 역할이 포함된 토큰을 반환해야 함', async () => {
-      // Arrange
+      // 준비
       const operatorLoginDto: LoginDto = {
         email: mockOperatorUser.email,
         password: 'password123',
       };
 
-      // Act
+      // 행동
       const result = await service.login(operatorLoginDto);
 
-      // Assert
+      // 검증
       expect(result.accessToken).toBeDefined();
       expect(result.user.roles).toContain(Role.OPERATOR);
 
-      // Verify token contains proper role
+      // 토큰에 적절한 역할이 포함되어 있는지 확인
       const payload = jwtService.decode(result.accessToken);
       expect(payload.roles).toContain(Role.OPERATOR);
     });
 
     it('감사자가 로그인 성공 시 AUDITOR 역할이 포함된 토큰을 반환해야 함', async () => {
-      // Arrange
+      // 준비
       const auditorLoginDto: LoginDto = {
         email: mockAuditorUser.email,
         password: 'password123',
       };
 
-      // Act
+      // 행동
       const result = await service.login(auditorLoginDto);
 
-      // Assert
+      // 검증
       expect(result.accessToken).toBeDefined();
       expect(result.user.roles).toContain(Role.AUDITOR);
 
-      // Verify token contains proper role
+      // 토큰에 적절한 역할이 포함되어 있는지 확인
       const payload = jwtService.decode(result.accessToken);
       expect(payload.roles).toContain(Role.AUDITOR);
     });
 
     it('로그인 성공 시 토큰에 사용자 ID가 포함되어야 함', async () => {
-      // Act
+      // 행동
       const result = await service.login(loginDto);
 
-      // Assert
+      // 검증
       const payload = jwtService.decode(result.accessToken);
       expect(payload.sub).toBeDefined();
       expect(typeof payload.sub).toBe('string');
@@ -238,7 +238,7 @@ describe('AuthService', () => {
 
   describe('verifyToken', () => {
     it('유효한 토큰이 주어졌을 때 페이로드를 반환해야 함', async () => {
-      // Arrange
+      // 준비
       const payload = {
         sub: mockUserId.toString(),
         roles: [Role.USER],
@@ -246,45 +246,45 @@ describe('AuthService', () => {
       };
       const token = jwtService.sign(payload);
 
-      // Act
+      // 행동
       const result = await service.verifyToken(token);
 
-      // Assert
+      // 검증
       expect(result).toBeDefined();
       expect(result.sub).toBe(payload.sub);
       expect(result.roles).toEqual(payload.roles);
     });
 
     it('유효하지 않은 토큰이 주어졌을 때 UnauthorizedException을 발생시켜야 함', async () => {
-      // Arrange
+      // 준비
       const invalidToken = 'invalid.token.format';
 
-      // Act & Assert
+      // 행동 및 검증
       await expect(service.verifyToken(invalidToken)).rejects.toThrow(
         UnauthorizedException,
       );
     });
 
     it('만료된 토큰이 주어졌을 때 UnauthorizedException을 발생시켜야 함', async () => {
-      // Arrange
+      // 준비
       const expiredPayload = {
         sub: mockUserId.toString(),
         roles: [Role.USER],
         iat: new Date().getTime() - 3600000,
-        exp: Math.floor(Date.now() / 1000) - 60, // 1 minute ago
+        exp: Math.floor(Date.now() / 1000) - 60, // 1분 전
       };
 
-      // Create a token with the JWT_SECRET directly to bypass NestJS's validation
+      // NestJS의 유효성 검사를 우회하기 위해 JWT_SECRET을 직접 사용하여 토큰 생성
       const expiredToken = jwtService.sign(expiredPayload, { expiresIn: -10 });
 
-      // Act & Assert
+      // 행동 및 검증
       await expect(service.verifyToken(expiredToken)).rejects.toThrow(
         UnauthorizedException,
       );
     });
 
     it('관리자 역할을 가진 토큰을 검증할 수 있어야 함', async () => {
-      // Arrange
+      // 준비
       const adminPayload = {
         sub: mockAdminUser.id.toString(),
         roles: [Role.ADMIN],
@@ -292,16 +292,16 @@ describe('AuthService', () => {
       };
       const adminToken = jwtService.sign(adminPayload);
 
-      // Act
+      // 행동
       const result = await service.verifyToken(adminToken);
 
-      // Assert
+      // 검증
       expect(result).toBeDefined();
       expect(result.roles).toContain(Role.ADMIN);
     });
 
     it('운영자 역할을 가진 토큰을 검증할 수 있어야 함', async () => {
-      // Arrange
+      // 준비
       const operatorPayload = {
         sub: mockOperatorUser.id.toString(),
         roles: [Role.OPERATOR],
@@ -309,16 +309,16 @@ describe('AuthService', () => {
       };
       const operatorToken = jwtService.sign(operatorPayload);
 
-      // Act
+      // 행동
       const result = await service.verifyToken(operatorToken);
 
-      // Assert
+      // 검증
       expect(result).toBeDefined();
       expect(result.roles).toContain(Role.OPERATOR);
     });
 
     it('감사자 역할을 가진 토큰을 검증할 수 있어야 함', async () => {
-      // Arrange
+      // 준비
       const auditorPayload = {
         sub: mockAuditorUser.id.toString(),
         roles: [Role.AUDITOR],
@@ -326,16 +326,16 @@ describe('AuthService', () => {
       };
       const auditorToken = jwtService.sign(auditorPayload);
 
-      // Act
+      // 행동
       const result = await service.verifyToken(auditorToken);
 
-      // Assert
+      // 검증
       expect(result).toBeDefined();
       expect(result.roles).toContain(Role.AUDITOR);
     });
 
     it('복수의 역할을 가진 토큰을 올바르게 검증해야 함', async () => {
-      // Arrange
+      // 준비
       const multiRolePayload = {
         sub: mockUserId.toString(),
         roles: [Role.USER, Role.OPERATOR],
@@ -343,10 +343,10 @@ describe('AuthService', () => {
       };
       const multiRoleToken = jwtService.sign(multiRolePayload);
 
-      // Act
+      // 행동
       const result = await service.verifyToken(multiRoleToken);
 
-      // Assert
+      // 검증
       expect(result).toBeDefined();
       expect(result.roles).toContain(Role.USER);
       expect(result.roles).toContain(Role.OPERATOR);
