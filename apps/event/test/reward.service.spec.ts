@@ -9,7 +9,11 @@ import { EventStatus, RewardType } from '@libs/enums';
 import { MongoMemoryOrmModule } from '@libs/test';
 import { MikroORM } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventReward } from '../src/entities/event-reward.entity';
 import {
@@ -301,38 +305,6 @@ describe('RewardService', () => {
       expect(savedEventReward?.reward._id.toString()).toBe(
         reward._id.toString(),
       );
-    });
-
-    it('이미 존재하는 경우 기존 EventReward를 반환해야 함', async () => {
-      // Arrange
-      // 1. Create an event
-      const event = await eventService.createEvent({
-        name: 'Test Event',
-        condition: { type: 'login' },
-        periodStart: new Date(),
-        periodEnd: new Date(Date.now() + 86400000),
-        status: EventStatus.ACTIVE,
-      });
-
-      // 2. Create a reward
-      const reward = await service.createPointReward({
-        name: 'Test Point Reward',
-        points: 200,
-      });
-
-      // 3. Add reward to event
-      const dto: CreateEventRewardDto = {
-        eventId: event._id.toString(),
-        rewardId: reward._id.toString(),
-      };
-      const initialEventReward = await service.addRewardToEvent(dto);
-
-      // Act - try to add the same reward again
-      const result = await service.addRewardToEvent(dto);
-
-      // Assert
-      expect(result).toBeDefined();
-      expect(result._id.toString()).toBe(initialEventReward._id.toString());
     });
 
     it('이벤트를 찾을 수 없는 경우 NotFoundException을 발생시켜야 함', async () => {
@@ -875,7 +847,7 @@ describe('RewardService', () => {
     });
 
     // 이벤트에 동일한 리워드 중복 추가 테스트
-    it('이벤트에 이미 추가된 리워드를 다시 추가해도 오류가 발생하지 않아야 함', async () => {
+    it('이벤트에 이미 추가된 리워드를 다시 추가하면 오류가 발생해야 함.', async () => {
       // Arrange
       const event = await eventService.createEvent({
         name: '중복 리워드 테스트 이벤트',
@@ -897,15 +869,12 @@ describe('RewardService', () => {
       });
 
       // Act - 두 번째 중복 추가
-      const secondAdd = await service.addRewardToEvent({
-        eventId: event._id.toString(),
-        rewardId: reward._id.toString(),
-      });
-
-      // Assert
-      expect(firstAdd).toBeDefined();
-      expect(secondAdd).toBeDefined();
-      expect(firstAdd._id.toString()).toBe(secondAdd._id.toString());
+      await expect(() =>
+        service.addRewardToEvent({
+          eventId: event._id.toString(),
+          rewardId: reward._id.toString(),
+        }),
+      ).rejects.toThrow(ConflictException);
 
       // 중복 추가 후 이벤트의 리워드 개수 확인
       const eventRewards = await service.getRewardsByEventId({

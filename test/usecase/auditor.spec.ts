@@ -53,7 +53,7 @@ describe('AUDITOR Use Cases', () => {
       .post('/auth/login')
       .send(auditorCredentials);
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('accessToken');
     auditorToken = response.body.accessToken;
 
@@ -74,7 +74,7 @@ describe('AUDITOR Use Cases', () => {
         .post('/auth/login')
         .send(auditorCredentials);
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('accessToken');
       expect(response.body.user.roles).toContain(Role.AUDITOR);
     });
@@ -179,7 +179,7 @@ describe('AUDITOR Use Cases', () => {
       
       // All returned items should be for this event
       response.body.forEach((request: any) => {
-        expect(request.eventId).toBe(eventId);
+        expect(request.event.id).toBe(eventId);
       });
     });
 

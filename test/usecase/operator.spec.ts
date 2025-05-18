@@ -1,4 +1,4 @@
-import { RewardType, Role } from '@libs/enums';
+import { EventStatus, RewardType, Role } from '@libs/enums';
 import request from 'supertest';
 
 describe('OPERATOR Use Cases', () => {
@@ -51,7 +51,7 @@ describe('OPERATOR Use Cases', () => {
       .post('/auth/login')
       .send(operatorCredentials);
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('accessToken');
     operatorToken = response.body.accessToken;
   });
@@ -63,7 +63,7 @@ describe('OPERATOR Use Cases', () => {
         .post('/auth/login')
         .send(operatorCredentials);
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('accessToken');
       expect(response.body.user.roles).toContain(Role.OPERATOR);
     });
@@ -93,11 +93,9 @@ describe('OPERATOR Use Cases', () => {
           minUserAge: 13,
           maxUserAge: 19,
         },
-        period: {
-          start: today.toISOString(),
-          end: nextMonth.toISOString(),
-        },
-        status: 'ACTIVE',
+        periodStart: today.toISOString(),
+        periodEnd: nextMonth.toISOString(),
+        status: EventStatus.ACTIVE,
       };
 
       const response = await request(baseUrl)
@@ -140,6 +138,7 @@ describe('OPERATOR Use Cases', () => {
       nextMonth.setMonth(today.getMonth() + 1);
 
       const couponReward = {
+        name: 'SUMMER2023',
         couponCode: 'SUMMER2023',
         expiry: nextMonth.toISOString(),
       };
@@ -174,7 +173,7 @@ describe('OPERATOR Use Cases', () => {
           rewardId: rewardId,
         });
 
-      expect(response.status).toBe(204);
+      expect(response.status).toBe(201);
     });
 
     it('should get rewards for a specific event', async () => {
@@ -205,11 +204,9 @@ describe('OPERATOR Use Cases', () => {
           minUserAge: 13,
           maxUserAge: 19,
         },
-        period: {
-          start: today.toISOString(),
-          end: nextMonth.toISOString(),
-        },
-        status: 'ACTIVE',
+        start: today.toISOString(),
+        end: nextMonth.toISOString(),
+        status: EventStatus.ACTIVE,
       };
 
       const response = await request(baseUrl).post('/events').send(newEvent);

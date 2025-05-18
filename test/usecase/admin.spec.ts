@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { EventStatus, Role } from '@libs/enums';
+import { EventStatus, RewardType, Role } from '@libs/enums';
 import request from 'supertest';
 jest.setTimeout(60 *60 * 1_000);
 
@@ -165,7 +165,7 @@ describe('ADMIN Use Cases', () => {
 
     it('should add reward to event', async () => {
       const response = await request(baseUrl)
-        .post(`/events/${eventId}/request`)
+        .post(`/events/${eventId}/rewards`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           rewardId: rewardId,
@@ -174,9 +174,23 @@ describe('ADMIN Use Cases', () => {
       expect(response.status).toBe(201);
     });
 
+    it('should get rewards for a specific event', async () => {
+      const response = await request(baseUrl)
+        .get(`/events/${eventId}/rewards`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      
+      const addedReward = response.body.find((reward: any) => reward.id === rewardId);
+      expect(addedReward).toBeDefined();
+      expect(addedReward.type).toBe(RewardType.POINT);
+    });
+
     it('should request reward', async () => {
       const response = await request(baseUrl)
-        .post(`/events/${eventId}/rewards`)
+        .post(`/events/${eventId}/requests`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send();
 
@@ -190,6 +204,7 @@ describe('ADMIN Use Cases', () => {
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
     });
   });
 

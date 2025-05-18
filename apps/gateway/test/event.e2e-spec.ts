@@ -156,7 +156,7 @@ describe('이벤트 컨트롤러 (e2e)', () => {
   describe('/events/:eventId/rewards (POST)', () => {
     it('보상 요청을 생성해야 함', () => {
       return request(app.getHttpServer())
-        .post('/events/1/rewards')
+        .post('/events/1/requests')
         .set('Authorization', 'Bearer test-token')
         .expect(201)
         .expect((res) => {

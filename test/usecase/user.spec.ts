@@ -34,16 +34,13 @@ describe('USER Use Cases', () => {
       .post('/auth/login')
       .send(userCredentials);
 
-    expect(loginResponse.status).toBe(200);
+    expect(loginResponse.status).toBe(201);
     expect(loginResponse.body).toHaveProperty('accessToken');
     expect(loginResponse.body).toHaveProperty('user.roles');
     expect(loginResponse.body.user.roles).toContain(Role.USER);
 
     userToken = loginResponse.body.accessToken;
-    
-    if (!userId) {
-      userId = loginResponse.body.user.id;
-    }
+    userId = loginResponse.body.user.id;
 
     // Find an active event for testing
     const eventsResponse = await request(baseUrl)
@@ -54,7 +51,7 @@ describe('USER Use Cases', () => {
       // Find an active event
       const activeEvent = eventsResponse.body.find((event: any) => 
         event.status === 'ACTIVE' && 
-        new Date(event.period.end) > new Date());
+        new Date(event.periodEnd) > new Date());
       
       if (activeEvent) {
         eventId = activeEvent.id;
@@ -86,7 +83,7 @@ describe('USER Use Cases', () => {
         .post('/auth/login')
         .send(userCredentials);
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('accessToken');
       expect(response.body.user.roles).toContain(Role.USER);
     });
@@ -156,7 +153,7 @@ describe('USER Use Cases', () => {
       // This test might fail if the user has already requested the reward
       // or if the user doesn't meet the event conditions
       const response = await request(baseUrl)
-        .post(`/events/${eventId}/request`)
+        .post(`/events/${eventId}/requests`)
         .set('Authorization', `Bearer ${userToken}`);
 
       // Success case (201) or already requested case (409)
@@ -167,6 +164,15 @@ describe('USER Use Cases', () => {
         expect(response.body).toHaveProperty('userId', userId);
         expect(response.body).toHaveProperty('eventId', eventId);
         requestId = response.body.id;
+      } else {
+        const data = await request(baseUrl)
+          .get(`/events/requests`)
+          .set('Authorization', `Bearer ${userToken}`);
+
+        expect(data.status).toBe(200);
+        expect(Array.isArray(data.body)).toBe(true);
+
+        requestId = data.body[0].id;
       }
     });
 
@@ -215,7 +221,7 @@ describe('USER Use Cases', () => {
       
       // All requests should be for the specified event and belong to current user
       response.body.forEach((request: any) => {
-        expect(request.eventId).toBe(eventId);
+        expect(request.event.id).toBe(eventId);
         expect(request.userId).toBe(userId);
       });
     });
@@ -235,7 +241,7 @@ describe('USER Use Cases', () => {
         return;
       }
 
-      const response = await request(baseUrl).post(`/events/${eventId}/request`);
+      const response = await request(baseUrl).post(`/events/${eventId}/requests`);
       expect(response.status).toBe(401);
     });
 

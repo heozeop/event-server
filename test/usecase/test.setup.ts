@@ -16,7 +16,7 @@ const baseUsers = [
   {
     _id: new ObjectId('645f2d1b8c5cd2f948e9a111'),
     email: 'admin@example.com',
-    password: hashPassword('admin1234'),
+    passwordHash: hashPassword('admin1234'),
     roles: [Role.USER, Role.ADMIN],
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -24,7 +24,7 @@ const baseUsers = [
   {
     _id: new ObjectId('645f2d1b8c5cd2f948e9a222'),
     email: 'operator@example.com',
-    password: hashPassword('operator1234'),
+    passwordHash: hashPassword('operator1234'),
     roles: [Role.USER, Role.OPERATOR],
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -32,7 +32,7 @@ const baseUsers = [
   {
     _id: new ObjectId('645f2d1b8c5cd2f948e9a333'),
     email: 'auditor@example.com',
-    password: hashPassword('auditor1234'),
+    passwordHash: hashPassword('auditor1234'),
     roles: [Role.USER, Role.AUDITOR],
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -40,7 +40,7 @@ const baseUsers = [
   {
     _id: new ObjectId('645f2d1b8c5cd2f948e9a444'),
     email: 'user@example.com',
-    password: hashPassword('user1234'),
+    passwordHash: hashPassword('user1234'),
     roles: [Role.USER],
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -73,7 +73,7 @@ export async function setupTestUsers(): Promise<void> {
       const existingUser = await userCollection.findOne({ email: user.email });
       if (existingUser) {
         await userCollection.updateOne({ _id: existingUser._id }, { $set: {
-          passwordHash: user.password,
+          passwordHash: user.passwordHash,
           roles: user.roles,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
