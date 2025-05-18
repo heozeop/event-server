@@ -30,7 +30,7 @@ export default function() {
   
   check(eventsResponse, {
     'status is 200': (r) => r.status === 200,
-    'events list received': (r) => r.json().length > 0,
+    'events list received': (r) => (r.json() as any).length > 0,
   });
 
   sleep(1);
@@ -41,7 +41,7 @@ export default function() {
   
   check(eventDetailResponse, {
     'event detail status is 200': (r) => r.status === 200,
-    'event detail has data': (r) => r.json().id !== undefined,
+    'event detail has data': (r) => (r.json() as any).id !== undefined,
   });
   
   sleep(1);

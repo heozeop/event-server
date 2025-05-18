@@ -24,8 +24,8 @@ services:
     ports:
       - "6565:6565"
     volumes:
-      - ./test:/test
-      - ./dist:/dist
+      - ./test/k6:/test
+      - ./test/k6/dist:/dist
     environment:
       - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
       - K6_OUT=output-prometheus-remote
