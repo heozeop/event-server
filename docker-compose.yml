@@ -1,7 +1,39 @@
 version: '3.9'
 
 services:
-  # Logging infrastructure
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - event-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8080:8080"
+    networks:
+      - event-network
+    depends_on:
+      - prometheus
+
   loki:
     image: grafana/loki:2.8.0
     container_name: loki
@@ -35,23 +67,23 @@ services:
       - event-network
 
   # Grafana Alloy Agent for log collection
-  alloy:
-    image: grafana/alloy:latest
-    container_name: alloy
-    volumes:
-      - ./infrastructure/alloy/config.river:/etc/alloy/config.river
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./data/alloy:/tmp/alloy
-    command: run /etc/alloy/config.river
-    user: root
-    depends_on:
-      - loki
-    networks:
-      - event-network
-    ports:
-      - "12345:12345" # For internal metrics
-    privileged: true # Add privileged mode for better Docker access
+  # alloy:
+  #   image: grafana/alloy:latest
+  #   container_name: alloy
+  #   volumes:
+  #     - ./infrastructure/alloy/config.river:/etc/alloy/config.river
+  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - ./data/alloy:/tmp/alloy
+  #   command: run /etc/alloy/config.river
+  #   user: root
+  #   depends_on:
+  #     - loki
+  #   networks:
+  #     - event-network
+  #   ports:
+  #     - "12345:12345" # For internal metrics
+  #   privileged: true # Add privileged mode for better Docker access
 
   # Application services
   gateway:
@@ -76,7 +108,6 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - alloy
       - auth
       - event
     logging:
@@ -100,7 +131,6 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - alloy
       - mongo-user
     logging:
       driver: "json-file"
@@ -123,7 +153,6 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - alloy
       - mongo-event
     logging:
       driver: "json-file"
