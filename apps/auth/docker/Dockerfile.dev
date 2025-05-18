@@ -13,9 +13,10 @@ RUN npm install -g pnpm
 RUN pnpm install
 
 EXPOSE 3001
+EXPOSE 9229
 
 # Set the working directory to the auth app
 WORKDIR /app/apps/auth
 
 # Use the shell form of CMD to properly execute the command
-CMD ["pnpm", "start:dev"] 
+CMD ["pnpm", "start:debug"] 

@@ -1,3 +1,4 @@
+import { MicroServiceExceptionFilter } from '@libs/filter';
 import { LogContextInterceptor, PinoLoggerService } from '@libs/logger';
 import { MetricsInterceptor } from '@libs/metrics';
 import { ValidationPipe } from '@libs/pipe';
@@ -26,6 +27,8 @@ async function bootstrap() {
   );
 
   app.useGlobalPipes(app.get(ValidationPipe));
+
+  app.useGlobalFilters(app.get(MicroServiceExceptionFilter));
 
   await app.listen();
   logger.log('Auth microservice is listening');

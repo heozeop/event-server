@@ -8,9 +8,10 @@ RUN npm install -g pnpm
 RUN pnpm install
 
 EXPOSE 3002
+EXPOSE 9229
 
 # Set the working directory to the event app
 WORKDIR /app/apps/event
 
 # Use the shell form of CMD to properly execute the command
-CMD ["pnpm", "start:dev"] 
+CMD ["pnpm", "start:debug"] 

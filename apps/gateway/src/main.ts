@@ -1,3 +1,4 @@
+import { ClientServiceExceptionFilter } from '@libs/filter';
 import { LogContextInterceptor, PinoLoggerService } from '@libs/logger';
 import { MetricsInterceptor } from '@libs/metrics';
 import { ValidationPipe } from '@libs/pipe';
@@ -12,11 +13,6 @@ async function bootstrap() {
     bufferLogs: true, // Buffer logs until logger is ready
   });
 
-  app.useGlobalInterceptors(
-    app.get(LogContextInterceptor),
-    app.get(MetricsInterceptor),
-  );
-
   // Get the logger service
   const logger = app.get(PinoLoggerService);
   logger.log('Starting gateway service...');
@@ -30,8 +26,14 @@ async function bootstrap() {
     },
   });
 
-  // Use the validation pipe from the pipe package
+  app.useGlobalInterceptors(
+    app.get(LogContextInterceptor),
+    app.get(MetricsInterceptor),
+  );
+
   app.useGlobalPipes(app.get(ValidationPipe));
+
+  app.useGlobalFilters(app.get(ClientServiceExceptionFilter));
 
   // Configure Swagger
   const config = new DocumentBuilder()

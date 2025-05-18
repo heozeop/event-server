@@ -5,6 +5,7 @@ import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
 import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
+import { MicroServiceExceptionFilter } from '@libs/filter';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice(AppModule, {
@@ -25,6 +26,8 @@ async function bootstrap() {
   );
 
   app.useGlobalPipes(app.get(ValidationPipe));
+
+  app.useGlobalFilters(app.get(MicroServiceExceptionFilter));
 
   await app.listen();
   logger.log('Event microservice is listening', {

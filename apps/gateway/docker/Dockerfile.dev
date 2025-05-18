@@ -9,9 +9,10 @@ RUN pnpm install
 
 EXPOSE 3000
 EXPOSE 3333
+EXPOSE 9229
 
 # Set the working directory to the gateway app
 WORKDIR /app/apps/gateway
 
 # Use the shell form of CMD to properly execute the command
-CMD ["pnpm", "start:dev"] 
+CMD ["pnpm", "start:debug"] 

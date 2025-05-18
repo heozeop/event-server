@@ -1,0 +1,44 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Gateway Service",
+      "type": "node",
+      "request": "attach",
+      "address": "localhost",
+      "port": 9222,
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/app",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "restart": true,
+      "timeout": 30000
+    },
+    {
+      "name": "Auth Service",
+      "type": "node",
+      "request": "attach",
+      "address": "localhost",
+      "port": 9223,
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/app",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "restart": true,
+      "timeout": 30000
+    },
+    {
+      "name": "Event Service",
+      "type": "node",
+      "request": "attach",
+      "address": "localhost",
+      "port": 9224,
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/app",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "restart": true,
+      "timeout": 30000
+    }
+  ]
+}
