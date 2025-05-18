@@ -29,25 +29,40 @@ graph LR
     EDB[(MongoDB: event-db)]
   end
 
+  subgraph "Monitoring"
+    PROM[Prometheus]
+    GRAF[Grafana]
+    CAD[cAdvisor]
+  end
+
   GW -->|HTTP/TCP| AU
   GW -->|HTTP/TCP| EV
   AU -->|reads/writes| UDB
   EV -->|reads/writes| EDB
+  
+  PROM --> GW
+  PROM --> AU
+  PROM --> EV
+  PROM --> CAD
+  GRAF --> PROM
 ```
 
 ---
 
 ## 3. 기술 스택
 
-| 구분          | 기술 및 버전                            |
-| ------------- | --------------------------------------- |
-| 프레임워크    | NestJS 11                               |
-| 아키텍처 패턴 | Microservices Architecture              |
-| ORM           | MikroORM 6.4.13                         |
-| 데이터베이스  | MongoDB (2 인스턴스: user-db, event-db) |
-| 컨테이너화    | Docker & Docker Compose                 |
-| 테스트        | Jest + SuperTest                        |
-| 언어          | TypeScript latest                       |
+| 구분           | 기술 및 버전                            |
+| -------------- | --------------------------------------- |
+| 프레임워크     | NestJS 11                               |
+| 아키텍처 패턴  | Microservices Architecture              |
+| ORM            | MikroORM 6                              |
+| 데이터베이스   | MongoDB 8.0.9 (2 인스턴스: user-db, event-db) |
+| 컨테이너화     | Docker & Docker Compose                 |
+| 테스트         | Jest + SuperTest + k6                   |
+| 언어           | TypeScript                              |
+| 모니터링       | Prometheus + Grafana + cAdvisor         |
+| 패키지 관리자  | pnpm 8.15.9                            |
+| 빌드 도구      | Turbo                                   |
 
 1. DB 구분 사유
    - user db의 경우, RDB를 사용하는 등의 변경이 발생할 수 있다는 점 고려
@@ -56,49 +71,104 @@ graph LR
 
 ## 4. 인프라 구성
 
-### 4.1 Docker Compose 예시
+### 4.1 Docker Compose 구성
 
 ```yaml
 services:
-  gateway:
-    build: ./apps/gateway
-    networks:
-      - app-net
+  # 모니터링 서비스
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - "8080:8080"
+
+  grafana:
+    image: grafana/grafana:latest
     ports:
       - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ../infrastructure/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ../infrastructure/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ../infrastructure/grafana/dashboards:/etc/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+
+  # 어플리케이션 서비스
+  gateway:
+    build:
+      context: ../
+      dockerfile: apps/gateway/docker/Dockerfile.dev
+    ports:
+      - "3010:3000"
+      - "3333:3333"
+    environment:
+      - NODE_ENV=development
+      - GATEWAY_HOST=0.0.0.0
+      - GATEWAY_PORT=3000
+      - HTTP_PORT=3333
+      - AUTH_SERVICE_HOST=auth
+      - AUTH_SERVICE_PORT=3001
+      - EVENT_SERVICE_HOST=event
+      - EVENT_SERVICE_PORT=3002
 
   auth:
-    build: ./apps/auth
-    networks:
-      - app-net
+    build:
+      context: ../
+      dockerfile: apps/auth/docker/Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo-user:27017
+    depends_on:
+      - mongo-user
 
   event:
-    build: ./apps/event
-    networks:
-      - app-net
+    build:
+      context: ../
+      dockerfile: apps/event/docker/Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo-event:27017
+    depends_on:
+      - mongo-event
 
   mongo-user:
-    image: mongo:latest
-    container_name: mongo-user
+    image: mongo:8.0.9
+    ports:
+      - "27017:27017"
     volumes:
       - user-data:/data/db
-    networks:
-      - app-net
 
   mongo-event:
-    image: mongo:latest
-    container_name: mongo-event
+    image: mongo:8.0.9
+    ports:
+      - "27018:27017"
     volumes:
       - event-data:/data/db
-    networks:
-      - app-net
 
 networks:
-  app-net:
+  event-network:
 
 volumes:
   user-data:
   event-data:
+  grafana-data:
+  prometheus-data:
 ```
 
 ---
@@ -116,8 +186,9 @@ volumes:
 
   - `POST /events` → Event Service (OPERATOR, ADMIN)
   - `GET  /events` → 이벤트 조회 (권한별 접근 가능)
-  - `POST /rewards` → Event Service (OPERATOR, ADMIN)
-  - `POST /events/:id/request-reward` → Event Service (USER)
+  - `POST /events/:eventId/rewards` → Event Service (OPERATOR, ADMIN)
+  - `GET  /events/:eventId/rewards` → 리워드 목록 조회
+  - `POST /events/:eventId/request` → 사용자 리워드 요청 (USER)
   - `GET  /events/requests` → Event Service (USER, OPERATOR, AUDITOR, ADMIN)
 
 ### 5.2 Auth Service
@@ -144,21 +215,28 @@ volumes:
 
 ```ts
 @Entity()
-export class User {
+export class User implements UserEntity {
   @PrimaryKey()
-  _id: ObjectId;
+  _id!: ObjectId;
+
+  @Property({ unique: true })
+  email!: string;
 
   @Property()
-  email: string;
+  passwordHash!: string;
 
   @Property()
-  passwordHash: string;
+  roles: Role[] = [Role.USER];
 
   @Property()
-  roles: string[];
+  createdAt: Date = new Date();
 
   @Property()
-  createdAt: Date;
+  updatedAt: Date = new Date();
+
+  get id(): string {
+    return this._id.toString();
+  }
 }
 ```
 
@@ -166,21 +244,30 @@ export class User {
 
 ```ts
 @Entity()
-export class Event {
+export class Event implements EventEntity {
   @PrimaryKey()
-  _id: ObjectId;
+  _id!: ObjectId;
 
   @Property()
-  name: string;
+  name!: string;
 
   @Property()
-  condition: Record<string, any>;
+  condition!: Record<string, any>;
 
   @Property()
-  period: { start: Date; end: Date };
+  periodStart!: Date;
 
   @Property()
-  status: "ACTIVE" | "INACTIVE";
+  periodEnd: Date | null = null;
+
+  @Property()
+  status!: EventStatus;
+
+  @Property()
+  createdAt: Date = new Date();
+
+  @Property({ onUpdate: () => new Date() })
+  updatedAt: Date = new Date();
 }
 
 @Entity()
@@ -195,60 +282,92 @@ export class EventReward {
   reward!: RewardBase;
 }
 
-@DiscriminatorColumn({
-  fieldName: "type",
-  values: ["POINT", "ITEM", "COUPON", "BADGE"],
+@Entity({
+  collection: 'rewards',
+  discriminatorColumn: 'type',
+  discriminatorMap: {
+    [RewardType.POINT]: 'PointReward',
+    [RewardType.ITEM]: 'ItemReward',
+    [RewardType.COUPON]: 'CouponReward',
+    [RewardType.BADGE]: 'BadgeReward',
+  },
+  abstract: true,
 })
-@Entity()
-export abstract class RewardBase {
+export abstract class RewardBase implements RewardBaseEntity {
   @PrimaryKey()
   _id!: ObjectId;
 
   @Property()
-  type!: string;
+  type!: RewardType;
+
+  @Property()
+  name!: string;
+
+  @Property()
+  createdAt: Date = new Date();
+
+  @Property({ onUpdate: () => new Date() })
+  updatedAt: Date = new Date();
 }
 
-@Entity({ discriminatorValue: "POINT" })
-export class PointReward extends RewardBase {
+@Entity({ discriminatorValue: RewardType.POINT })
+export class PointReward extends RewardBase implements PointRewardEntity {
   @Property()
   points!: number;
+
+  override type: RewardType.POINT = RewardType.POINT;
 }
 
-@Entity({ discriminatorValue: "ITEM" })
-export class ItemReward extends RewardBase {
+@Entity({ discriminatorValue: RewardType.ITEM })
+export class ItemReward extends RewardBase implements ItemRewardEntity {
   @Property()
   itemId!: string;
 
   @Property()
   quantity!: number;
+
+  override type: RewardType.ITEM = RewardType.ITEM;
 }
 
-@Entity({ discriminatorValue: "COUPON" })
-export class CouponReward extends RewardBase {
+@Entity({ discriminatorValue: RewardType.COUPON })
+export class CouponReward extends RewardBase implements CouponRewardEntity {
   @Property()
   couponCode!: string;
 
   @Property()
   expiry!: Date;
+
+  override type: RewardType.COUPON = RewardType.COUPON;
+}
+
+@Entity({ discriminatorValue: RewardType.BADGE })
+export class BadgeReward extends RewardBase implements BadgeRewardEntity {
+  @Property()
+  badgeId!: string;
+
+  override type: RewardType.BADGE = RewardType.BADGE;
 }
 
 @Entity()
-@Unique({ properties: ["user", "event"] })
+@Unique({ properties: ["userId", "event"] })
 export class RewardRequest {
   @PrimaryKey()
-  _id: ObjectId;
+  _id!: ObjectId;
 
   @Property()
-  userId: ObjectId;
+  userId!: string;
 
   @ManyToOne(() => Event)
-  event: Event;
+  event!: Event;
 
   @Property()
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  status!: RewardRequestStatus;
 
   @Property()
-  createdAt: Date;
+  createdAt: Date = new Date();
+
+  @Property({ onUpdate: () => new Date() })
+  updatedAt: Date = new Date();
 }
 ```
 
@@ -269,9 +388,22 @@ export class RewardRequest {
 
 - 단위 테스트: Jest로 서비스, 컨트롤러, mongodb-memory-server로 동작 검증
 - 통합 테스트: mongodb-memory-server + SuperTest
+- 성능 테스트: k6를 사용한 부하 테스트
 - E2E 테스트: Docker Compose로 전체 스택 기동 후 SuperTest로 시나리오 실행
 
-### 8.1 E2E 테스트 Use Case
+### 8.1 k6 성능 테스트 
+
+다음 커맨드로 성능 테스트를 실행할 수 있습니다:
+
+```
+npm run test:k6           # 기본 로그인 테스트
+npm run test:k6:event-rewards # 이벤트 리워드 목록 성능 테스트
+npm run test:k6:event-reward-request # 이벤트 리워드 요청 테스트
+npm run test:k6:event-creation # 이벤트 생성 테스트
+npm run test:k6:simple-login # 간단한 로그인 성능 테스트
+```
+
+### 8.2 E2E 테스트 시나리오
 
 #### 시나리오: 사용자 리워드 요청 흐름
 
@@ -296,3 +428,9 @@ export class RewardRequest {
    - 데이터베이스에 신규 `RewardRequest` 하나 생성
 
 이 시나리오는 Jest + SuperTest 스크립트로 자동화되어, Docker Compose로 기동된 전체 시스템을 대상으로 검증됩니다.
+
+### 8.3 모니터링 및 지표 수집
+
+- Prometheus를 통한 메트릭 수집
+- Grafana 대시보드를 통한 시각화
+- cAdvisor를 통한 컨테이너 성능 모니터링
