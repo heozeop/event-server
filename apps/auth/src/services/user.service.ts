@@ -10,6 +10,7 @@ import { PinoLoggerService } from '@libs/logger';
 import { EntityRepository, ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -28,9 +29,10 @@ export class UserService {
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     const { email, password } = createUserDto;
 
-    // Check if user exists
+    const trimmedEmail = this.normalizeEmail(email);
+
     const existingUser = await this.userRepository.findOne(
-      { email },
+      { email: trimmedEmail },
       { fields: ['_id'] },
     );
     if (existingUser) {
@@ -43,7 +45,7 @@ export class UserService {
 
     // Create user entity
     const user = this.userRepository.create({
-      email,
+      email: trimmedEmail,
       passwordHash,
       roles: [Role.USER],
       createdAt: new Date(),
@@ -57,7 +59,7 @@ export class UserService {
 
   async getUserById({ id }: QueryByIdDto): Promise<User> {
     const user = await this.userRepository.findOne({
-      _id: new ObjectId(String(id)),
+      _id: this.transformIdToObjectId(id),
     });
 
     if (!user) {
@@ -68,7 +70,9 @@ export class UserService {
   }
 
   async getUserByEmail({ email }: QueryUserByEmailDto): Promise<User> {
-    const user = await this.userRepository.findOne({ email });
+    const user = await this.userRepository.findOne({
+      email: this.normalizeEmail(email),
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -85,7 +89,7 @@ export class UserService {
     updateRolesDto: UpdateRolesDto;
   }): Promise<User> {
     const user = await this.userRepository.findOne({
-      _id: new ObjectId(String(id)),
+      _id: this.transformIdToObjectId(id),
     });
 
     if (!user) {
@@ -121,11 +125,14 @@ export class UserService {
     email: string;
     password: string;
   }): Promise<User> {
+    // Trim whitespace but preserve case
+    const trimmedEmail = this.normalizeEmail(email);
+
     // Check if user exists
-    const user = await this.userRepository.findOne({ email });
+    const user = await this.userRepository.findOne({ email: trimmedEmail });
     if (!user) {
       this.logger.warn('Authentication attempt with non-existent user', {
-        email,
+        email: trimmedEmail,
       });
       throw new NotFoundException('User not found');
     }
@@ -135,12 +142,24 @@ export class UserService {
     if (!isPasswordValid) {
       this.logger.warn('Authentication failed - invalid password', {
         userId: user._id.toString(),
-        email,
+        email: trimmedEmail,
       });
 
       throw new UnauthorizedException('Invalid credentials');
     }
 
     return user;
+  }
+
+  private transformIdToObjectId(id: string): ObjectId {
+    try {
+      return new ObjectId(id);
+    } catch (error) {
+      throw new BadRequestException('Invalid user ID format');
+    }
+  }
+
+  private normalizeEmail(email: string): string {
+    return email.trim();
   }
 }
