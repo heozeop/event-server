@@ -1,3 +1,4 @@
+import { getAdminToken } from '@/common/admin.login';
 import { RewardRequestResponseDto } from '@libs/dtos';
 import { Role } from '@libs/enums';
 import { EventEntity, UserEntity } from '@libs/types';
@@ -5,19 +6,19 @@ import { check } from 'k6';
 import http from 'k6/http';
 import { Counter } from 'k6/metrics';
 import { Options } from 'k6/options';
-import { API_BASE_URL, TEST_PASSWORD } from 'prepare/constants';
+import { ADMIN_EMAIL, API_BASE_URL } from 'prepare/constants';
 import { randomSleep } from '../utils';
 
 // Function to load test data
 function loadTestData(): { eventIds: string[]; userIds: string[] } {
   // Load events data
-  const events = JSON.parse(open('../prepare/data/events.json')) as EventEntity[];
+  const events = JSON.parse(open('/data/events.json')) as EventEntity[];
   const eventIds = events.map(event => event._id.toString());
   
   // Load users data
-  const users = JSON.parse(open('../prepare/data/users.json')) as UserEntity[];
+  const users = JSON.parse(open('/data/users.json')) as UserEntity[];
   const userIds = users
-    .filter(user => !user.roles.includes(Role.ADMIN) && user.email !== 'admin@example.com')
+    .filter(user => !user.roles.includes(Role.ADMIN) && user.email !== ADMIN_EMAIL)
     .map(user => user._id.toString());
   
   return {
@@ -84,38 +85,6 @@ export const options: Options = {
   },
 };
 
-// Admin user credentials
-const ADMIN_EMAIL = 'admin@example.com';
-const ADMIN_PASSWORD = TEST_PASSWORD;
-
-// Authentication helper
-function getAuthToken(): string {
-  // Try to use environment variable if provided, otherwise authenticate
-  if (__ENV.AUTH_TOKEN && __ENV.AUTH_TOKEN !== 'replace_with_valid_token') {
-    return __ENV.AUTH_TOKEN;
-  }
-  
-  const response = http.post(
-    `${API_BASE_URL}/auth/login`,
-    ({
-      email: ADMIN_EMAIL,
-      password: ADMIN_PASSWORD
-    }),
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-  
-  if (response.status !== 200) {
-    throw new Error(`Authentication failed: ${response.status} - ${response.body}`);
-  }
-  
-  const responseBody = response.json() as unknown as { accessToken: string };
-  return responseBody.accessToken as string;
-}
-
 // Helper function to check if response is an array of event requests
 function isEventRequestArray(data: unknown): data is RewardRequestResponseDto[] {
   return Array.isArray(data) && (data.length === 0 || (
@@ -125,10 +94,11 @@ function isEventRequestArray(data: unknown): data is RewardRequestResponseDto[] 
   ));
 }
 
+const testData = loadTestData();
+
 // Setup function - runs once per VU
 export function setup() {
-  const token = getAuthToken();
-  const testData = loadTestData();
+  const token = getAdminToken();
   
   return { 
     token,
@@ -238,8 +208,5 @@ export function eventFilterScenario(data: { token: string; testData: { eventIds:
 
 // Default function - not used in this multi-scenario test
 export default function() {
-  const token = getAuthToken();
-  const testData = loadTestData();
-
-  noFilterScenario({ token, testData });
+  // Do nothing
 } 
