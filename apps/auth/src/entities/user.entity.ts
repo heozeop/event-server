@@ -22,4 +22,8 @@ export class User implements UserEntity {
 
   @Property()
   updatedAt: Date = new Date();
+
+  get id(): string {
+    return this._id.toString();
+  }
 }
