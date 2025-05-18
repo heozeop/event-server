@@ -43,27 +43,42 @@ describe('AuthService', () => {
 
   const mockUserId = new ObjectId();
   const mockUser = {
-    id: mockUserId,
+    _id: mockUserId,
     email: 'test@example.com',
     roles: [Role.USER],
+    get id() {
+      return this._id.toString();
+    },
   };
 
+  const mockAdminUserId = new ObjectId();
   const mockAdminUser = {
-    id: new ObjectId(),
+    _id: mockAdminUserId,
     email: 'admin@example.com',
     roles: [Role.ADMIN],
+    get id() {
+      return this._id.toString();
+    },
   };
 
+  const mockOperatorUserId = new ObjectId();
   const mockOperatorUser = {
-    id: new ObjectId(),
+    _id: mockOperatorUserId,
     email: 'operator@example.com',
     roles: [Role.OPERATOR],
+    get id() {
+      return this._id.toString();
+    },
   };
 
+  const mockAuditorUserId = new ObjectId();
   const mockAuditorUser = {
-    id: new ObjectId(),
+    _id: mockAuditorUserId,
     email: 'auditor@example.com',
     roles: [Role.AUDITOR],
+    get id() {
+      return this._id.toString();
+    },
   };
 
   beforeEach(async () => {
@@ -138,7 +153,7 @@ describe('AuthService', () => {
 
     it('사용자 유효성 검사의 예외를 전달해야 함', async () => {
       // 준비
-      const validationError = new UnauthorizedException('잘못된 자격 증명');
+      const validationError = new UnauthorizedException('Invalid credentials');
 
       // 행동 및 검증
       await expect(
@@ -267,15 +282,17 @@ describe('AuthService', () => {
 
     it('만료된 토큰이 주어졌을 때 UnauthorizedException을 발생시켜야 함', async () => {
       // 준비
-      const expiredPayload = {
+      const payload = {
         sub: mockUserId.toString(),
         roles: [Role.USER],
-        iat: new Date().getTime() - 3600000,
-        exp: Math.floor(Date.now() / 1000) - 60, // 1분 전
+        iat: Math.floor(Date.now() / 1000) - 3600, // 1시간 전 발급
       };
 
-      // NestJS의 유효성 검사를 우회하기 위해 JWT_SECRET을 직접 사용하여 토큰 생성
-      const expiredToken = jwtService.sign(expiredPayload, { expiresIn: -10 });
+      // 토큰을 1초 만료 시간으로 설정하여 확실히 만료되도록 함
+      const expiredToken = jwtService.sign(payload, { expiresIn: '1ms' });
+
+      // 토큰이 확실히 만료되도록 짧은 대기 시간 추가
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // 행동 및 검증
       await expect(service.verifyToken(expiredToken)).rejects.toThrow(
@@ -286,7 +303,7 @@ describe('AuthService', () => {
     it('관리자 역할을 가진 토큰을 검증할 수 있어야 함', async () => {
       // 준비
       const adminPayload = {
-        sub: mockAdminUser.id.toString(),
+        sub: mockAdminUserId.toString(),
         roles: [Role.ADMIN],
         iat: new Date().getTime(),
       };
@@ -303,7 +320,7 @@ describe('AuthService', () => {
     it('운영자 역할을 가진 토큰을 검증할 수 있어야 함', async () => {
       // 준비
       const operatorPayload = {
-        sub: mockOperatorUser.id.toString(),
+        sub: mockOperatorUserId.toString(),
         roles: [Role.OPERATOR],
         iat: new Date().getTime(),
       };
@@ -320,7 +337,7 @@ describe('AuthService', () => {
     it('감사자 역할을 가진 토큰을 검증할 수 있어야 함', async () => {
       // 준비
       const auditorPayload = {
-        sub: mockAuditorUser.id.toString(),
+        sub: mockAuditorUserId.toString(),
         roles: [Role.AUDITOR],
         iat: new Date().getTime(),
       };
