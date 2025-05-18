@@ -92,6 +92,29 @@ export class EventController {
     );
   }
 
+  @Get('events/:eventId')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get an event by ID' })
+  @ApiParam({ name: 'eventId', description: 'ID of the event' })
+  @ApiResponse({ status: 200, description: 'Event retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting event by ID',
+    exitMessage: 'Event retrieved',
+  })
+  async getEventById(
+    @Param('eventId') eventId: string,
+  ): Promise<EventResponseDto> {
+    return await lastValueFrom(
+      this.eventClient.send(
+        { cmd: EVENT_CMP.GET_EVENT_BY_ID },
+        { id: eventId },
+      ),
+    );
+  }
+
   @Post('rewards/:type')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OPERATOR, Role.ADMIN)

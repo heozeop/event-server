@@ -1,4 +1,5 @@
 import { AUTH_CMP } from '@libs/cmd';
+import { PinoLoggerService } from '@libs/logger';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientProxy } from '@nestjs/microservices';
@@ -11,6 +12,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject('AUTH_SERVICE') private readonly authClient: ClientProxy,
     private readonly configService: ConfigService,
+    private readonly logger: PinoLoggerService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -27,6 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           { id: payload.sub },
         ),
       );
+      this.logger.log('User found', { user });
 
       if (!user) {
         throw new UnauthorizedException('User not found or inactive');

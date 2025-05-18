@@ -1,3 +1,5 @@
+import { Role } from '@libs/enums';
+import { PinoLoggerService } from '@libs/logger';
 import {
   CanActivate,
   ExecutionContext,
@@ -5,12 +7,14 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Role } from '@libs/enums';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private readonly logger: PinoLoggerService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
@@ -23,6 +27,7 @@ export class RolesGuard implements CanActivate {
     }
 
     const { user } = context.switchToHttp().getRequest();
+    this.logger.log('User', { user });
 
     if (!user || !user.roles) {
       throw new ForbiddenException('User role information is missing');

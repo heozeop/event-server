@@ -123,7 +123,7 @@ export function LogExecution(options: LogOptions = {}) {
             errorContext.response = error.getResponse();
           }
         } else {
-          errorContext.error = String(error);
+          errorContext.error = JSON.stringify(error);
         }
 
         // Log error with appropriate level
