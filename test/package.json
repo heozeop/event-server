@@ -1,0 +1,32 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "generate:fixtures": "ts-node --project tsconfig.json fixtures.ts",
+    "build": "pnpm build:k6",
+    "build:k6": "node esbuild.config.js",
+    "test:k6": "k6 run dist/scripts/auth/login.bundle.js",
+    "seed:db": "ts-node --project tsconfig.json prepare/data-creation.ts && ts-node --project tsconfig.json prepare/db-seed.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@faker-js/faker": "^9.8.0",
+    "@libs/dtos": "workspace:*",
+    "@libs/enums": "workspace:*",
+    "@libs/types": "workspace:*",
+    "@types/k6": "^0.47.3",
+    "bcryptjs": "^2.4.3",
+    "esbuild": "^0.19.11",
+    "glob": "^10.3.10",
+    "k6-html-reporter": "^1.0.5",
+    "mongodb": "^6.5.0",
+    "mongodb-memory-server": "^9.1.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "uuid": "^11.0.5"
+  }
+}

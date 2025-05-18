@@ -1,0 +1,202 @@
+import { faker } from '@faker-js/faker';
+import { EventStatus, RewardType, Role } from '@libs/enums';
+import { BadgeRewardEntity, CouponRewardEntity, EventEntity, ItemRewardEntity, PointRewardEntity, RewardBaseEntity, UserEntity } from '@libs/types';
+import * as fs from 'fs';
+import { ObjectId } from 'mongodb';
+
+// Number of test entities to generate
+const NUM_USERS = 100;
+const NUM_EVENTS = 50;
+
+// Function to generate random users
+function generateUsers(count: number): UserEntity[] {
+  const users: UserEntity[] = [];
+  
+  for (let i = 0; i < count; i++) {
+    const user: UserEntity = {
+      _id: new ObjectId(),
+      email: faker.internet.email(),
+      passwordHash: '$2a$10$aUQWDfWYBq5TF8QwLkq1YO', // For testing purposes, don't need real hash
+      roles: [Role.USER],
+      createdAt: faker.date.past(),
+      updatedAt: new Date(),
+    };
+    
+    users.push(user);
+  }
+  
+  // Add an admin user for testing
+  const adminUser: UserEntity = {
+    _id: new ObjectId(),
+    email: 'admin@example.com',
+    passwordHash: '$2a$10$aUQWDfWYBq5TF8QwLkq1YO',
+    roles: [Role.ADMIN],
+    createdAt: faker.date.past(),
+    updatedAt: new Date(),
+  };
+  
+  users.push(adminUser);
+  
+  return users;
+}
+
+// Function to generate random rewards
+function generateRewards(count: number): RewardBaseEntity[] {
+  const rewards: RewardBaseEntity[] = [];
+  
+  for (let i = 0; i < count; i++) {
+    const rewardType = faker.helpers.arrayElement(Object.values(RewardType));
+    let reward: RewardBaseEntity;
+    
+    switch (rewardType) {
+      case RewardType.POINT:
+        reward = {
+          _id: new ObjectId(),
+          type: RewardType.POINT,
+          name: `${faker.number.int({ min: 100, max: 10000 })} Points Reward`,
+          points: faker.number.int({ min: 100, max: 10000 }),
+          createdAt: faker.date.past(),
+          updatedAt: new Date(),
+        } as PointRewardEntity;
+        break;
+        
+      case RewardType.ITEM:
+        reward = {
+          _id: new ObjectId(),
+          type: RewardType.ITEM,
+          name: `${faker.company.name()} Item`,
+          itemId: faker.string.uuid(),
+          quantity: faker.number.int({ min: 1, max: 5 }),
+          createdAt: faker.date.past(),
+          updatedAt: new Date(),
+        } as ItemRewardEntity;
+        break;
+        
+      case RewardType.COUPON:
+        reward = {
+          _id: new ObjectId(),
+          type: RewardType.COUPON,
+          name: `${faker.company.name()} Coupon`,
+          couponCode: `COUPON-${faker.number.int({ min: 1000, max: 9999 })}`,
+          expiry: faker.date.future(),
+          createdAt: faker.date.past(),
+          updatedAt: new Date(),
+        } as CouponRewardEntity;
+        break;
+        
+      case RewardType.BADGE:
+        reward = {
+          _id: new ObjectId(),
+          type: RewardType.BADGE,
+          name: `${faker.company.name()} Badge`,
+          badgeId: faker.string.uuid(),
+          createdAt: faker.date.past(),
+          updatedAt: new Date(),
+        } as BadgeRewardEntity;
+        break;
+        
+      default:
+        throw new Error(`Unknown reward type: ${rewardType}`);
+    }
+    
+    rewards.push(reward);
+  }
+  
+  return rewards;
+}
+
+// Function to generate random events
+function generateEvents(count: number, users: UserEntity[]): EventEntity[] {
+  const events: EventEntity[] = [];
+  for (let i = 0; i < count; i++) {
+    const startDate = faker.date.future();
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + faker.number.int({ min: 1, max: 30 }));
+    
+    const event: EventEntity = {
+      _id: new ObjectId(),
+      name: faker.company.name() + ' Event',
+      condition: {
+        minPurchase: faker.number.int({ min: 100, max: 10000 }),
+        maxRewards: faker.number.int({ min: 1, max: 5 }),
+      },
+      period: {
+        start: startDate,
+        end: endDate,
+      },
+      status: faker.helpers.arrayElement(Object.values(EventStatus)),
+      createdAt: faker.date.past(),
+      updatedAt: new Date(),
+    };
+    
+    events.push(event);
+  }
+  
+  return events;
+}
+
+// Function to export data for k6 tests
+function exportDataForK6Tests(users: UserEntity[], events: EventEntity[], rewards: RewardBaseEntity[]): void {
+  const dataDir = `${__dirname}/data`;
+  
+  // Create directory if it doesn't exist
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  
+  // Prepare user data for export
+  const userData = users.map(user => ({
+    id: user._id.toString(),
+    email: user.email,
+    password: 'Password123!', // Original password for testing
+    roles: user.roles,
+    createdAt: user.createdAt,
+  }));
+  
+  // Prepare event data for export
+  const eventData = events.map(event => ({
+    id: event._id.toString(),
+    name: event.name,
+    condition: event.condition,
+    period: {
+      start: event.period.start,
+      end: event.period.end,
+    },
+    status: event.status,
+    createdAt: event.createdAt,
+  }));
+  
+  // Create export files that include helper functions
+  const usersExport = JSON.stringify(userData)
+  const eventsExport = JSON.stringify(eventData)
+  const rewardsExport = JSON.stringify(rewards)
+  
+  fs.writeFileSync(`${dataDir}/users.json`, usersExport);
+  fs.writeFileSync(`${dataDir}/events.json`, eventsExport);
+  fs.writeFileSync(`${dataDir}/rewards.json`, rewardsExport);
+
+  console.log('✅ Test data exported for k6 tests');
+}
+
+// Generate and save data
+async function generateTestData(): Promise<void> {
+  console.log('Generating test data...');
+  
+  try {
+    // Generate entities directly without ORM
+    const users = generateUsers(NUM_USERS);
+    const events = generateEvents(NUM_EVENTS, users);
+    const rewards = generateRewards(NUM_EVENTS * 2);
+    
+    // Export data for k6 tests
+    exportDataForK6Tests(users, events, rewards);
+    
+    console.log('✅ Test data generation complete');
+    
+  } catch (error) {
+    console.error('❌ Error generating test data:', error);
+  }
+}
+
+// Run the data generation
+generateTestData().catch(console.error); 

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "../dist",
+    "rootDir": "./",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["./scripts/*"],
+      "@libs/dtos": ["../packages/dtos/src"],
+      "@libs/dtos/*": ["../packages/dtos/src/*"],
+      "@libs/enums": ["../packages/enums/src"],
+      "@libs/enums/*": ["../packages/enums/src/*"],
+      "@libs/types": ["../packages/types/src"],
+      "@libs/types/*": ["../packages/types/src/*"]
+    }
+  },
+  "include": ["./**/*"],
+  "exclude": ["node_modules"]
+}

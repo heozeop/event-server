@@ -7,14 +7,23 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "build:k6": "node test/esbuild.config.js",
+    "test:k6": "docker-compose run k6 run /dist/scripts/auth/login.bundle.js",
+    "generate:fixtures": "ts-node test/fixtures.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@8.15.9",
   "devDependencies": {
-    "turbo": "^2.5.3"
+    "turbo": "^2.5.3",
+    "esbuild": "^0.19.11",
+    "typescript": "^5.3.3",
+    "glob": "^10.3.10",
+    "@types/k6": "^0.47.3",
+    "k6-html-reporter": "^1.0.5",
+    "ts-node": "^10.9.2"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.13.3",
