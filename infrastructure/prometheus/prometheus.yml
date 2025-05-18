@@ -7,13 +7,9 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'k6'
-    static_configs:
-      - targets: ['k6:6565']
-
   - job_name: 'gateway'
     static_configs:
-      - targets: ['gateway:3000']
+      - targets: ['gateway:3333']
 
   - job_name: 'auth'
     static_configs:
@@ -21,10 +17,4 @@ scrape_configs:
 
   - job_name: 'event'
     static_configs:
-      - targets: ['event:3002']
-
-  - job_name: 'cadvisor'
-    static_configs:
-      - targets: ['cadvisor:8080']
-    metrics_path: '/metrics'
-    scheme: 'http' 
+      - targets: ['event:3002'] 

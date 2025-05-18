@@ -5,8 +5,8 @@ const path = require('path');
 const SCRIPT_DIR = path.join(__dirname, 'scripts');
 const OUTPUT_DIR = path.join(__dirname, 'dist');
 
-// Find all TypeScript files recursively
-const entryPoints = glob.sync(path.join(SCRIPT_DIR, '**/*.ts')).filter(file => {
+// Find all TypeScript and JavaScript files recursively
+const entryPoints = glob.sync(path.join(SCRIPT_DIR, '**/*.{ts,js}')).filter(file => {
   // Exclude type definition files
   return !file.endsWith('.d.ts');
 });

@@ -53,6 +53,28 @@ services:
       - "12345:12345" # For internal metrics
     privileged: true # Add privileged mode for better Docker access
 
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - event-network
+    depends_on:
+      - gateway
+      - auth
+      - event
+
   # Application services
   gateway:
     build:
@@ -153,6 +175,19 @@ services:
     networks:
       - event-network
 
+  # Load testing with k6
+  k6:
+    image: grafana/k6:latest
+    container_name: k6
+    volumes:
+      - ./test/dist:/dist
+    networks:
+      - event-network
+    depends_on:
+      - gateway
+      - auth
+      - event
+
 networks:
   event-network:
     driver: bridge
@@ -163,3 +198,4 @@ volumes:
   event-data:
   loki-data:
   grafana-data:
+  prometheus-data:
