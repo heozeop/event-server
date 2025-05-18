@@ -7,7 +7,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -41,9 +41,9 @@ services:
       - "3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./infrastructure/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
-      - ./infrastructure/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
-      - ./infrastructure/grafana/dashboards:/etc/grafana/dashboards
+      - ../infrastructure/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - ../infrastructure/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ../infrastructure/grafana/dashboards:/etc/grafana/dashboards
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_SECURITY_ADMIN_USER=admin
@@ -54,7 +54,7 @@ services:
   # Application services
   gateway:
     build:
-      context: .
+      context: ../
       dockerfile: apps/gateway/docker/Dockerfile.dev
     container_name: gateway
     ports:
@@ -72,7 +72,7 @@ services:
     networks:
       - event-network
     volumes:
-      - .:/app
+      - ..:/app
     depends_on:
       - auth
       - event
@@ -86,7 +86,7 @@ services:
 
   auth:
     build:
-      context: .
+      context: ../
       dockerfile: apps/auth/docker/Dockerfile.dev
     container_name: auth
     environment:
@@ -95,7 +95,7 @@ services:
     networks:
       - event-network
     volumes:
-      - .:/app
+      - ../:/app
     depends_on:
       - mongo-user
     logging:
@@ -108,7 +108,7 @@ services:
 
   event:
     build:
-      context: .
+      context: ../
       dockerfile: apps/event/docker/Dockerfile.dev
     container_name: event
     environment:
@@ -117,7 +117,7 @@ services:
     networks:
       - event-network
     volumes:
-      - .:/app
+      - ../:/app
     depends_on:
       - mongo-event
     logging:

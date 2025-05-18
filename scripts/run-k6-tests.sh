@@ -49,7 +49,7 @@ MODE="quick" # quick, full, or single
 RUN_ALL=false # Flag to run all tests
 K6_PATH="k6" # Default to k6 in PATH
 USE_DOCKER=true # Docker is now the default
-DOCKER_COMPOSE_FILE="$PROJECT_ROOT/docker-compose.k6.yml"
+DOCKER_COMPOSE_FILE="$PROJECT_ROOT/docker/docker-compose.k6.yml"
 
 # Function to print usage
 print_usage() {
