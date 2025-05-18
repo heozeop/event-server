@@ -1,0 +1,21 @@
+{
+  "name": "@libs/metrics",
+  "version": "0.0.1",
+  "description": "Metrics module for event-server microservices",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.1",
+    "@nestjs/core": "^11.1.1",
+    "prom-client": "^14.2.0",
+    "rxjs": "^7.8.1"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.1.1",
+    "@nestjs/core": "^11.1.1"
+  }
+} 
