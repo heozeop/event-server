@@ -5,9 +5,9 @@ import { MikroORM, ObjectId } from '@mikro-orm/mongodb';
 import { INestApplication, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from '../../src/services/auth.service';
-import { UserService } from '../../src/services/user.service';
-import { TestAppModule } from '../test.app.module';
+import { AuthService } from '../src/services/auth.service';
+import { UserService } from '../src/services/user.service';
+import { TestAppModule } from './test.app.module';
 
 describe('AuthService', () => {
   let service: AuthService;

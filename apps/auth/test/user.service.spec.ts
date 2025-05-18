@@ -9,9 +9,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { User } from '../../src/entities/user.entity';
-import { UserService } from '../../src/services/user.service';
-import { TestAppModule } from '../test.app.module';
+import { User } from '../src/entities/user.entity';
+import { UserService } from '../src/services/user.service';
+import { TestAppModule } from './test.app.module';
 
 describe('사용자 서비스 (UserService)', () => {
   let service: UserService;

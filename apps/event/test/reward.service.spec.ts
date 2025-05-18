@@ -11,17 +11,17 @@ import { MikroORM } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { EventReward } from '../../src/entities/event-reward.entity';
+import { EventReward } from '../src/entities/event-reward.entity';
 import {
   BadgeReward,
   CouponReward,
   ItemReward,
   PointReward,
   RewardBase,
-} from '../../src/entities/reward.entity';
-import { EventService } from '../../src/services/event.service';
-import { RewardService } from '../../src/services/reward.service';
-import { TestAppModule } from '../test.app.module';
+} from '../src/entities/reward.entity';
+import { EventService } from '../src/services/event.service';
+import { RewardService } from '../src/services/reward.service';
+import { TestAppModule } from './test.app.module';
 
 // Increase timeout for slow tests
 jest.setTimeout(30000);

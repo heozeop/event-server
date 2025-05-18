@@ -5,9 +5,9 @@ import { MikroORM } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Event } from '../../src/entities/event.entity';
-import { EventService } from '../../src/services/event.service';
-import { TestAppModule } from '../test.app.module';
+import { Event } from '../src/entities/event.entity';
+import { EventService } from '../src/services/event.service';
+import { TestAppModule } from './test.app.module';
 
 describe('EventService', () => {
   let service: EventService;
