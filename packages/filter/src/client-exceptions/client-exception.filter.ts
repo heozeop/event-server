@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Inject,
 } from "@nestjs/common";
+import { RpcException } from '@nestjs/microservices';
 import { Request, Response } from "express";
 
 /**
@@ -24,6 +25,11 @@ export class ClientServiceExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+    this.logger.log('exception', {
+      exception,
+      isHttpException: exception instanceof HttpException,
+      isRpcException: exception instanceof RpcException,
+    });
 
     if (
       typeof exception === "object" &&

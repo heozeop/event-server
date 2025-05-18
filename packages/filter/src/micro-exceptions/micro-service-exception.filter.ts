@@ -24,16 +24,17 @@ export class MicroServiceExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const request = ctx.getRequest<Request>();
+    this.logger.warn('exception', exception as any);
 
     // Handle validation errors with enhanced details
     if (
-      exception instanceof HttpException &&
-      exception.getStatus() === HttpStatus.BAD_REQUEST
+      exception instanceof HttpException
     ) {
       const exceptionResponse = exception.getResponse();
 
       // Check if this has the enhanced validation errors format
       if (
+        exception.getStatus() === HttpStatus.BAD_REQUEST &&
         typeof exceptionResponse === "object" &&
         exceptionResponse !== null &&
         "errors" in exceptionResponse
@@ -46,22 +47,24 @@ export class MicroServiceExceptionFilter implements ExceptionFilter {
         exceptionDto.errors = exceptionResponse.errors as ValidationErrorItem[];
 
         throw new RpcException(exceptionDto);
+      } else {
+
+        const message = exception.message
+        const status = exception.getStatus()
+
+        throw new RpcException({
+          statusCode: status,
+          message,
+          timestamp: new Date().toISOString(),
+        });
       }
     }
 
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    const exceptionResponse = Object.hasOwn(exception as object, 'response') ? (exception as {response: any}).response : null;
 
-    const message =
-      exception instanceof HttpException
-        ? exception.message
-        : exception instanceof Error
-          ? exception.message
-          : "Internal server error";
-
-    // Log the error with stack trace for non-HTTP exceptions
+    const status = exceptionResponse?.statusCode ?? HttpStatus.INTERNAL_SERVER_ERROR;
+    const message = exceptionResponse?.message ?? "Internal server error";
+        // Log the error with stack trace for non-HTTP exceptions
     if (!(exception instanceof HttpException)) {
       this.logger.error(
         `${request.method} ${request.url} - ${status}`,

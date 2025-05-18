@@ -1,7 +1,6 @@
 import { LoggerModule } from "@libs/logger";
 import { Module } from "@nestjs/common";
 import { ClientServiceExceptionFilter } from "./client-exception.filter";
-import { GlobalExceptionFilterProvider } from "./global-exception-filter.provider";
 
 /**
  * Module for HTTP exception handling
@@ -9,7 +8,7 @@ import { GlobalExceptionFilterProvider } from "./global-exception-filter.provide
  */
 @Module({
   imports: [LoggerModule],
-  providers: [ClientServiceExceptionFilter, GlobalExceptionFilterProvider],
+  providers: [ClientServiceExceptionFilter],
   exports: [ClientServiceExceptionFilter],
 })
 export class ClientServiceExceptionModule {}
