@@ -8,7 +8,7 @@
     "build": "pnpm build:k6",
     "build:k6": "node esbuild.config.js",
     "test:k6": "k6 run dist/scripts/auth/login.bundle.js",
-    "seed:db": "ts-node --project tsconfig.json prepare/data-creation.ts && ts-node --project tsconfig.json prepare/db-seed.ts"
+    "seed:db": "rm -rf prepare/data && ts-node --project tsconfig.json prepare/data-creation.ts && ts-node --project tsconfig.json prepare/db-seed.ts"
   },
   "keywords": [],
   "author": "",

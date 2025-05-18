@@ -38,13 +38,8 @@ function loadDataFile(filePath: string): any[] {
     const fileContent = fs.readFileSync(fullPath, 'utf8');
     
     // Extract the default export which contains the array
-    const dataMatch = fileContent.match(/export default (\[[\s\S]*?\]);/);
-    if (!dataMatch || !dataMatch[1]) {
-      throw new Error(`Could not parse data from ${filePath}`);
-    }
-    
-    // Parse the JSON array
-    const data = JSON.parse(dataMatch[1]);
+    const data = JSON.parse(fileContent);
+
     return data;
   } catch (error) {
     console.error(`Error loading data file ${filePath}:`, error);
@@ -53,14 +48,15 @@ function loadDataFile(filePath: string): any[] {
 }
 
 // Load data
-const userData = loadDataFile('./data/users.js');
-const eventData = loadDataFile('./data/events.js');
-const rewardData = loadDataFile('./data/rewards.js');
+const userData = loadDataFile('./data/users.json');
+const eventData = loadDataFile('./data/events.json');
+const rewardData = loadDataFile('./data/rewards.json');
 
 async function seedDatabase() {
   console.log('Starting database seeding...');
   console.log(`User DB: ${config.user.uri}/${config.user.dbName}`);
   console.log(`Event DB: ${config.event.uri}/${config.event.dbName}`);
+  console.log(`Reward DB: ${config.reward.uri}/${config.reward.dbName}`);
   
   // Connect to MongoDB instances
   const userClient = new MongoClient(config.user.uri);
@@ -142,4 +138,4 @@ async function seedDatabase() {
 }
 
 // Run the seed function
-seedDatabase().catch(console.error); 
+seedDatabase()
