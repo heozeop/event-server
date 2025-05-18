@@ -15,18 +15,21 @@ Tests the API endpoint for connecting rewards to events at `POST /events/{eventI
 **Script**: `event-reward-connection-test.ts`
 
 **Features**:
+
 - Automatically authenticates with admin credentials
 - Uses data generated through the prepare scripts
 - Distinguishes between new (active) and existing (inactive) events
 - Randomly selects events and rewards for the test
 
 **Usage**:
+
 ```bash
 # Run with default settings
 pnpm k6 run dist/event/event-reward-connection-test.js
 ```
 
 **Requirements**:
+
 - Test data must be generated using the prepare scripts
 - Authentication service must be running and accessible
 
@@ -42,6 +45,7 @@ Tests the event listing endpoints with various filter combinations:
 **Script**: `event-listing-test.ts`
 
 **Features**:
+
 - Automatically authenticates with admin credentials
 - Uses real event data from the prepare scripts
 - Generates realistic date filters based on actual event data
@@ -49,12 +53,14 @@ Tests the event listing endpoints with various filter combinations:
 - Validates response data structure and content
 
 **Usage**:
+
 ```bash
 # Run with default settings
 pnpm k6 run dist/event/event-listing-test.js
 ```
 
 **Requirements**:
+
 - Test data must be generated using the prepare scripts
 - Authentication service must be running and accessible
 
@@ -73,6 +79,7 @@ General load test for the events API.
 ### 5. Event Reward Request Test
 
 Tests the reward request endpoint performance according to requirements:
+
 - 50 requests per second for 2 minutes
 - Response time under 150ms
 - Uses real user and event data from preparation scripts
@@ -80,6 +87,7 @@ Tests the reward request endpoint performance according to requirements:
 **Script**: `event-reward-request-test.ts`
 
 **Features**:
+
 - Automatically authenticates with admin credentials
 - Uses real event and user data from preparation scripts
 - Makes POST requests to `/events/{eventId}/request` endpoint
@@ -87,18 +95,21 @@ Tests the reward request endpoint performance according to requirements:
 - Tracks successful requests with a custom metric
 
 **Usage**:
+
 ```bash
 # Run with default settings
 pnpm k6 run dist/event/event-reward-request-test.js
 ```
 
 **Requirements**:
+
 - Test data must be generated using the prepare scripts
 - Authentication service must be running and accessible
 
 ### 6. Event Creation Test
 
 Tests the event creation endpoint performance according to requirements:
+
 - 30 requests per second for 2 minutes
 - Response time under 250ms
 - Creates events with random data
@@ -106,6 +117,7 @@ Tests the event creation endpoint performance according to requirements:
 **Script**: `event-creation-test.ts`
 
 **Features**:
+
 - Automatically authenticates with admin credentials
 - Generates unique event data with realistic properties for each request
 - Makes POST requests to `/events` endpoint
@@ -113,12 +125,14 @@ Tests the event creation endpoint performance according to requirements:
 - Tracks successful creations with a custom metric
 
 **Usage**:
+
 ```bash
 # Run with default settings
 pnpm k6 run dist/event/event-creation-test.js
 ```
 
 **Requirements**:
+
 - Authentication service must be running and accessible
 - Admin user must exist in the system
 
@@ -129,12 +143,14 @@ The `auth-utils.ts` file contains utilities for authenticating with the Auth API
 ## How to Run Tests
 
 1. First, make sure you've generated test data:
+
    ```bash
    cd test/k6/prepare
    ts-node data-creation.ts
    ```
 
 2. Build the test scripts:
+
    ```bash
    cd test/k6
    pnpm build
@@ -148,6 +164,7 @@ The `auth-utils.ts` file contains utilities for authenticating with the Auth API
 ## Test Results
 
 After the test completes, K6 will display a summary showing:
+
 - Request rates
 - Response times (min, average, max, p90, p95)
 - Success rates

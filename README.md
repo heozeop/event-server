@@ -37,6 +37,7 @@ Use the provided script to start all services in Docker:
 ```
 
 This will:
+
 - Build and start all services
 - Start MongoDB instances for each service
 - Configure the network
@@ -50,6 +51,7 @@ http://localhost:3333/docs
 ```
 
 The Swagger UI provides:
+
 - Interactive API documentation
 - Ability to test all endpoints
 - Authentication using JWT tokens
@@ -72,6 +74,7 @@ The application uses structured JSON logging with Grafana Loki and Grafana Alloy
 Grafana is available at `http://localhost:3000` with default credentials `admin/admin`.
 
 Pre-configured dashboards include:
+
 - Request Tracing Dashboard: Shows logs grouped by requestId for tracing requests across services
 - Log Viewer: General log viewer with filtering capabilities
 
@@ -85,17 +88,17 @@ Pre-configured dashboards include:
 ### Logging API Usage
 
 ```typescript
-import { LogPerformance } from './common/logging';
+import { LogPerformance } from "./common/logging";
 
 @Controller()
 export class MyController {
   constructor(private readonly logger: LoggerService) {}
 
-  @Get('resource')
-  @LogPerformance('category')
+  @Get("resource")
+  @LogPerformance("category")
   async getResource() {
     // Method execution time will be logged
-    this.logger.log('Getting resource', { resourceId: '123' });
+    this.logger.log("Getting resource", { resourceId: "123" });
     return this.service.fetchResource();
   }
 }
@@ -104,13 +107,16 @@ export class MyController {
 ## Services
 
 ### Gateway Service
+
 - Microservice Port: 3010 (mapped to internal port 3000)
 - HTTP Port: 3333 (for REST API and Swagger)
 
 ### Auth Service
+
 - Microservice Port: 3001
 
 ### Event Service
+
 - Microservice Port: 3002
 
 ## Database
@@ -124,4 +130,4 @@ Each service has its own MongoDB instance:
 
 - Start all services: `./rebuild-and-start.sh`
 - View logs: `docker compose logs -f`
-- Stop all services: `docker compose down` 
+- Stop all services: `docker compose down`

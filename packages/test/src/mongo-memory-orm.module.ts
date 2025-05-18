@@ -1,7 +1,7 @@
-import { AnyEntity, EntityClass, Options } from '@mikro-orm/core';
-import { MongoDriver } from '@mikro-orm/mongodb';
-import { MikroOrmModule } from '@mikro-orm/nestjs';
-import { MongoMemoryServer } from 'mongodb-memory-server';
+import { AnyEntity, EntityClass, Options } from "@mikro-orm/core";
+import { MongoDriver } from "@mikro-orm/mongodb";
+import { MikroOrmModule } from "@mikro-orm/nestjs";
+import { MongoMemoryServer } from "mongodb-memory-server";
 
 /**
  * Test module that provides a MikroORM instance with mongodb-memory-server

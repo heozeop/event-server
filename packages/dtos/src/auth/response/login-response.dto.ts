@@ -7,8 +7,8 @@ import { UserResponseDto } from "./user-response.dto";
 @Exclude()
 export class LoginResponseDto {
   @ApiProperty({
-    description: 'The JWT access token for authentication',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    description: "The JWT access token for authentication",
+    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   })
   @IsString()
   @IsNotEmpty()
@@ -16,7 +16,7 @@ export class LoginResponseDto {
   accessToken!: string;
 
   @ApiProperty({
-    description: 'The user information',
+    description: "The user information",
     type: UserResponseDto,
   })
   @IsObject()

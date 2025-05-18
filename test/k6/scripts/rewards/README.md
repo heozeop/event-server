@@ -7,6 +7,7 @@ This directory contains performance tests for the rewards-related API endpoints.
 ### 1. Rewards Listing Performance Test
 
 Tests the rewards listing API endpoint according to the requirements:
+
 - Without filters: Handle 15 requests per second
 - With type filter: Handle 10 requests per second
 - Response time: Less than 100ms
@@ -16,6 +17,7 @@ Tests the rewards listing API endpoint according to the requirements:
 ### 2. Rewards Request Performance Test
 
 Tests the rewards request lookup API endpoint according to the requirements:
+
 - No filter queries: Handle 10 requests per second
 - User filter queries: Handle 5 requests per second
 - Event filter queries: Handle 5 requests per second
@@ -26,6 +28,7 @@ Tests the rewards request lookup API endpoint according to the requirements:
 ### 3. Reward Creation Performance Test
 
 Tests the reward creation endpoints for different reward types:
+
 - Point rewards: Handle 5 requests per second
 - Badge rewards: Handle 3 requests per second
 - Coupon rewards: Handle 3 requests per second
@@ -34,18 +37,21 @@ Tests the reward creation endpoints for different reward types:
 **Script**: `reward-creation-test.ts`
 
 **Features**:
+
 - Automatically authenticates with admin user credentials
 - Generates unique reward data for each test iteration
 - Validates response format and data integrity
 - Tracks success metrics for each reward type
 
 **Usage**:
+
 ```bash
 # Run with default settings
 pnpm k6 run dist/rewards/reward-creation-test.js
 ```
 
 **Requirements**:
+
 - Authentication service must be running and accessible
 - Admin user must exist in the system (created by data preparation scripts)
 
@@ -98,6 +104,7 @@ After the test completes, K6 will display a summary of the test results, includi
 - Custom metrics: Count of successful requests with and without filters
 
 The test is considered successful if:
+
 - 95% of responses are under 100ms
 - At least 99% of all requests are successful (status 200)
 - The minimum number of successful requests is achieved in each scenario
@@ -105,5 +112,6 @@ The test is considered successful if:
 ## Test Duration
 
 The test runs for a total of 4 minutes:
+
 - First 2 minutes: No filter requests at 15 RPS
-- Last 2 minutes: With filter requests at 10 RPS 
+- Last 2 minutes: With filter requests at 10 RPS

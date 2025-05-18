@@ -22,25 +22,22 @@ pnpm add @libs/logger
 ### Module Setup
 
 ```typescript
-import { Module } from '@nestjs/common';
-import { LoggerModule } from '@libs/logger';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { Module } from "@nestjs/common";
+import { LoggerModule } from "@libs/logger";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
 
 @Module({
   imports: [
     LoggerModule.forRootAsync({
       global: true,
       useFactory: () => ({
-        serviceName: 'my-service', // This will appear as serviceId in logs
-        prettyPrint: process.env.NODE_ENV !== 'production',
-        logLevel: process.env.LOG_LEVEL || 'info',
+        serviceName: "my-service", // This will appear as serviceId in logs
+        prettyPrint: process.env.NODE_ENV !== "production",
+        logLevel: process.env.LOG_LEVEL || "info",
         sensitiveDataOptions: {
           enabled: true,
-          objectPaths: [
-            'req.headers.authorization',
-            'req.body.password',
-          ],
+          objectPaths: ["req.headers.authorization", "req.body.password"],
         },
       }),
     }),
@@ -54,29 +51,31 @@ export class AppModule {}
 ### Using the Logger
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { PinoLoggerService } from '@libs/logger';
+import { Injectable } from "@nestjs/common";
+import { PinoLoggerService } from "@libs/logger";
 
 @Injectable()
 export class AppService {
   constructor(private readonly logger: PinoLoggerService) {
     // Set static context for all logs from this service
-    this.logger.setContext({ component: 'AppService' });
+    this.logger.setContext({ component: "AppService" });
   }
 
   getHello(): string {
-    this.logger.info('Hello world request received');
-    return 'Hello World!';
+    this.logger.info("Hello world request received");
+    return "Hello World!";
   }
 
   processData(data: any): void {
     // Add dynamic context to specific log entries
-    this.logger.info('Processing data', { dataId: data.id });
-    
+    this.logger.info("Processing data", { dataId: data.id });
+
     try {
       // Process data...
     } catch (error) {
-      this.logger.error('Failed to process data', error.stack, { dataId: data.id });
+      this.logger.error("Failed to process data", error.stack, {
+        dataId: data.id,
+      });
     }
   }
 }
@@ -89,9 +88,9 @@ The logger automatically captures request IDs from incoming HTTP requests via th
 To propagate request IDs between services:
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { LogContextStore, RequestIdUtil } from '@libs/logger';
+import { Injectable } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
+import { LogContextStore, RequestIdUtil } from "@libs/logger";
 
 @Injectable()
 export class ApiGatewayService {
@@ -103,12 +102,14 @@ export class ApiGatewayService {
   async callDownstreamService(data: any): Promise<any> {
     // Get the current request ID from context
     const requestId = this.logContextStore.getRequestId();
-    
+
     // Add it to outgoing HTTP headers
     const headers = RequestIdUtil.injectToHttpHeaders({}, requestId);
-    
+
     // Make the HTTP request with the propagated requestId
-    return this.httpService.post('http://downstream-service/api/resource', data, { headers }).toPromise();
+    return this.httpService
+      .post("http://downstream-service/api/resource", data, { headers })
+      .toPromise();
   }
 }
 ```
@@ -219,40 +220,40 @@ pnpm add @libs/logger
 ### Basic Usage
 
 ```typescript
-import { LoggerFactory } from '@libs/logger';
+import { LoggerFactory } from "@libs/logger";
 
 // Create a Pino logger instance
 const logger = LoggerFactory.createLogger({
-  serviceName: 'my-service'
+  serviceName: "my-service",
 });
 
 // Log messages with different levels
-logger.log('This is an info message');
-logger.error('This is an error message');
-logger.warn('This is a warning message');
-logger.debug('This is a debug message');
-logger.verbose('This is a verbose message');
+logger.log("This is an info message");
+logger.error("This is an error message");
+logger.warn("This is a warning message");
+logger.debug("This is a debug message");
+logger.verbose("This is a verbose message");
 
 // Log with context
-logger.log('User logged in', { userId: '123', traceId: 'abc-123' });
+logger.log("User logged in", { userId: "123", traceId: "abc-123" });
 ```
 
 ### NestJS Integration
 
 ```typescript
-import { LoggerFactory } from '@libs/logger';
-import { Module } from '@nestjs/common';
+import { LoggerFactory } from "@libs/logger";
+import { Module } from "@nestjs/common";
 
-const nestLogger = LoggerFactory.createNestLogger('my-service');
+const nestLogger = LoggerFactory.createNestLogger("my-service");
 
 @Module({
   providers: [
     {
-      provide: 'LOGGER',
+      provide: "LOGGER",
       useValue: nestLogger,
     },
   ],
-  exports: ['LOGGER'],
+  exports: ["LOGGER"],
 })
 export class LoggerModule {}
 ```
@@ -260,17 +261,17 @@ export class LoggerModule {}
 In your `main.ts`:
 
 ```typescript
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { LoggerFactory } from '@libs/logger';
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import { LoggerFactory } from "@libs/logger";
 
 async function bootstrap() {
-  const nestLogger = LoggerFactory.createNestLogger('my-service');
-  
+  const nestLogger = LoggerFactory.createNestLogger("my-service");
+
   const app = await NestFactory.create(AppModule, {
     logger: nestLogger,
   });
-  
+
   await app.listen(3000);
 }
 bootstrap();
@@ -279,38 +280,38 @@ bootstrap();
 ### Setting Log Level
 
 ```typescript
-import { LoggerFactory } from '@libs/logger';
+import { LoggerFactory } from "@libs/logger";
 
 // Set log level through environment variable
 // LOG_LEVEL=debug node app.js
 
 // Or set it programmatically
 const logger = LoggerFactory.createLogger({
-  serviceName: 'my-service',
-  logLevel: 'debug'
+  serviceName: "my-service",
+  logLevel: "debug",
 });
 
 // Change log level at runtime
-logger.setLogLevel('trace');
+logger.setLogLevel("trace");
 ```
 
 ### Adding Context to All Logs
 
 ```typescript
-import { LoggerFactory } from '@libs/logger';
+import { LoggerFactory } from "@libs/logger";
 
 const logger = LoggerFactory.createLogger({
-  serviceName: 'my-service'
+  serviceName: "my-service",
 });
 
 // Set context for all subsequent logs
-logger.setContext({ 
-  traceId: 'abc-123',
-  requestId: 'req-456' 
+logger.setContext({
+  traceId: "abc-123",
+  requestId: "req-456",
 });
 
 // This log will include the context
-logger.log('Processing request');
+logger.log("Processing request");
 ```
 
 ## Request Context Management
@@ -320,17 +321,17 @@ The logger package includes a powerful context management system that automatica
 ### Using the Log Context Interceptor
 
 ```typescript
-import { Module } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { LogContextInterceptor } from '@libs/logger';
+import { Module } from "@nestjs/common";
+import { APP_INTERCEPTOR } from "@nestjs/core";
+import { LogContextInterceptor } from "@libs/logger";
 
 @Module({
   providers: [
     {
       provide: APP_INTERCEPTOR,
-      useClass: LogContextInterceptor
-    }
-  ]
+      useClass: LogContextInterceptor,
+    },
+  ],
 })
 export class AppModule {}
 ```
@@ -345,8 +346,8 @@ This interceptor automatically:
 ### Accessing Context in Services
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { LogContextStore } from '@libs/logger';
+import { Injectable } from "@nestjs/common";
+import { LogContextStore } from "@libs/logger";
 
 @Injectable()
 export class UserService {
@@ -355,8 +356,8 @@ export class UserService {
     const contextStore = LogContextStore.getInstance();
     const requestId = contextStore.getRequestId();
     const userId = contextStore.getUserId();
-    
-    // Context is available in all async operations 
+
+    // Context is available in all async operations
     setTimeout(() => {
       // Still has access to the same context
       const sameRequestId = contextStore.getRequestId();
@@ -368,23 +369,23 @@ export class UserService {
 ### Propagating Context Between Services
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { RequestIdUtil, LogContextStore } from '@libs/logger';
+import { Injectable } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
+import { RequestIdUtil, LogContextStore } from "@libs/logger";
 
 @Injectable()
 export class ApiService {
   constructor(private readonly httpService: HttpService) {}
-  
+
   async callAnotherService() {
     const contextStore = LogContextStore.getInstance();
     const requestId = contextStore.getRequestId();
-    
+
     // Add request ID to outgoing HTTP request
     const headers = RequestIdUtil.injectToHttpHeaders({}, requestId);
-    
+
     // Make HTTP request with propagated context
-    return this.httpService.get('https://another-service/api', { headers });
+    return this.httpService.get("https://another-service/api", { headers });
   }
 }
 ```
@@ -405,61 +406,64 @@ The logger provides built-in functionality to automatically mask sensitive infor
 ### Basic Usage with Filtering
 
 ```typescript
-import { LoggerFactory } from '@libs/logger';
+import { LoggerFactory } from "@libs/logger";
 
 // Create a logger with sensitive data filtering enabled
 const logger = LoggerFactory.createLogger({
-  serviceName: 'my-service',
+  serviceName: "my-service",
   sensitiveDataOptions: {
     enabled: true, // Enable filtering (enabled by default)
-    maskValue: '[REDACTED]' // Optional custom mask value
-  }
+    maskValue: "[REDACTED]", // Optional custom mask value
+  },
 });
 
 // Logs with sensitive data will be automatically masked
-logger.log('User info', { 
-  name: 'John Doe',
-  email: 'john.doe@example.com', // Will be masked
-  password: 'secret123'  // Will be masked
+logger.log("User info", {
+  name: "John Doe",
+  email: "john.doe@example.com", // Will be masked
+  password: "secret123", // Will be masked
 });
 
 // Sensitive patterns in messages are also masked
-logger.log('Processing payment with card 4111-1111-1111-1111'); // Card number will be masked
+logger.log("Processing payment with card 4111-1111-1111-1111"); // Card number will be masked
 ```
 
 ### Customizing Filtering Rules
 
 ```typescript
-import { LoggerFactory } from '@libs/logger';
+import { LoggerFactory } from "@libs/logger";
 
 const logger = LoggerFactory.createLogger({
-  serviceName: 'my-service',
+  serviceName: "my-service",
   sensitiveDataOptions: {
     // Custom mask value
-    maskValue: '***',
-    
+    maskValue: "***",
+
     // Override default sensitive keys
     sensitiveKeys: [
-      'password', 'token', 'apiKey',
-      'myCustomSecret', 'internalCode'
+      "password",
+      "token",
+      "apiKey",
+      "myCustomSecret",
+      "internalCode",
     ],
-    
+
     // Add custom regex patterns to mask
     sensitivePatterns: [
       /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, // Email
-      /\b(?:\d{4}[-\s]?){3}\d{4}\b/g,                     // Credit card
-      /\b\d{3}[-]?\d{2}[-]?\d{4}\b/g,                     // SSN
-      /myapp-[a-z0-9]{8}-[a-z0-9]{4}/g                    // Custom app tokens
+      /\b(?:\d{4}[-\s]?){3}\d{4}\b/g, // Credit card
+      /\b\d{3}[-]?\d{2}[-]?\d{4}\b/g, // SSN
+      /myapp-[a-z0-9]{8}-[a-z0-9]{4}/g, // Custom app tokens
     ],
-    
+
     // Mask specific object paths
     objectPaths: [
-      'req.body.password',
-      'req.headers.authorization',
-      'user.credentials.token',
-      'data.personalInfo.socialSecurityNumber'
-    ]
-  }
+      "req.body.password",
+      "req.headers.authorization",
+      "user.credentials.token",
+      "data.personalInfo.socialSecurityNumber",
+    ],
+  },
 });
 ```
 
@@ -468,26 +472,23 @@ const logger = LoggerFactory.createLogger({
 For NestJS applications, you can configure sensitive data filtering through the module:
 
 ```typescript
-import { Module } from '@nestjs/common';
-import { LoggerModule } from '@libs/logger';
+import { Module } from "@nestjs/common";
+import { LoggerModule } from "@libs/logger";
 
 @Module({
   imports: [
     LoggerModule.forRoot({
-      serviceName: 'my-service',
-      prettyPrint: process.env.NODE_ENV !== 'production',
-      logLevel: process.env.LOG_LEVEL || 'info',
+      serviceName: "my-service",
+      prettyPrint: process.env.NODE_ENV !== "production",
+      logLevel: process.env.LOG_LEVEL || "info",
       sensitiveDataOptions: {
         enabled: true,
-        maskValue: '[REDACTED]',
-        sensitiveKeys: ['password', 'secret', 'token', 'apiKey'],
-        objectPaths: [
-          'req.body.password',
-          'req.headers.authorization'
-        ]
-      }
-    })
-  ]
+        maskValue: "[REDACTED]",
+        sensitiveKeys: ["password", "secret", "token", "apiKey"],
+        objectPaths: ["req.body.password", "req.headers.authorization"],
+      },
+    }),
+  ],
 })
 export class AppModule {}
 ```
@@ -514,8 +515,8 @@ pnpm install @libs/logger
 ### Basic Usage
 
 ```typescript
-import { Module } from '@nestjs/common';
-import { LoggerModule } from '@libs/logger';
+import { Module } from "@nestjs/common";
+import { LoggerModule } from "@libs/logger";
 
 @Module({
   imports: [
@@ -524,21 +525,21 @@ import { LoggerModule } from '@libs/logger';
       imports: [],
       inject: [],
       useFactory: async () => ({
-        serviceName: 'my-service',
-        prettyPrint: process.env.NODE_ENV !== 'production',
-        logLevel: process.env.LOG_LEVEL || 'info',
+        serviceName: "my-service",
+        prettyPrint: process.env.NODE_ENV !== "production",
+        logLevel: process.env.LOG_LEVEL || "info",
         fileTransport: {
           enabled: true,
           destination: `/logs/${process.env.SERVICE_NAME}/${process.env.SERVICE_NAME}.log`,
-          mkdir: true
+          mkdir: true,
         },
         sensitiveDataOptions: {
           enabled: true,
-          maskValue: '***MASKED***',
+          maskValue: "***MASKED***",
           objectPaths: [
-            'req.headers.authorization',
-            'req.headers.cookie',
-            'req.body.password',
+            "req.headers.authorization",
+            "req.headers.cookie",
+            "req.body.password",
           ],
         },
       }),
@@ -553,6 +554,7 @@ export class AppModule {}
 This logger package has been configured to work with Fluentd for centralized log collection. The system uses a sidecar pattern where each service has its own Fluentd container that collects and processes logs.
 
 Key features of the Fluentd integration:
+
 - Application logs are written to files in the `/logs` directory
 - Fluentd collects logs from these files and Docker container logs
 - Logs are stored in a structured format for easy querying and analysis
@@ -562,6 +564,7 @@ For detailed information on the Fluentd integration, see the [Fluentd Guide](../
 #### Sidecar Architecture
 
 The logger uses a sidecar pattern where:
+
 1. Your service writes logs to a local file using Pino
 2. A Fluentd container (sidecar) monitors these log files
 3. Fluentd processes and forwards logs to the configured destination
@@ -569,6 +572,7 @@ The logger uses a sidecar pattern where:
 #### Directory Structure
 
 The logs are stored in the following structure:
+
 ```
 /logs/{service-name}/{YYYY-MM-DD}/
 ```
@@ -591,12 +595,13 @@ services:
     volumes:
       - ./logs:/logs
     ports:
-      - "24220:24220"  # For monitoring
+      - "24220:24220" # For monitoring
 ```
 
 #### Configuration
 
 The Fluentd container is configured with:
+
 - Log directory monitoring
 - JSON parsing
 - Daily log rotation
@@ -614,18 +619,18 @@ You can customize the log format by configuring the `PinoLoggerService`:
 
 ```typescript
 const logger = new PinoLoggerService({
-  serviceName: 'my-service',
+  serviceName: "my-service",
   prettyPrint: true,
-  logLevel: 'debug',
+  logLevel: "debug",
   fileTransport: {
     enabled: true,
-    destination: '/logs/my-service/my-service.log',
-    mkdir: true
+    destination: "/logs/my-service/my-service.log",
+    mkdir: true,
   },
   sensitiveDataOptions: {
     enabled: true,
-    maskValue: '***MASKED***',
-    objectPaths: ['password', 'token'],
+    maskValue: "***MASKED***",
+    objectPaths: ["password", "token"],
   },
 });
 ```
@@ -641,7 +646,7 @@ export class MyService {
 
   someMethod() {
     // The logger automatically includes request context (requestId, etc.)
-    this.logger.info('This log includes request context');
+    this.logger.info("This log includes request context");
   }
 }
-``` 
+```

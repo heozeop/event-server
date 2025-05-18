@@ -10,4 +10,4 @@ export interface RewardRequestEntity extends CustomBaseEntity {
   userId: ObjectId;
   event: EventEntity;
   status: RewardRequestStatus;
-} 
+}

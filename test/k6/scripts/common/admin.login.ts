@@ -6,18 +6,20 @@ export function getAdminToken() {
     `${API_BASE_URL}/auth/login`,
     JSON.stringify({
       email: ADMIN_EMAIL,
-      password: TEST_PASSWORD
+      password: TEST_PASSWORD,
     }),
     {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-    }
+    },
   );
-  
+
   if (response.status !== 201) {
-    throw new Error(`Admin authentication failed: ${response.status} - ${response.body}`);
+    throw new Error(
+      `Admin authentication failed: ${response.status} - ${response.body}`,
+    );
   }
-  
-  return response.json('accessToken') as string;
+
+  return response.json("accessToken") as string;
 }

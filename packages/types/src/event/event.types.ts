@@ -1,5 +1,5 @@
-import { EventStatus } from '@libs/enums';
-import { CustomBaseEntity } from '../base.types';
+import { EventStatus } from "@libs/enums";
+import { CustomBaseEntity } from "../base.types";
 
 /**
  * Interface representing the Event entity

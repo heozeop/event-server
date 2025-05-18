@@ -1,5 +1,5 @@
-import { ExceptionDto } from '@libs/dtos';
-import { PinoLoggerService } from '@libs/logger';
+import { ExceptionDto } from "@libs/dtos";
+import { PinoLoggerService } from "@libs/logger";
 import {
   ArgumentsHost,
   Catch,
@@ -7,8 +7,8 @@ import {
   HttpException,
   HttpStatus,
   Inject,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
+} from "@nestjs/common";
+import { Request, Response } from "express";
 
 /**
  * Global HTTP exception filter that catches all exceptions
@@ -17,7 +17,7 @@ import { Request, Response } from 'express';
 @Catch()
 export class ClientServiceExceptionFilter implements ExceptionFilter {
   constructor(
-    @Inject(PinoLoggerService) private readonly logger: PinoLoggerService
+    @Inject(PinoLoggerService) private readonly logger: PinoLoggerService,
   ) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
@@ -25,13 +25,18 @@ export class ClientServiceExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    if(typeof exception === 'object' && Object.hasOwn(exception as object, 'error')) {
+    if (
+      typeof exception === "object" &&
+      Object.hasOwn(exception as object, "error")
+    ) {
       const error = (exception as { error: ExceptionDto }).error;
       const status = error.statusCode;
       const message = error.message;
       const timestamp = error.timestamp;
 
-      return response.status(status).json({ message, timestamp, path: request.url });
+      return response
+        .status(status)
+        .json({ message, timestamp, path: request.url });
     }
 
     const status =
@@ -40,14 +45,18 @@ export class ClientServiceExceptionFilter implements ExceptionFilter {
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
     // Check if this is a validation error from ValidationPipe
-    if (exception instanceof HttpException && exception.getStatus() === HttpStatus.BAD_REQUEST) {
+    if (
+      exception instanceof HttpException &&
+      exception.getStatus() === HttpStatus.BAD_REQUEST
+    ) {
       const exceptionResponse = exception.getResponse();
-      
+
       // Check if this is our enhanced validation error format with the 'errors' property
-      if (typeof exceptionResponse === 'object' && 
-          exceptionResponse !== null && 
-          'errors' in exceptionResponse) {
-        
+      if (
+        typeof exceptionResponse === "object" &&
+        exceptionResponse !== null &&
+        "errors" in exceptionResponse
+      ) {
         // This exception already includes formatted errors and has been logged by the ValidationPipe
         return response.status(status).json({
           ...exceptionResponse,
@@ -61,7 +70,7 @@ export class ClientServiceExceptionFilter implements ExceptionFilter {
         ? exception.message
         : exception instanceof Error
           ? exception.message
-          : 'Internal server error';
+          : "Internal server error";
 
     // Log the error with stack trace for non-HTTP exceptions
     if (!(exception instanceof HttpException)) {
@@ -80,4 +89,4 @@ export class ClientServiceExceptionFilter implements ExceptionFilter {
 
     response.status(status).json(responseBody);
   }
-} 
+}

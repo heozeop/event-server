@@ -1,4 +1,4 @@
-import { ObjectId } from '@mikro-orm/mongodb';
+import { ObjectId } from "@mikro-orm/mongodb";
 
 export interface CustomBaseEntity {
   _id: ObjectId;

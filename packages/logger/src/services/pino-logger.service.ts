@@ -1,9 +1,9 @@
-import { Injectable, Scope } from '@nestjs/common';
-import * as pino from 'pino';
-import { LogContextStore } from '../context/store/log-context.store';
-import { LogLevel, PinoLogLevelManager } from '../core/log-level-manager';
-import { SensitiveDataFilter } from '../filters';
-import { LogContext, LoggerService } from '../interfaces';
+import { Injectable, Scope } from "@nestjs/common";
+import * as pino from "pino";
+import { LogContextStore } from "../context/store/log-context.store";
+import { LogLevel, PinoLogLevelManager } from "../core/log-level-manager";
+import { SensitiveDataFilter } from "../filters";
+import { LogContext, LoggerService } from "../interfaces";
 
 export interface PinoLoggerOptions {
   serviceName: string;
@@ -38,23 +38,25 @@ export class PinoLoggerService implements LoggerService {
     this.serviceName = options.serviceName;
     this.logLevelManager = new PinoLogLevelManager(options.logLevel);
     this.contextStore = contextStore;
-    
+
     // Set default or custom message key for Alloy - always use 'msg' for consistency
-    this.messageKey = options.alloyConfig?.messageKey || 'msg';
+    this.messageKey = options.alloyConfig?.messageKey || "msg";
 
     // Initialize sensitive data filter if enabled
     if (options.sensitiveDataOptions?.enabled !== false) {
-      this.sensitiveDataFilter = new SensitiveDataFilter(options.sensitiveDataOptions);
+      this.sensitiveDataFilter = new SensitiveDataFilter(
+        options.sensitiveDataOptions,
+      );
     }
 
     // Base config without formatters (for use with transports)
     const baseConfig = {
       level: this.logLevelManager.getLogLevel(),
       base: {
-        serviceId: this.serviceName
+        serviceId: this.serviceName,
       },
       timestamp: pino.stdTimeFunctions.isoTime,
-      messageKey: this.messageKey // Always use the configured message key
+      messageKey: this.messageKey, // Always use the configured message key
     };
 
     // Full config with formatters (for direct use without transports)
@@ -63,17 +65,17 @@ export class PinoLoggerService implements LoggerService {
       formatters: {
         level: (label) => {
           // Use configured level key if provided
-          const levelKey = options.alloyConfig?.levelKey || 'level';
+          const levelKey = options.alloyConfig?.levelKey || "level";
           return { [levelKey]: label };
         },
         // Ensure timestamp is formatted correctly for Alloy
         log: (object) => {
           return {
             ...object,
-            timestamp: new Date().toISOString() // ISO format timestamp for Alloy
+            timestamp: new Date().toISOString(), // ISO format timestamp for Alloy
           };
-        }
-      }
+        },
+      },
     };
 
     // Configure transports based on options
@@ -82,28 +84,31 @@ export class PinoLoggerService implements LoggerService {
       this.logger = pino.pino({
         ...baseConfig,
         transport: {
-          target: 'pino-pretty',
+          target: "pino-pretty",
           options: {
             colorize: true,
-            translateTime: 'SYS:standard',
-            ignore: 'pid,hostname',
-            messageKey: this.messageKey // Ensure consistent message key
-          }
-        }
+            translateTime: "SYS:standard",
+            ignore: "pid,hostname",
+            messageKey: this.messageKey, // Ensure consistent message key
+          },
+        },
       });
-    } else if (options.customTransports && options.customTransports.length > 0) {
+    } else if (
+      options.customTransports &&
+      options.customTransports.length > 0
+    ) {
       // Custom transports specified
       this.logger = pino.pino({
         ...baseConfig,
         transport: {
-          targets: options.customTransports.map(target => ({
+          targets: options.customTransports.map((target) => ({
             ...target,
             options: {
               ...target.options,
-              messageKey: this.messageKey // Ensure consistent message key in custom transports
-            }
-          }))
-        }
+              messageKey: this.messageKey, // Ensure consistent message key in custom transports
+            },
+          })),
+        },
       });
     } else {
       // Default JSON logger for production (captured by Grafana Alloy)
@@ -115,9 +120,9 @@ export class PinoLoggerService implements LoggerService {
     // Start with the base context
     const mergedContext = {
       ...this.baseContext,
-      serviceId: this.serviceName
+      serviceId: this.serviceName,
     };
-    
+
     // Try to get request context if contextStore is available
     if (this.contextStore) {
       try {
@@ -127,7 +132,7 @@ export class PinoLoggerService implements LoggerService {
         // Silently handle any errors getting context
       }
     }
-    
+
     // Add explicit context (highest priority)
     if (context) {
       Object.assign(mergedContext, context);
@@ -142,7 +147,7 @@ export class PinoLoggerService implements LoggerService {
   }
 
   private maskMessage(message: string): string {
-    if (this.sensitiveDataFilter && typeof message === 'string') {
+    if (this.sensitiveDataFilter && typeof message === "string") {
       return this.sensitiveDataFilter.mask(message);
     }
     return message;
@@ -159,12 +164,13 @@ export class PinoLoggerService implements LoggerService {
 
   error(message: string, trace?: string, context?: LogContext): void {
     const errorContext = this.formatContext(context);
-    
+
     if (trace) {
-      errorContext.stack = this.sensitiveDataFilter ? 
-        this.sensitiveDataFilter.mask(trace) : trace;
+      errorContext.stack = this.sensitiveDataFilter
+        ? this.sensitiveDataFilter.mask(trace)
+        : trace;
     }
-    
+
     this.logger.error(errorContext, this.maskMessage(message));
   }
 

@@ -7,8 +7,8 @@ import { IsArray, IsDate, IsEnum, IsNotEmpty, IsString } from "class-validator";
 @Exclude()
 export class UserResponseDto {
   @ApiProperty({
-    description: 'The unique identifier of the user',
-    example: '507f1f77bcf86cd799439011',
+    description: "The unique identifier of the user",
+    example: "507f1f77bcf86cd799439011",
   })
   @IsString()
   @IsNotEmpty()
@@ -16,8 +16,8 @@ export class UserResponseDto {
   id!: string;
 
   @ApiProperty({
-    description: 'The email address of the user',
-    example: 'user@example.com',
+    description: "The email address of the user",
+    example: "user@example.com",
   })
   @IsString()
   @IsNotEmpty()
@@ -25,7 +25,7 @@ export class UserResponseDto {
   email!: string;
 
   @ApiProperty({
-    description: 'The roles assigned to the user',
+    description: "The roles assigned to the user",
     example: [Role.USER],
     enum: Role,
     isArray: true,
@@ -36,8 +36,8 @@ export class UserResponseDto {
   roles!: Role[];
 
   @ApiProperty({
-    description: 'The date when the user was created',
-    example: '2023-01-01T00:00:00.000Z',
+    description: "The date when the user was created",
+    example: "2023-01-01T00:00:00.000Z",
   })
   @IsDate()
   @IsNotEmpty()
@@ -45,8 +45,8 @@ export class UserResponseDto {
   createdAt!: Date;
 
   @ApiProperty({
-    description: 'The date when the user was last updated',
-    example: '2023-01-01T00:00:00.000Z',
+    description: "The date when the user was last updated",
+    example: "2023-01-01T00:00:00.000Z",
   })
   @IsDate()
   @IsNotEmpty()

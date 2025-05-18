@@ -1,5 +1,5 @@
-import { APP_FILTER } from '@nestjs/core';
-import { ClientServiceExceptionFilter } from './client-exception.filter';
+import { APP_FILTER } from "@nestjs/core";
+import { ClientServiceExceptionFilter } from "./client-exception.filter";
 
 /**
  * Provider for globally applying the HttpExceptionFilter across your application
@@ -8,4 +8,4 @@ import { ClientServiceExceptionFilter } from './client-exception.filter';
 export const GlobalExceptionFilterProvider = {
   provide: APP_FILTER,
   useClass: ClientServiceExceptionFilter,
-}; 
+};

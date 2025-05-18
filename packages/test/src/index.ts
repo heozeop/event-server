@@ -1,1 +1,1 @@
-export * from './mongo-memory-orm.module';
+export * from "./mongo-memory-orm.module";

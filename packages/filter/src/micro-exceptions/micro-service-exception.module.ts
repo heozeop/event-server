@@ -1,7 +1,7 @@
-import { LoggerModule } from '@libs/logger';
-import { Module } from '@nestjs/common';
-import { MicroServiceGlobalExceptionFilterProvider } from './global-exception-filter.provider';
-import { MicroServiceExceptionFilter } from './micro-service-exception.filter';
+import { LoggerModule } from "@libs/logger";
+import { Module } from "@nestjs/common";
+import { MicroServiceGlobalExceptionFilterProvider } from "./global-exception-filter.provider";
+import { MicroServiceExceptionFilter } from "./micro-service-exception.filter";
 
 /**
  * Module for microservice exception handling
@@ -9,7 +9,10 @@ import { MicroServiceExceptionFilter } from './micro-service-exception.filter';
  */
 @Module({
   imports: [LoggerModule],
-  providers: [MicroServiceExceptionFilter, MicroServiceGlobalExceptionFilterProvider],
+  providers: [
+    MicroServiceExceptionFilter,
+    MicroServiceGlobalExceptionFilterProvider,
+  ],
   exports: [MicroServiceExceptionFilter],
 })
 export class MicroServiceExceptionModule {}

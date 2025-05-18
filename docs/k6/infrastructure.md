@@ -14,25 +14,25 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'prometheus'
+  - job_name: "prometheus"
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ["localhost:9090"]
 
-  - job_name: 'k6'
+  - job_name: "k6"
     static_configs:
-      - targets: ['k6:6565']
+      - targets: ["k6:6565"]
 
-  - job_name: 'gateway'
+  - job_name: "gateway"
     static_configs:
-      - targets: ['gateway:3000']
+      - targets: ["gateway:3000"]
 
-  - job_name: 'auth'
+  - job_name: "auth"
     static_configs:
-      - targets: ['auth:3001']
+      - targets: ["auth:3001"]
 
-  - job_name: 'event'
+  - job_name: "event"
     static_configs:
-      - targets: ['event:3002']
+      - targets: ["event:3002"]
 ```
 
 ### 2. k6 출력 설정
@@ -54,7 +54,7 @@ scrape_configs:
 **파일 경로**: `docker-compose.k6.yml`
 
 ```yaml
-version: '3.9'
+version: "3.9"
 
 services:
   prometheus:
@@ -66,11 +66,11 @@ services:
       - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--web.enable-lifecycle"
     networks:
       - event-network
 
@@ -449,9 +449,7 @@ networks:
         "minVizWidth": 0,
         "orientation": "horizontal",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -706,9 +704,9 @@ datasources:
 apiVersion: 1
 
 providers:
-  - name: 'k6-dashboards'
+  - name: "k6-dashboards"
     orgId: 1
-    folder: 'k6'
+    folder: "k6"
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10
@@ -723,21 +721,21 @@ providers:
 **파일 경로**: `docker-compose.k6.yml` (추가)
 
 ```yaml
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-    ports:
-      - "8080:8080"
-    networks:
-      - event-network
-    depends_on:
-      - prometheus
+cadvisor:
+  image: gcr.io/cadvisor/cadvisor:latest
+  container_name: cadvisor
+  volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:ro
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+    - /dev/disk/:/dev/disk:ro
+  ports:
+    - "8080:8080"
+  networks:
+    - event-network
+  depends_on:
+    - prometheus
 ```
 
 ## 완성된 모니터링 스택
@@ -749,4 +747,4 @@ providers:
 3. **Grafana**: 대시보드 시각화
 4. **cAdvisor**: 컨테이너 리소스 모니터링
 
-모든 구성 요소는 Docker Compose를 통해 연결되며, 테스트 실행 중 및 완료 후에 Grafana 대시보드에서 결과를 확인할 수 있습니다. 
+모든 구성 요소는 Docker Compose를 통해 연결되며, 테스트 실행 중 및 완료 후에 Grafana 대시보드에서 결과를 확인할 수 있습니다.

@@ -1,4 +1,3 @@
-export * from './auth';
-export * from './common';
-export * from './event';
-
+export * from "./auth";
+export * from "./common";
+export * from "./event";

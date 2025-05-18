@@ -1,2 +1,1 @@
-export * from './sensitive-data.filter';
-
+export * from "./sensitive-data.filter";

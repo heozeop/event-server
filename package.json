@@ -7,6 +7,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "test": "turbo run test",
     "build:k6": "node test/k6/esbuild.config.js",
     "test:k6": "docker compose -f docker-compose.k6.yml run --rm k6 run /dist/scripts/auth/login.bundle.js",

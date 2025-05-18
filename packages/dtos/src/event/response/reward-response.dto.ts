@@ -1,7 +1,13 @@
-import { RewardType } from '@libs/enums';
-import { BadgeRewardEntity, CouponRewardEntity, ItemRewardEntity, PointRewardEntity, RewardBaseEntity } from '@libs/types';
-import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose, Transform } from 'class-transformer';
+import { RewardType } from "@libs/enums";
+import {
+  BadgeRewardEntity,
+  CouponRewardEntity,
+  ItemRewardEntity,
+  PointRewardEntity,
+  RewardBaseEntity,
+} from "@libs/types";
+import { ApiProperty } from "@nestjs/swagger";
+import { Exclude, Expose, Transform } from "class-transformer";
 
 /**
  * Base DTO for reward responses
@@ -9,15 +15,15 @@ import { Exclude, Expose, Transform } from 'class-transformer';
 @Exclude()
 export class RewardResponseDto {
   @ApiProperty({
-    description: 'The unique identifier of the reward',
-    example: '507f1f77bcf86cd799439011',
+    description: "The unique identifier of the reward",
+    example: "507f1f77bcf86cd799439011",
   })
   @Expose()
   @Transform(({ value }) => value.toString())
   id!: string;
 
   @ApiProperty({
-    description: 'The type of reward',
+    description: "The type of reward",
     enum: RewardType,
     example: RewardType.POINT,
   })
@@ -54,7 +60,7 @@ export class RewardResponseDto {
 @Exclude()
 export class PointRewardResponseDto extends RewardResponseDto {
   @ApiProperty({
-    description: 'The number of points awarded',
+    description: "The number of points awarded",
     example: 100,
   })
   @Expose()
@@ -80,14 +86,14 @@ export class PointRewardResponseDto extends RewardResponseDto {
 @Exclude()
 export class ItemRewardResponseDto extends RewardResponseDto {
   @ApiProperty({
-    description: 'The ID of the item awarded',
-    example: 'item123',
+    description: "The ID of the item awarded",
+    example: "item123",
   })
   @Expose()
   itemId!: string;
 
   @ApiProperty({
-    description: 'The quantity of items awarded',
+    description: "The quantity of items awarded",
     example: 1,
   })
   @Expose()
@@ -114,15 +120,15 @@ export class ItemRewardResponseDto extends RewardResponseDto {
 @Exclude()
 export class CouponRewardResponseDto extends RewardResponseDto {
   @ApiProperty({
-    description: 'The coupon code awarded',
-    example: 'SUMMER2023',
+    description: "The coupon code awarded",
+    example: "SUMMER2023",
   })
   @Expose()
   couponCode!: string;
 
   @ApiProperty({
-    description: 'The expiry date of the coupon',
-    example: '2023-12-31T23:59:59Z',
+    description: "The expiry date of the coupon",
+    example: "2023-12-31T23:59:59Z",
   })
   @Expose()
   expiry!: Date;
@@ -148,8 +154,8 @@ export class CouponRewardResponseDto extends RewardResponseDto {
 @Exclude()
 export class BadgeRewardResponseDto extends RewardResponseDto {
   @ApiProperty({
-    description: 'The ID of the badge awarded',
-    example: 'badge123',
+    description: "The ID of the badge awarded",
+    example: "badge123",
   })
   @Expose()
   badgeId!: string;
@@ -166,4 +172,4 @@ export class BadgeRewardResponseDto extends RewardResponseDto {
     });
     return dto;
   }
-} 
+}

@@ -5,18 +5,18 @@ import { PagingDto } from "../../common";
 
 export class QueryRewardRequestDto extends PagingDto {
   @ApiProperty({
-    description: 'Filter reward requests by user ID',
+    description: "Filter reward requests by user ID",
     required: false,
-    example: 'user123',
+    example: "user123",
   })
   @IsString()
   @IsOptional()
   userId?: string;
 
   @ApiProperty({
-    description: 'Filter reward requests by event ID',
+    description: "Filter reward requests by event ID",
     required: false,
-    example: '507f1f77bcf86cd799439011',
+    example: "507f1f77bcf86cd799439011",
   })
   @IsMongoId()
   @IsOptional()
@@ -24,7 +24,7 @@ export class QueryRewardRequestDto extends PagingDto {
 
   @ApiProperty({
     enum: RewardRequestStatus,
-    description: 'Filter reward requests by status',
+    description: "Filter reward requests by status",
     required: false,
     example: RewardRequestStatus.PENDING,
   })

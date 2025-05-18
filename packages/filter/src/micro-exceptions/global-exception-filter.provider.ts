@@ -1,5 +1,5 @@
-import { APP_FILTER } from '@nestjs/core';
-import { MicroServiceExceptionFilter } from './micro-service-exception.filter';
+import { APP_FILTER } from "@nestjs/core";
+import { MicroServiceExceptionFilter } from "./micro-service-exception.filter";
 
 /**
  * Provider for globally applying the HttpExceptionFilter across your application
@@ -8,4 +8,4 @@ import { MicroServiceExceptionFilter } from './micro-service-exception.filter';
 export const MicroServiceGlobalExceptionFilterProvider = {
   provide: APP_FILTER,
   useClass: MicroServiceExceptionFilter,
-}; 
+};

@@ -1,10 +1,10 @@
-import { HttpException } from '@nestjs/common';
-import { LogOptions, WithLogger } from '../interfaces';
+import { HttpException } from "@nestjs/common";
+import { LogOptions, WithLogger } from "../interfaces";
 
 const defaultOptions: LogOptions = {
-  entryLevel: 'debug',
-  exitLevel: 'debug',
-  errorLevel: 'error',
+  entryLevel: "debug",
+  exitLevel: "debug",
+  errorLevel: "error",
   logParams: true,
   logResult: true,
   logExecutionTime: true,
@@ -44,19 +44,19 @@ export function LogExecution(options: LogOptions = {}) {
 
       // Log method entry using the appropriate level
       switch (mergedOptions.entryLevel) {
-        case 'log':
+        case "log":
           this.logger.log(entryMessage, entryContext);
           break;
-        case 'warn':
+        case "warn":
           this.logger.warn(entryMessage, entryContext);
           break;
-        case 'error':
+        case "error":
           this.logger.error(entryMessage, undefined, entryContext);
           break;
-        case 'verbose':
+        case "verbose":
           this.logger.verbose(entryMessage, entryContext);
           break;
-        case 'debug':
+        case "debug":
         default:
           this.logger.debug(entryMessage, entryContext);
           break;
@@ -82,19 +82,19 @@ export function LogExecution(options: LogOptions = {}) {
 
         // Log method exit
         switch (mergedOptions.exitLevel) {
-          case 'log':
+          case "log":
             this.logger.log(exitMessage, exitContext);
             break;
-          case 'warn':
+          case "warn":
             this.logger.warn(exitMessage, exitContext);
             break;
-          case 'error':
+          case "error":
             this.logger.error(exitMessage, undefined, exitContext);
             break;
-          case 'verbose':
+          case "verbose":
             this.logger.verbose(exitMessage, exitContext);
             break;
-          case 'debug':
+          case "debug":
           default:
             this.logger.debug(exitMessage, exitContext);
             break;
@@ -127,7 +127,7 @@ export function LogExecution(options: LogOptions = {}) {
         }
 
         // Log error with appropriate level
-        if (mergedOptions.errorLevel === 'warn') {
+        if (mergedOptions.errorLevel === "warn") {
           this.logger.warn(errorMessage, errorContext);
         } else {
           this.logger.error(errorMessage, errorStack, errorContext);

@@ -10,7 +10,7 @@ Enhanced validation pipe with better error handling and logging.
 
 ```typescript
 // In your module
-import { PipeModule } from '@libs/pipe';
+import { PipeModule } from "@libs/pipe";
 
 @Module({
   imports: [
@@ -21,8 +21,8 @@ import { PipeModule } from '@libs/pipe';
 export class AppModule {}
 
 // In main.ts
-import { ValidationPipe } from '@libs/pipe';
+import { ValidationPipe } from "@libs/pipe";
 
 // Using globally
 app.useGlobalPipes(app.get(ValidationPipe));
-``` 
+```

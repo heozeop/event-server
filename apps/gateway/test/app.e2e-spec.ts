@@ -5,7 +5,12 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { JwtAuthGuard } from '../src/common/guards/jwt-auth.guard';
 import { RolesGuard } from '../src/common/guards/roles.guard';
-import { MockJwtAuthGuard, MockRolesGuard, setupTestApp, testOverrideProviders } from './test-utils';
+import {
+  MockJwtAuthGuard,
+  MockRolesGuard,
+  setupTestApp,
+  testOverrideProviders,
+} from './test-utils';
 
 describe('Gateway Service (e2e)', () => {
   let app: INestApplication;

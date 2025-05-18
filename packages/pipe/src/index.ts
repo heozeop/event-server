@@ -1,3 +1,2 @@
-export * from './pipe.module';
-export * from './validation.pipe';
-
+export * from "./pipe.module";
+export * from "./validation.pipe";

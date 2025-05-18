@@ -180,4 +180,4 @@ To add a new test:
 2. Import the necessary modules and helpers
 3. Define the test options (stages, thresholds)
 4. Implement the test function
-5. Export the function as default 
+5. Export the function as default

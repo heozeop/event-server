@@ -1,18 +1,18 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import {
-    IsDate,
-    IsMongoId,
-    IsNotEmpty,
-    IsNumber,
-    IsPositive,
-    IsString
-} from 'class-validator';
+  IsDate,
+  IsMongoId,
+  IsNotEmpty,
+  IsNumber,
+  IsPositive,
+  IsString,
+} from "class-validator";
 
 export class CreateRewardDto {
   @ApiProperty({
-    description: 'The name of the reward',
-    example: 'Gold Badge',
+    description: "The name of the reward",
+    example: "Gold Badge",
   })
   @IsString()
   @IsNotEmpty()
@@ -24,7 +24,7 @@ export class CreateRewardDto {
  */
 export class CreatePointRewardDto extends CreateRewardDto {
   @ApiProperty({
-    description: 'The number of points for the reward',
+    description: "The number of points for the reward",
     example: 100,
   })
   @IsNumber()
@@ -37,15 +37,15 @@ export class CreatePointRewardDto extends CreateRewardDto {
  */
 export class CreateItemRewardDto extends CreateRewardDto {
   @ApiProperty({
-    description: 'The ID of the item to reward',
-    example: 'item123',
+    description: "The ID of the item to reward",
+    example: "item123",
   })
   @IsString()
   @IsNotEmpty()
   itemId!: string;
 
   @ApiProperty({
-    description: 'The quantity of items to reward',
+    description: "The quantity of items to reward",
     example: 1,
   })
   @IsNumber()
@@ -58,16 +58,16 @@ export class CreateItemRewardDto extends CreateRewardDto {
  */
 export class CreateCouponRewardDto extends CreateRewardDto {
   @ApiProperty({
-    description: 'The coupon code for the reward',
-    example: 'SUMMER2023',
+    description: "The coupon code for the reward",
+    example: "SUMMER2023",
   })
   @IsString()
   @IsNotEmpty()
   couponCode!: string;
 
   @ApiProperty({
-    description: 'The expiry date of the coupon',
-    example: '2023-12-31T23:59:59Z',
+    description: "The expiry date of the coupon",
+    example: "2023-12-31T23:59:59Z",
   })
   @IsDate()
   @Type(() => Date)
@@ -79,8 +79,8 @@ export class CreateCouponRewardDto extends CreateRewardDto {
  */
 export class CreateBadgeRewardDto extends CreateRewardDto {
   @ApiProperty({
-    description: 'The ID of the badge to reward',
-    example: 'badge123',
+    description: "The ID of the badge to reward",
+    example: "badge123",
   })
   @IsString()
   @IsNotEmpty()
@@ -92,16 +92,16 @@ export class CreateBadgeRewardDto extends CreateRewardDto {
  */
 export class CreateEventRewardDto {
   @ApiProperty({
-    description: 'The ID of the event for the reward',
-    example: '507f1f77bcf86cd799439011',
+    description: "The ID of the event for the reward",
+    example: "507f1f77bcf86cd799439011",
   })
   @IsMongoId()
   eventId!: string;
 
   @ApiProperty({
-    description: 'The ID of the reward to add to the event',
-    example: '507f1f77bcf86cd799439012',
+    description: "The ID of the reward to add to the event",
+    example: "507f1f77bcf86cd799439012",
   })
   @IsMongoId()
   rewardId!: string;
-} 
+}

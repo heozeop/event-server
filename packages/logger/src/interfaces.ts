@@ -28,7 +28,7 @@ export interface LoggerService {
   debug(message: string, context?: LogContext): void;
   verbose(message: string, context?: LogContext): void;
   setContext(context: LogContext): LoggerService;
-} 
+}
 
 export interface LoggerModuleOptions {
   global?: boolean;
@@ -49,18 +49,20 @@ export interface LoggerModuleOptions {
   };
 }
 
-export interface LoggerModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
+export interface LoggerModuleAsyncOptions
+  extends Pick<ModuleMetadata, "imports"> {
   global?: boolean;
   imports: any[];
   inject: any[];
-  useFactory: (...args: any[]) => Promise<LoggerModuleOptions> | LoggerModuleOptions;
+  useFactory: (
+    ...args: any[]
+  ) => Promise<LoggerModuleOptions> | LoggerModuleOptions;
 }
 
-
 export interface LogOptions {
-  entryLevel?: 'debug' | 'log' | 'warn' | 'error' | 'verbose';
-  exitLevel?: 'debug' | 'log' | 'warn' | 'error' | 'verbose';
-  errorLevel?: 'error' | 'warn';
+  entryLevel?: "debug" | "log" | "warn" | "error" | "verbose";
+  exitLevel?: "debug" | "log" | "warn" | "error" | "verbose";
+  errorLevel?: "error" | "warn";
   logParams?: boolean;
   logResult?: boolean;
   logExecutionTime?: boolean;

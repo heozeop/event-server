@@ -1,5 +1,5 @@
-import { faker } from '@faker-js/faker';
-import { sleep } from 'k6';
+import { faker } from "@faker-js/faker";
+import { sleep } from "k6";
 
 /**
  * Returns a random item from an array
@@ -33,10 +33,14 @@ export function generateRandomEmail(): string {
  * @param index Optional index to include in email
  * @returns User registration data
  */
-export function generateUserData(index?: number): { email: string; password: string } {
+export function generateUserData(index?: number): {
+  email: string;
+  password: string;
+} {
   return {
-    email: index !== undefined ? `user${index}@example.com` : generateRandomEmail(),
-    password: 'Password123!'
+    email:
+      index !== undefined ? `user${index}@example.com` : generateRandomEmail(),
+    password: "Password123!",
   };
 }
 
@@ -45,6 +49,8 @@ export function generateUserData(index?: number): { email: string; password: str
  * @param count Number of users to generate
  * @returns Array of user registration data
  */
-export function generateUniqueUsers(count: number): Array<{ email: string; password: string }> {
+export function generateUniqueUsers(
+  count: number,
+): Array<{ email: string; password: string }> {
   return Array.from({ length: count }, (_, i) => generateUserData(i));
-} 
+}

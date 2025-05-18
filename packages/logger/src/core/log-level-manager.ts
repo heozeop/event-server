@@ -1,6 +1,13 @@
-import { LogLevelManager } from '../interfaces';
+import { LogLevelManager } from "../interfaces";
 
-export type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
+export type LogLevel =
+  | "fatal"
+  | "error"
+  | "warn"
+  | "info"
+  | "debug"
+  | "trace"
+  | "silent";
 
 export const LOG_LEVELS: Record<LogLevel, number> = {
   fatal: 60,
@@ -9,11 +16,11 @@ export const LOG_LEVELS: Record<LogLevel, number> = {
   info: 30,
   debug: 20,
   trace: 10,
-  silent: 0
+  silent: 0,
 };
 
 export class PinoLogLevelManager implements LogLevelManager {
-  private defaultLogLevel: LogLevel = 'info';
+  private defaultLogLevel: LogLevel = "info";
   private moduleLogLevels: Map<string, LogLevel> = new Map();
 
   constructor(initialLogLevel?: LogLevel) {
@@ -28,7 +35,9 @@ export class PinoLogLevelManager implements LogLevelManager {
     if (level in LOG_LEVELS) {
       this.defaultLogLevel = level as LogLevel;
     } else {
-      throw new Error(`Invalid log level: ${level}. Valid levels are: ${Object.keys(LOG_LEVELS).join(', ')}`);
+      throw new Error(
+        `Invalid log level: ${level}. Valid levels are: ${Object.keys(LOG_LEVELS).join(", ")}`,
+      );
     }
   }
 
@@ -40,7 +49,9 @@ export class PinoLogLevelManager implements LogLevelManager {
     if (level in LOG_LEVELS) {
       this.moduleLogLevels.set(module, level as LogLevel);
     } else {
-      throw new Error(`Invalid log level: ${level}. Valid levels are: ${Object.keys(LOG_LEVELS).join(', ')}`);
+      throw new Error(
+        `Invalid log level: ${level}. Valid levels are: ${Object.keys(LOG_LEVELS).join(", ")}`,
+      );
     }
   }
 
@@ -49,10 +60,10 @@ export class PinoLogLevelManager implements LogLevelManager {
   }
 
   getNumericLevel(module?: string): number {
-    const level = module 
-      ? this.moduleLogLevels.get(module) || this.defaultLogLevel 
+    const level = module
+      ? this.moduleLogLevels.get(module) || this.defaultLogLevel
       : this.defaultLogLevel;
-    
+
     return LOG_LEVELS[level];
   }
-} 
+}

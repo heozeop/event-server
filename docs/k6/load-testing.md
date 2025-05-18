@@ -37,6 +37,7 @@ This will start all the necessary services in Docker containers.
 - **cAdvisor**: http://localhost:8080
 
 The default credentials for Grafana are:
+
 - Username: admin
 - Password: admin
 
@@ -49,27 +50,27 @@ Load tests are written in TypeScript using the k6 API. You can find example test
 Here's a simple example of a load test that hits the events API:
 
 ```typescript
-import { check } from 'k6';
-import http from 'k6/http';
-import { Options } from 'k6/options';
-import { sleep } from 'k6';
+import { check } from "k6";
+import http from "k6/http";
+import { Options } from "k6/options";
+import { sleep } from "k6";
 
 export const options: Options = {
   stages: [
-    { duration: '30s', target: 20 },  // Ramp up to 20 users
-    { duration: '1m', target: 20 },   // Stay at 20 users
-    { duration: '30s', target: 0 },   // Ramp down
+    { duration: "30s", target: 20 }, // Ramp up to 20 users
+    { duration: "1m", target: 20 }, // Stay at 20 users
+    { duration: "30s", target: 0 }, // Ramp down
   ],
   thresholds: {
-    http_req_duration: ['p(95)<1000'], // 95% of requests below 1s
+    http_req_duration: ["p(95)<1000"], // 95% of requests below 1s
   },
 };
 
-export default function() {
-  const eventsResponse = http.get('http://event:3002/api/events');
-  
+export default function () {
+  const eventsResponse = http.get("http://event:3002/api/events");
+
   check(eventsResponse, {
-    'status is 200': (r) => r.status === 200,
+    "status is 200": (r) => r.status === 200,
   });
 
   sleep(1);
@@ -107,4 +108,4 @@ To stop and remove all the containers, run:
 docker-compose -f docker-compose.k6.yml down
 ```
 
-This will stop all services but preserve the volumes with the data. If you want to remove the volumes as well, add the `-v` flag. 
+This will stop all services but preserve the volumes with the data. If you want to remove the volumes as well, add the `-v` flag.

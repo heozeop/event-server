@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { AsyncLocalStorage } from 'node:async_hooks';
-import { LogContext } from '../..';
+import { Injectable } from "@nestjs/common";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { LogContext } from "../..";
 
 /**
  * Store for managing log context across async operations using AsyncLocalStorage
@@ -48,7 +48,7 @@ export class LogContextStore {
     const currentStore = this.storage.getStore();
     if (!currentStore) {
       // If no store exists yet, create one
-      this.storage.enterWith({...contextUpdate});
+      this.storage.enterWith({ ...contextUpdate });
     } else {
       // Update existing store
       Object.assign(currentStore, contextUpdate);
@@ -84,4 +84,4 @@ export class LogContextStore {
   getUserId(): string | undefined {
     return this.getContext().userId;
   }
-} 
+}

@@ -1,9 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsPositive } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNumber, IsOptional, IsPositive } from "class-validator";
 
 export class PagingDto {
   @ApiProperty({
-    description: 'Number of items to return per page',
+    description: "Number of items to return per page",
     example: 10,
     required: false,
   })
@@ -13,7 +13,7 @@ export class PagingDto {
   limit?: number;
 
   @ApiProperty({
-    description: 'Number of items to skip',
+    description: "Number of items to skip",
     example: 0,
     required: false,
   })
@@ -21,4 +21,3 @@ export class PagingDto {
   @IsOptional()
   offset?: number;
 }
-
