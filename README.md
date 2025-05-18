@@ -10,6 +10,60 @@ NestJS를 사용한 이벤트 및 리워드 관리를 위한 마이크로서비�
 2. **인증 서비스**: 인증 및 사용자 관리를 담당합니다.
 3. **이벤트 서비스**: 이벤트 및 리워드를 관리합니다.
 
+### 시스템 아키텍처 다이어그램
+
+```mermaid
+graph TD
+    Client[클라이언트] -->|HTTP| GW[게이트웨이 서비스\n:3333]
+    
+    subgraph "마이크로서비스"
+        GW -->|TCP/IP| Auth[인증 서비스\n:3001]
+        GW -->|TCP/IP| Event[이벤트 서비스\n:3002]
+    end
+    
+    subgraph "데이터베이스"
+        Auth -->|MongoDB| AuthDB[(인증 DB\nmongo-user:27017)]
+        Event -->|MongoDB| EventDB[(이벤트 DB\nmongo-event:27017)]
+    end
+    
+    subgraph "로깅 인프라"
+        GW -->|로그| Alloy[Grafana Alloy]
+        Auth -->|로그| Alloy
+        Event -->|로그| Alloy
+        Alloy -->|저장| Loki[(Grafana Loki)]
+        Loki -->|시각화| Grafana[Grafana\n:3000]
+    end
+```
+
+### 로깅 시스템 아키텍처
+
+```mermaid
+graph LR
+    subgraph "서비스"
+        GW[게이트웨이 서비스]
+        Auth[인증 서비스]
+        Event[이벤트 서비스]
+    end
+    
+    subgraph "로그 수집 및 처리"
+        GW -->|JSON 로그| Alloy[Grafana Alloy]
+        Auth -->|JSON 로그| Alloy
+        Event -->|JSON 로그| Alloy
+        
+        Alloy -->|필터링/처리| Loki[(Grafana Loki)]
+    end
+    
+    subgraph "시각화 및 분석"
+        Loki --> Dashboard1[요청 추적 대시보드]
+        Loki --> Dashboard2[로그 뷰어]
+        
+        Dashboard1 --> Grafana[Grafana UI]
+        Dashboard2 --> Grafana
+    end
+    
+    Browser[사용자 브라우저] -->|http://localhost:3000| Grafana
+```
+
 ### 상세 아키텍처
 
 - **마이크로서비스 통신**: 서비스 간 통신은 TCP/IP 프로토콜을 통해 이루어집니다.
@@ -215,6 +269,41 @@ async function bootstrap() {
 bootstrap();
 ```
 
+### 요청 추적 아키텍처
+
+아래 다이어그램은 `LogContextInterceptor`를 사용한 요청 ID 전파 과정을 보여줍니다:
+
+```mermaid
+sequenceDiagram
+    participant Client as 클라이언트
+    participant Gateway as 게이트웨이 서비스
+    participant Auth as 인증 서비스
+    participant Event as 이벤트 서비스
+    participant Loki as Grafana Loki
+    
+    Client->>Gateway: HTTP 요청
+    
+    Note over Gateway: LogContextInterceptor가<br/>X-Request-Id 생성 또는 추출
+    
+    Gateway->>Auth: 인증 요청<br/>(X-Request-Id 포함)
+    
+    Note over Auth: LogContextInterceptor가<br/>X-Request-Id 캡처
+    Auth-->>Gateway: 인증 응답
+
+    Gateway->>Event: 이벤트 요청<br/>(X-Request-Id 포함)
+    
+    Note over Event: LogContextInterceptor가<br/>X-Request-Id 캡처
+    Event-->>Gateway: 이벤트 응답
+    
+    Gateway-->>Client: HTTP 응답
+    
+    Gateway->>Loki: 로그(requestId 포함)
+    Auth->>Loki: 로그(동일한 requestId 포함)
+    Event->>Loki: 로그(동일한 requestId 포함)
+    
+    Note over Loki: 동일한 requestId로<br/>요청 추적 가능
+```
+
 인터셉터는 다음 기능을 수행합니다:
 
 - HTTP 요청에서 `X-Request-Id` 헤더를 추출하거나 없는 경우 UUID를 생성
@@ -349,5 +438,4 @@ db 인스턴스 자체를 분리한 이유는 아래 입니다.
 1. User 데이터는 사람의 개인정보를 다룬다는 점에서 유의가 필요합니다.
 2. Event 데이터는 중복, 재처리등에서 비교적 자유롭습니다.
 3. 차후 보안과 관련하여 철저한 암호화 처리 등의 필요성이 발생할 경우, 인스턴스 레벨에서 분리가 필요할 수 있습니다.
-
-
+4. 현재 개발한 버전은 굳이 비용을 걱정할 필요가 없습니다.
