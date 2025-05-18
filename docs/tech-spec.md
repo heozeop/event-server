@@ -180,6 +180,8 @@ volumes:
 - 인증/인가
 
   - `POST /auth/login` → Auth Service로 전달
+  - `POST /auth/refresh` → Auth Service로 전달
+  - `POST /auth/logout` → Auth Service로 전달
   - `JwtAuthGuard`, `RolesGuard` 적용
 
 - 프록시 엔드포인트
@@ -197,6 +199,8 @@ volumes:
 - `GET  /users/:id` → 사용자 정보 조회
 - `PUT  /users/:id/roles` → 역할 업데이트 (ADMIN)
 - `POST /auth/login` → JWT 발급
+- `POST /auth/refresh` → Refresh Token으로 새 Access Token 발급
+- `POST /auth/logout` → 사용자 토큰 무효화
 
 ### 5.3 Event Service
 
@@ -237,6 +241,30 @@ export class User implements UserEntity {
   get id(): string {
     return this._id.toString();
   }
+}
+
+@Entity()
+export class UserToken implements UserTokenEntity {
+  @PrimaryKey()
+  _id!: ObjectId;
+
+  @Property({ unique: true })
+  userId!: string;
+
+  @Property()
+  refreshToken!: string;
+
+  @Property()
+  accessTokenHash!: string;
+
+  @Property()
+  expiresAt!: Date;
+
+  @Property()
+  createdAt: Date = new Date();
+
+  @Property({ onUpdate: () => new Date() })
+  updatedAt: Date = new Date();
 }
 ```
 
@@ -381,6 +409,43 @@ export class RewardRequest {
 
   - `JwtAuthGuard` — 인증된 사용자만 접근
   - `RolesGuard` — 지정된 역할만 접근
+
+### 7.1 토큰 관리
+
+- **Access Token**: 짧은 수명(15분)의 JWT 토큰, API 접근에 사용
+- **Refresh Token**: 긴 수명(7일)의 토큰, 새로운 Access Token 발급에 사용
+- **토큰 무효화**: 새 Access Token 발급 시 이전 토큰 무효화 (한 번에 하나의 유효한 세션만 허용)
+- **토큰 저장소**: Refresh Token은 MongoDB에 저장되며 사용자당 하나의 유효한 토큰만 유지
+
+### 7.2 Auth Service API 확장
+
+- `POST /auth/refresh`: Refresh Token으로 새 Access Token 발급
+- `POST /auth/logout`: 현재 사용자의 모든 토큰 무효화
+
+### 7.3 사용자 토큰 데이터 모델
+
+```ts
+@Entity()
+export class UserToken {
+  @PrimaryKey()
+  _id!: ObjectId;
+
+  @Property({ unique: true })
+  userId!: string;
+
+  @Property()
+  refreshToken!: string;
+
+  @Property()
+  expiresAt!: Date;
+
+  @Property()
+  createdAt: Date = new Date();
+
+  @Property({ onUpdate: () => new Date() })
+  updatedAt: Date = new Date();
+}
+```
 
 ---
 
