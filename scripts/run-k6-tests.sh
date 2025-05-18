@@ -136,9 +136,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# After parsing all arguments, add this:
-echo -e "${YELLOW}Current MODE: $MODE, RUN_ALL: $RUN_ALL ${NC}"
-
 # Save current directory
 PREV_DIR=$(pwd)
 
@@ -206,9 +203,11 @@ run_native_test() {
     
     if [ "$MODE" = "full" ]; then
         # Run with full duration and config (test file's own options)
+        echo -e "${YELLOW}Running in FULL mode (using test file's original config)${NC}"
         "$K6_PATH" run "$test_file" $URL_FLAG
     else
         # Run with quick options (command-line overrides)
+        echo -e "${YELLOW}Running in QUICK mode (using command-line duration and VUs)${NC}"
         "$K6_PATH" run "$test_file" --iterations=$VUS --duration=$DURATION $URL_FLAG
     fi
     
@@ -242,10 +241,9 @@ run_docker_test() {
     
     if [ "$MODE" = "full" ]; then
         # Run with full duration and config (test file's own options)
-        # Set a custom environment variable to tell the test it's in full mode
         env_vars="-e FULL_MODE=true -e K6_NO_USAGE_REPORT=true -e K6_NO_THRESHOLDS=false"
         k6_cmd="run $container_test_file $URL_FLAG"
-        echo -e "${YELLOW}Running in FULL mode (should use test file's original config)${NC}"
+        echo -e "${YELLOW}Running in FULL mode (using test file's original config)${NC}"
     else
         # Run with quick options (command-line overrides)
         k6_cmd="run $container_test_file --iterations=$VUS --duration=$DURATION $URL_FLAG"
@@ -258,8 +256,6 @@ run_docker_test() {
     
     # Run the test using docker compose
     echo -e "${YELLOW}Running with Docker Compose from ${PROJECT_ROOT}${NC}"
-    
-    # Use standard Docker run command for now until we figure out the issue
     docker compose -f "$DOCKER_COMPOSE_FILE" run --rm $env_vars k6 $k6_cmd
     
     local status=$?
