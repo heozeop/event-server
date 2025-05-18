@@ -1,0 +1,7 @@
+{
+  "prometheus": {
+    "pushgateway": "http://prometheus:9091",
+    "insecureSkipTLSVerify": true,
+    "enableExemplarLabels": true
+  }
+} 
