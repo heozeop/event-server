@@ -1,11 +1,10 @@
-import { AUTH_CMP } from '@libs/cmd';
 import { PinoLoggerService } from '@libs/logger';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientProxy } from '@nestjs/microservices';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { lastValueFrom } from 'rxjs';
+import { CurrentUserData } from '../../../../packages/types/dist/auth/user.types';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -23,19 +22,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     try {
-      const user = await lastValueFrom(
-        this.authClient.send(
-          { cmd: AUTH_CMP.GET_USER_BY_ID },
-          { id: payload.sub },
-        ),
-      );
-      this.logger.log('User found', { user });
-
-      if (!user) {
+      if (
+        !payload.sub ||
+        !Array.isArray(payload.roles) ||
+        payload.roles.length === 0
+      ) {
         throw new UnauthorizedException('User not found or inactive');
       }
 
-      return user;
+      return {
+        id: payload.sub,
+        roles: payload.roles,
+      } satisfies CurrentUserData;
     } catch (error) {
       throw new UnauthorizedException('Invalid token');
     }
