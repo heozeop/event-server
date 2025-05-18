@@ -1,9 +1,10 @@
+import { getAdminToken } from '@/common/admin.login';
 import { EventEntity, RewardBaseEntity } from '@libs/types';
 import { check } from 'k6';
 import http from 'k6/http';
 import { Counter } from 'k6/metrics';
 import { Options } from 'k6/options';
-import { TEST_PASSWORD } from 'prepare/constants';
+import { API_BASE_URL } from 'prepare/constants';
 import { randomSleep } from '../utils';
 
 // Custom metrics
@@ -37,40 +38,12 @@ export const options: Options = {
 // Load event data from JSON file
 function loadEventData(): string[] {
   // Load events data from the prepare directory
-  const events = JSON.parse(open('../prepare/data/events.json')) as EventEntity[];
+  const events = JSON.parse(open('/data/events.json')) as EventEntity[];
   
   // Extract event IDs
   const eventIds = events.map(event => event._id.toString());
   
   return eventIds;
-}
-
-// Set up common variables
-const API_BASE_URL = 'http://event:3002/api';
-const ADMIN_EMAIL = 'admin@example.com';
-const ADMIN_PASSWORD = TEST_PASSWORD;
-
-// Authentication helper
-function getAuthToken(): string {
-  const response = http.post(
-    `${API_BASE_URL}/auth/login`,
-    ({
-      email: ADMIN_EMAIL,
-      password: ADMIN_PASSWORD
-    }),
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-  
-  if (response.status !== 200) {
-    throw new Error(`Authentication failed: ${response.status} - ${response.body}`);
-  }
-  
-  const responseBody = response.json() as { accessToken: string };
-  return responseBody.accessToken;
 }
 
 // Helper function to check if response is an array of rewards
@@ -81,10 +54,12 @@ function isRewardArray(data: unknown): data is RewardBaseEntity[] {
   ));
 }
 
+// Load test data
+const eventIds = loadEventData();
+
 // Setup function - runs once per VU
 export function setup() {
-  const token = getAuthToken();
-  const eventIds = loadEventData();
+  const token = getAdminToken();
   
   return { 
     token,

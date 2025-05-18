@@ -36,7 +36,7 @@ export default function() {
   // Make user registration request
   const registrationResponse = http.post(
     `${API_BASE_URL}/auth/users`,
-    userData,
+    JSON.stringify(userData),
     {
       headers: {
         'Content-Type': 'application/json',

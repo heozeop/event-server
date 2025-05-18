@@ -1,10 +1,10 @@
+import { getAdminToken } from '@/common/admin.login';
 import { check } from 'k6';
 import http from 'k6/http';
 import { Counter } from 'k6/metrics';
 import { Options } from 'k6/options';
 import { API_BASE_URL, TEST_PASSWORD } from 'prepare/constants';
 import { randomSleep } from '../utils';
-import { authenticate } from './auth-utils';
 
 // Type definitions for events and rewards
 type Event = {
@@ -34,20 +34,19 @@ const successfulNewEventConnections = new Counter('successful_new_event_connecti
 const successfulExistingEventConnections = new Counter('successful_existing_event_connections');
 
 // Admin user credentials - from the prepared data
-const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_PASSWORD = TEST_PASSWORD;
 
 // Load data from JSON files
 function loadTestData(): { activeEvents: Event[]; inactiveEvents: Event[]; rewards: Reward[] } {
   // Load events data
-  const events = JSON.parse(open('../prepare/data/events.json')) as Event[];
+  const events = JSON.parse(open('/data/events.json')) as Event[];
   
   // Filter events by status
   const activeEvents = events.filter(event => event.status === 'ACTIVE');
   const inactiveEvents = events.filter(event => event.status === 'INACTIVE');
   
   // Load rewards data
-  const rewards = JSON.parse(open('../prepare/data/rewards.json')) as Reward[];
+  const rewards = JSON.parse(open('/data/rewards.json')) as Reward[];
   
   return {
     activeEvents,
@@ -97,13 +96,13 @@ export const options: Options = {
   },
 };
 
+// Load test data
+const testData = loadTestData();
+
 // Setup function - runs once per VU
 export function setup() {
   // Get auth token for admin user
-  const token = authenticate(ADMIN_EMAIL, ADMIN_PASSWORD);
-  
-  // Load test data
-  const testData = loadTestData();
+  const token = getAdminToken();
   
   return {
     token,
@@ -128,9 +127,9 @@ export function newEventScenario(data: { token: string; testData: { activeEvents
   // Add reward to event
   const response = http.post(
     `${API_BASE_URL}/events/${event.id}/rewards`,
-    {
+    JSON.stringify({
       rewardId: reward._id
-    },
+    }),
     {
       headers: {
         'Content-Type': 'application/json',
@@ -167,9 +166,9 @@ export function existingEventScenario(data: { token: string; testData: { activeE
   // Add reward to event
   const response = http.post(
     `${API_BASE_URL}/events/${event.id}/rewards`,
-    {
+    JSON.stringify({
       rewardId: reward._id
-    },
+    }),
     {
       headers: {
         'Content-Type': 'application/json',

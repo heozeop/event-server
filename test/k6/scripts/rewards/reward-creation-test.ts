@@ -1,3 +1,4 @@
+import { getAdminToken } from '@/common/admin.login';
 import { faker } from '@faker-js/faker';
 import { RewardType } from '@libs/enums';
 import { BadgeRewardEntity, CouponRewardEntity, PointRewardEntity, RewardBaseEntity } from '@libs/types';
@@ -5,7 +6,7 @@ import { check } from 'k6';
 import http from 'k6/http';
 import { Counter } from 'k6/metrics';
 import { Options } from 'k6/options';
-import { API_BASE_URL, TEST_PASSWORD } from 'prepare/constants';
+import { API_BASE_URL } from 'prepare/constants';
 import { randomSleep } from '../utils';
 
 // Custom metrics
@@ -20,7 +21,7 @@ function loadRewardsData(): {
   couponRewards: CouponRewardEntity[];
 } {
   // Load rewards data from JSON file
-  const allRewards = JSON.parse(open('../prepare/data/rewards.json')) as RewardBaseEntity[];
+  const allRewards = JSON.parse(open('/data/rewards.json')) as RewardBaseEntity[];
   
   // Filter by reward type
   const pointRewards = allRewards.filter(
@@ -41,10 +42,6 @@ function loadRewardsData(): {
     couponRewards
   };
 }
-
-// Admin user credentials - from the prepared data
-const ADMIN_EMAIL = 'admin@example.com';
-const ADMIN_PASSWORD = TEST_PASSWORD;
 
 // Define test options with three scenarios as per requirements
 export const options: Options = {
@@ -99,36 +96,13 @@ export const options: Options = {
   },
 };
 
-// Authenticate and get admin token
-function getAdminToken() {
-  const response = http.post(
-    `${API_BASE_URL}/auth/login`,
-    ({
-      email: ADMIN_EMAIL,
-      password: ADMIN_PASSWORD
-    }),
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-  
-  if (response.status !== 200) {
-    throw new Error(`Admin authentication failed: ${response.status} - ${response.body}`);
-  }
-  
-  const responseBody = response.json() as unknown as { accessToken: string };
-  return responseBody.accessToken;
-}
+// Load rewards data
+const rewardsData = loadRewardsData();
 
 // Setup function - runs once per VU
 export function setup() {
   // Get admin auth token
   const token = getAdminToken();
-  
-  // Load rewards data
-  const rewardsData = loadRewardsData();
   
   return { 
     token,
@@ -152,14 +126,14 @@ export function pointRewardScenario(data: { token: string; rewardsData: { pointR
   const uniqueName = `${pointRewardTemplate.name}-${faker.string.uuid().substring(0, 8)}`;
   
   // Create point reward with real data
-  const payload = {
+  const payload = JSON.stringify({
     name: uniqueName,
     points: pointRewardTemplate.points
-  };
+  });
   
   const response = http.post(
     `${API_BASE_URL}/rewards/POINT`,
-    payload as any,
+    payload,
     {
       headers: {
         'Content-Type': 'application/json',
@@ -198,10 +172,10 @@ export function badgeRewardScenario(data: { token: string; rewardsData: { pointR
   const uniqueName = `${badgeRewardTemplate.name}-${faker.string.uuid().substring(0, 8)}`;
   
   // Create badge reward with real data
-  const payload = {
+  const payload = JSON.stringify({
     name: uniqueName,
     badgeId: badgeRewardTemplate.badgeId
-  };
+  });
   
   const response = http.post(
     `${API_BASE_URL}/rewards/BADGE`,

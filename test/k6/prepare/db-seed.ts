@@ -86,7 +86,7 @@ async function seedDatabase() {
     // Prepare user data - convert string IDs to ObjectIds
     const preparedUserData = userData.map(user => ({
       ...user,
-      _id: new ObjectId(user.id),
+      _id: new ObjectId(user._id),
     }));
     
     // Insert all users
@@ -103,7 +103,7 @@ async function seedDatabase() {
     // Prepare event data - convert string IDs to ObjectIds and format dates
     const preparedEventData = eventData.map(event => ({
       ...event,
-      _id: new ObjectId(event.id),
+      _id: new ObjectId(event._id),
       period: {
         start: new Date(event.period.start),
         end: new Date(event.period.end),
@@ -124,7 +124,7 @@ async function seedDatabase() {
     await rewardCollection.deleteMany({});
     const preparedRewardData = rewardData.map(reward => ({
       ...reward,
-      _id: new ObjectId(reward.id),
+      _id: new ObjectId(reward._id),
       createdAt: new Date(reward.createdAt),
       updatedAt: new Date(),
     }));
@@ -141,7 +141,7 @@ async function seedDatabase() {
 
     const preparedEventRewardData = eventRewardData.map(eventReward => ({
       ...eventReward,
-      _id: new ObjectId(eventReward.id),
+      _id: new ObjectId(eventReward._id),
       createdAt: new Date(eventReward.createdAt),
       updatedAt: new Date(),
     }));

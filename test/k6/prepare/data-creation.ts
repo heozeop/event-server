@@ -4,7 +4,7 @@ import { BadgeRewardEntity, CouponRewardEntity, EventEntity, EventRewardEntity, 
 import * as bcrypt from 'bcryptjs';
 import * as fs from 'fs';
 import { ObjectId } from 'mongodb';
-import { TEST_PASSWORD } from './constants';
+import { ADMIN_EMAIL, TEST_PASSWORD } from './constants';
 
 
 // Number of test entities to generate
@@ -32,7 +32,7 @@ function generateUsers(count: number): UserEntity[] {
   // Add an admin user for testing
   const adminUser: UserEntity = {
     _id: new ObjectId(),
-    email: 'admin@example.com',
+    email: ADMIN_EMAIL,
     passwordHash: testPasswordHash,
     roles: [Role.ADMIN],
     createdAt: faker.date.past(),
@@ -145,8 +145,8 @@ function generateEventRewards(count: number, events: EventEntity[], rewards: Rew
   for (let i = 0; i < count; i++) {
     const rewardEvent: EventRewardEntity = {
       _id: new ObjectId(),
-      event: faker.helpers.arrayElement(events),
-      reward: faker.helpers.arrayElement(rewards),
+      event: faker.helpers.arrayElement(events)._id.toString() as unknown as EventEntity,
+      reward: faker.helpers.arrayElement(rewards)._id.toString() as unknown as RewardBaseEntity,
       createdAt: faker.date.past(),
       updatedAt: new Date(),
     };
@@ -165,42 +165,14 @@ function exportDataForK6Tests(users: UserEntity[], events: EventEntity[], reward
     fs.mkdirSync(dataDir, { recursive: true });
   }
   
-  // Prepare user data for export
-  const userData = users.map(user => ({
-    id: user._id.toString(),
-    email: user.email,
-    password: 'Password123!', // Original password for testing
-    roles: user.roles,
-    createdAt: user.createdAt,
-  }));
-  
-  // Prepare event data for export
-  const eventData = events.map(event => ({
-    id: event._id.toString(),
-    name: event.name,
-    condition: event.condition,
-    period: {
-      start: event.period.start,
-      end: event.period.end,
-    },
-    status: event.status,
-    createdAt: event.createdAt,
-  }));
-
   const eventRewards = generateEventRewards(NUM_EVENTS, events, rewards);
   
   // Create export files that include helper functions
-  const usersExport = JSON.stringify(userData)
-  const eventsExport = JSON.stringify(eventData)
+  const usersExport = JSON.stringify(users)
+  const eventsExport = JSON.stringify(events)
   const rewardsExport = JSON.stringify(rewards)
+  const eventRewardsExport = JSON.stringify(eventRewards)
   // Convert to a format with IDs for export
-  const eventRewardsExport = JSON.stringify(eventRewards.map(er => ({
-    _id: er._id.toString(),
-    event: er.event._id.toString(),
-    reward: er.reward._id.toString(),
-    createdAt: er.createdAt,
-    updatedAt: er.updatedAt
-  })))
   
   fs.writeFileSync(`${dataDir}/users.json`, usersExport);
   fs.writeFileSync(`${dataDir}/events.json`, eventsExport);

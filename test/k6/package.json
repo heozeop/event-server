@@ -9,7 +9,9 @@
     "build:k6": "node esbuild.config.js",
     "test:k6": "k6 run dist/scripts/auth/login.bundle.js",
     "test:k6:rewards": "k6 run dist/scripts/rewards/rewards-list-performance-test.bundle.js",
-    "test:k6:all": "find dist/scripts -type f -name \"*.js\" | xargs -I {} sh -c 'echo \"\\nRunning test: {}\"; k6 run {} --iterations=1 --duration=10s'",
+    "test:k6:all:local": "find dist/scripts -type f -name \"*.js\" | xargs -I {} sh -c 'echo \"\\nRunning test: {}\"; k6 run {} --iterations=1 --duration=10s'",
+    "test:k6:all": "cd ../.. && docker compose -f docker-compose.k6.yml run --rm k6 run /dist/scripts/auth/login.bundle.js",
+    "test:k6:all:docker": "cd ../.. && find test/k6/dist/scripts -type f -name \"*.js\" | sort | xargs -I {} sh -c 'echo \"\\nRunning test: {}\"; docker compose -f docker-compose.k6.yml run --rm k6 run /dist/scripts/{##*/} --iterations=1 --duration=10s'",
     "seed:db": "rm -rf prepare/data && ts-node --project tsconfig.json prepare/data-creation.ts && ts-node --project tsconfig.json prepare/db-seed.ts"
   },
   "keywords": [],

@@ -1,7 +1,10 @@
+import { getAdminToken } from '@/common/admin.login';
+import { EventEntity } from '@libs/types/event';
 import { check, sleep } from 'k6';
 import { SharedArray } from 'k6/data';
 import http from 'k6/http';
 import { Options } from 'k6/options';
+import { API_BASE_URL } from 'prepare/constants';
 
 // Define test options
 export const options: Options = {
@@ -15,18 +18,41 @@ export const options: Options = {
     'http_req_duration{status:200}': ['max<2000'], // Max duration for 200 OK should be below 2s
     'http_reqs{status:200}': ['rate>0.9'],         // 90% success rate
   },
+}
+// Load data from JSON files
+function loadTestData(): { activeEvents: EventEntity[]; inactiveEvents: EventEntity[] } {
+  // Load events data
+  const events = JSON.parse(open('/data/events.json')) as EventEntity[];
+  
+  // Filter events by status
+  const activeEvents = events.filter(event => event.status === 'ACTIVE');
+  const inactiveEvents = events.filter(event => event.status === 'INACTIVE');
+  
+  
+  return {
+    activeEvents,
+    inactiveEvents,
+  };
 };
+
+const testData = loadTestData();
 
 // Initialize test data if needed
 const eventIds = new SharedArray('eventIds', function() {
   // This could be replaced with actual event IDs in your system
-  return Array.from({ length: 5 }, (_, i) => `event-${i + 1}`);
+  return testData.activeEvents.map(event => event._id);
 });
 
 // Default function executed for each virtual user
 export default function() {
   // Get events list
-  const eventsResponse = http.get('http://event:3002/api/events');
+  const token = getAdminToken();
+  const eventsResponse = http.get(`${API_BASE_URL}/events`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
   
   check(eventsResponse, {
     'status is 200': (r) => r.status === 200,
@@ -37,7 +63,12 @@ export default function() {
   
   // Get specific event detail (using random event ID from the predefined list)
   const eventId = eventIds[Math.floor(Math.random() * eventIds.length)];
-  const eventDetailResponse = http.get(`http://event:3002/api/events/${eventId}`);
+  const eventDetailResponse = http.get(`${API_BASE_URL}/events/${eventId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
   
   check(eventDetailResponse, {
     'event detail status is 200': (r) => r.status === 200,

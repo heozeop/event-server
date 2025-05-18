@@ -1,3 +1,4 @@
+import { getAdminToken } from '@/common/admin.login';
 import { EventResponseDto } from '@libs/dtos';
 import { check } from 'k6';
 import http from 'k6/http';
@@ -5,7 +6,6 @@ import { Counter } from 'k6/metrics';
 import { Options } from 'k6/options';
 import { API_BASE_URL, TEST_PASSWORD } from 'prepare/constants';
 import { randomSleep } from '../utils';
-import { authenticate } from './auth-utils';
 
 // Custom metrics
 const successfulNoFilterRequests = new Counter('successful_no_filter_requests');
@@ -13,7 +13,6 @@ const successfulDateFilterRequests = new Counter('successful_date_filter_request
 const successfulLocationFilterRequests = new Counter('successful_location_filter_requests');
 
 // Admin user credentials - from the prepared data
-const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_PASSWORD = TEST_PASSWORD;
 
 // Define test options with three scenarios as per requirements
@@ -97,7 +96,7 @@ function isEventArray(data: unknown): data is EventResponseDto[] {
 // Setup function - runs once per VU
 export function setup() {
   // Get auth token for admin user
-  const token = authenticate(ADMIN_EMAIL, ADMIN_PASSWORD);
+  const token = getAdminToken();
   
   return {
     token

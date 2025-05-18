@@ -1,8 +1,9 @@
+import { getAdminToken } from '@/common/admin.login';
 import { check } from 'k6';
 import http from 'k6/http';
 import { Counter } from 'k6/metrics';
 import { Options } from 'k6/options';
-import { API_BASE_URL, TEST_PASSWORD } from 'prepare/constants';
+import { ADMIN_EMAIL, API_BASE_URL, TEST_PASSWORD } from 'prepare/constants';
 import { randomSleep } from '../utils';
 
 // Define types for data
@@ -36,15 +37,15 @@ const successfulRequests = new Counter('successful_reward_requests');
 // Load data from JSON files
 function loadTestData(): { events: Event[]; users: User[] } {
   // Load events data from the prepare directory
-  const events = JSON.parse(open('../prepare/data/events.json')) as Event[];
+  const events = JSON.parse(open('/data/events.json')) as Event[];
   
   // Load users data from the prepare directory
-  const users = JSON.parse(open('../prepare/data/users.json')) as User[];
+  const users = JSON.parse(open('/data/users.json')) as User[];
   
   // Filter active events and regular users (non-admin)
   const activeEvents = events.filter(event => event.status === 'ACTIVE');
   const regularUsers = users.filter(user => 
-    !user.roles.includes('ADMIN') && user.email !== 'admin@example.com'
+    !user.roles.includes('ADMIN') && user.email !== ADMIN_EMAIL
   );
   
   return {
@@ -74,36 +75,15 @@ export const options: Options = {
 };
 
 // Admin user credentials
-const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_PASSWORD = TEST_PASSWORD;
+
+// Load test data
+const testData = loadTestData();
 
 // Setup function - runs once per VU
 export function setup() {
-  // Authenticate as admin to get token
-  const loginPayload = ({
-    email: ADMIN_EMAIL,
-    password: ADMIN_PASSWORD
-  });
-  
-  const loginResponse = http.post(
-    `${API_BASE_URL}/auth/login`,
-    loginPayload,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-  
-  check(loginResponse, {
-    'login successful': (r) => r.status === 200 && r.json('accessToken') !== undefined,
-  });
-  
   // Save auth token for test runs
-  const authToken = loginResponse.json('accessToken') as string;
-  
-  // Load test data
-  const testData = loadTestData();
+  const authToken = getAdminToken();
   
   return {
     authToken,

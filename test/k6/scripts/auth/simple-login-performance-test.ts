@@ -4,7 +4,7 @@ import { check } from 'k6';
 import http from 'k6/http';
 import { Counter } from 'k6/metrics';
 import { Options } from 'k6/options';
-import { API_BASE_URL, TEST_PASSWORD } from 'prepare/constants';
+import { ADMIN_EMAIL, API_BASE_URL, TEST_PASSWORD } from 'prepare/constants';
 import { randomSleep } from '../utils';
 
 // Custom metrics
@@ -33,11 +33,11 @@ export const options: Options = {
 // Load test data from files
 function loadTestData(): { users: UserEntity[] } {
   // Load users data from the K6 bundle
-  const usersData = JSON.parse(open('../prepare/data/users.json')) as UserEntity[];
+  const usersData = JSON.parse(open('/data/users.json')) as UserEntity[];
   
   // Filter regular users (non-admin)
   const regularUsers = usersData.filter(user => 
-    !user.roles.includes(Role.ADMIN) && user.email !== 'admin@example.com'
+    !user.roles.includes(Role.ADMIN) && user.email !== ADMIN_EMAIL
   );
   
   return {
@@ -45,10 +45,11 @@ function loadTestData(): { users: UserEntity[] } {
   };
 }
 
+const testData = loadTestData();
+
 // Setup function - runs once per VU
 export function setup() {
   // Load test data
-  const testData = loadTestData();
   
   return {
     testData
@@ -67,7 +68,7 @@ export default function(data: { testData: { users: UserEntity[] } }) {
   const user = testData.users[Math.floor(Math.random() * testData.users.length)];
   
   // Make login request with correct credentials
-  const payload = ({
+  const payload = JSON.stringify({
     email: user.email,
     password: TEST_PASSWORD
   });

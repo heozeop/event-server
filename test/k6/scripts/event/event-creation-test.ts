@@ -1,9 +1,10 @@
+import { getAdminToken } from '@/common/admin.login';
 import { faker } from '@faker-js/faker';
 import { check } from 'k6';
 import http from 'k6/http';
 import { Counter } from 'k6/metrics';
 import { Options } from 'k6/options';
-import { API_BASE_URL, TEST_PASSWORD } from 'prepare/constants';
+import { API_BASE_URL } from 'prepare/constants';
 import { randomSleep } from '../utils';
 
 // Custom metrics
@@ -73,34 +74,10 @@ const EVENT_TEMPLATES = [
   }
 ];
 
-// Admin user credentials
-const ADMIN_EMAIL = 'admin@example.com';
-const ADMIN_PASSWORD = TEST_PASSWORD;
-
 // Setup function - runs once per VU
 export function setup(): { authToken: string } {
-  // Authenticate as admin to get token
-  const loginPayload = ({
-    email: ADMIN_EMAIL,
-    password: ADMIN_PASSWORD
-  });
-  
-  const loginResponse = http.post(
-    `${API_BASE_URL}/auth/login`,
-    loginPayload,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-  
-  check(loginResponse, {
-    'login successful': (r) => r.status === 200 && r.json('accessToken') !== undefined,
-  });
-  
   // Save auth token for test runs
-  const authToken = loginResponse.json('accessToken') as string;
+  const authToken = getAdminToken();
   
   return {
     authToken
@@ -147,7 +124,7 @@ export default function(data: { authToken: string }): void {
   const minPurchase = Math.max(100, templateEvent.condition.minPurchase + Math.floor(Math.random() * 1000) - 500);
   const maxRewards = Math.max(1, templateEvent.condition.maxRewards + Math.floor(Math.random() * 2) - 1);
 
-  const eventPayload = ({
+  const eventPayload = JSON.stringify({
     name: generateEventName(eventIndex),
     condition: {
       minPurchase: minPurchase,
@@ -160,7 +137,7 @@ export default function(data: { authToken: string }): void {
   // Make event creation request
   const response = http.post(
     `${API_BASE_URL}/events`,
-    eventPayload as any,
+    eventPayload,
     {
       headers: {
         'Authorization': `Bearer ${authToken}`,

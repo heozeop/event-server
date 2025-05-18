@@ -1,8 +1,9 @@
+import { getAdminToken } from '@/common/admin.login';
 import { check } from 'k6';
 import http from 'k6/http';
 import { Counter } from 'k6/metrics';
 import { Options } from 'k6/options';
-import { API_BASE_URL, TEST_PASSWORD } from 'prepare/constants';
+import { API_BASE_URL } from 'prepare/constants';
 import { randomSleep } from '../utils';
 
 // Type definitions for K6 response structures
@@ -56,10 +57,6 @@ export const options: Options = {
   },
 };
 
-// Set up common variables
-const ADMIN_EMAIL = 'admin@example.com';
-const ADMIN_PASSWORD = TEST_PASSWORD;
-
 // Real reward types for testing
 const REWARD_TYPES = ['POINT', 'BADGE', 'COUPON', 'ITEM'];
 
@@ -71,37 +68,10 @@ function isRewardArray(data: JSONValue): data is Reward[] {
   ));
 }
 
-// Authentication helper
-function getAuthToken(): string {
-  // Try to use environment variable if provided, otherwise authenticate
-  if (__ENV.AUTH_TOKEN && __ENV.AUTH_TOKEN !== 'default_token') {
-    return __ENV.AUTH_TOKEN;
-  }
-  
-  const response = http.post(
-    `${API_BASE_URL}/auth/login`,
-    ({
-      email: ADMIN_EMAIL,
-      password: ADMIN_PASSWORD
-    }),
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-  
-  if (response.status !== 200) {
-    throw new Error(`Authentication failed: ${response.status} - ${response.body}`);
-  }
-  
-  const responseBody = response.json() as unknown as { accessToken: string };
-  return responseBody.accessToken;
-}
 
 // Setup function - runs once per VU
 export function setup() {
-  const token = getAuthToken();
+  const token = getAdminToken();
   return { token };
 }
 
