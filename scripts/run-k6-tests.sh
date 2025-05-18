@@ -167,8 +167,8 @@ if [ "$USE_DOCKER" = true ]; then
     # Check if the Docker Compose file exists
     if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
         # Check if it exists at the project root
-        if [ -f "$PROJECT_ROOT/docker-compose.k6.yml" ]; then
-            DOCKER_COMPOSE_FILE="$PROJECT_ROOT/docker-compose.k6.yml"
+        if [ -f "$PROJECT_ROOT/docker/docker-compose.k6.yml" ]; then
+            DOCKER_COMPOSE_FILE="$PROJECT_ROOT/docker/docker-compose.k6.yml"
             echo -e "${YELLOW}Using Docker Compose file at: $DOCKER_COMPOSE_FILE${NC}"
         else
             echo -e "${RED}Error: Docker Compose file '$DOCKER_COMPOSE_FILE' not found${NC}"

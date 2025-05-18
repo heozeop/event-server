@@ -106,10 +106,8 @@ async function seedDatabase() {
     const preparedEventData = eventData.map((event) => ({
       ...event,
       _id: new ObjectId(event._id),
-      period: {
-        start: new Date(event.period.start),
-        end: new Date(event.period.end),
-      },
+      periodStart: new Date(event.periodStart),
+      periodEnd: new Date(event.periodEnd),
       createdAt: new Date(event.createdAt),
       updatedAt: new Date(),
     }));
