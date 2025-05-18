@@ -18,6 +18,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Inject,
   Param,
   Post,
@@ -114,13 +116,20 @@ export class EventController {
   })
   async getRewardRequests(
     @Query() query: QueryRewardRequestDto,
+    @CurrentUser() user: CurrentUserData,
   ): Promise<RewardRequestResponseDto[]> {
     return await lastValueFrom(
-      this.eventClient.send({ cmd: EVENT_CMP.GET_REWARD_REQUESTS }, query),
+      this.eventClient.send(
+        { cmd: EVENT_CMP.GET_REWARD_REQUESTS },
+        {
+          ...query,
+          userId: user.id,
+        },
+      ),
     );
   }
 
-  @Post('events/:eventId/rewards')
+  @Post('events/:eventId/requests')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Request a reward for an event' })
   @ApiParam({ name: 'eventId', description: 'ID of the event' })
@@ -175,7 +184,7 @@ export class EventController {
     );
   }
 
-  @Post('events/:eventId/request')
+  @Post('events/:eventId/rewards')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OPERATOR, Role.ADMIN)
   @ApiOperation({
@@ -193,7 +202,7 @@ export class EventController {
   })
   @ApiParam({ name: 'eventId', description: 'ID of the event' })
   @ApiResponse({
-    status: 201,
+    status: 204,
     description: 'Reward added to event successfully',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -207,15 +216,19 @@ export class EventController {
     entryMessage: 'Adding reward to event',
     exitMessage: 'Reward added to event',
   })
+  @HttpCode(HttpStatus.NO_CONTENT)
   async addRewardToEvent(
     @Param('eventId') eventId: string,
     @Body('rewardId') rewardId: string,
   ): Promise<void> {
-    await this.eventClient.send(
-      { cmd: EVENT_CMP.ADD_REWARD_TO_EVENT },
-      { eventId, rewardId },
+    await lastValueFrom(
+      this.eventClient.send(
+        { cmd: EVENT_CMP.ADD_REWARD_TO_EVENT },
+        { eventId, rewardId },
+      ),
     );
   }
+
   @Get('events/:eventId')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get an event by ID' })

@@ -10,12 +10,13 @@ import {
   RemoveRewardDto,
 } from '@libs/dtos';
 import { RewardType } from '@libs/enums';
-import { LogExecution, PinoLoggerService } from '@libs/logger';
+import { PinoLoggerService } from '@libs/logger';
 import { EntityManager, EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -51,8 +52,7 @@ export class RewardService {
    */
   async createPointReward(dto: CreatePointRewardDto): Promise<PointReward> {
     const reward = new PointReward(dto.name, dto.points);
-    await this.pointRewardRepository.create(reward);
-    await this.pointRewardRepository.getEntityManager().flush();
+    await this.pointRewardRepository.getEntityManager().persistAndFlush(reward);
     return reward;
   }
 
@@ -61,8 +61,7 @@ export class RewardService {
    */
   async createItemReward(dto: CreateItemRewardDto): Promise<ItemReward> {
     const reward = new ItemReward(dto.name, dto.itemId, dto.quantity);
-    await this.itemRewardRepository.create(reward);
-    await this.itemRewardRepository.getEntityManager().flush();
+    await this.itemRewardRepository.getEntityManager().persistAndFlush(reward);
     return reward;
   }
 
@@ -71,8 +70,9 @@ export class RewardService {
    */
   async createCouponReward(dto: CreateCouponRewardDto): Promise<CouponReward> {
     const reward = new CouponReward(dto.name, dto.couponCode, dto.expiry);
-    await this.couponRewardRepository.create(reward);
-    await this.couponRewardRepository.getEntityManager().flush();
+    await this.couponRewardRepository
+      .getEntityManager()
+      .persistAndFlush(reward);
     return reward;
   }
 
@@ -81,8 +81,7 @@ export class RewardService {
    */
   async createBadgeReward(dto: CreateBadgeRewardDto): Promise<BadgeReward> {
     const reward = new BadgeReward(dto.name, dto.badgeId);
-    await this.badgeRewardRepository.create(reward);
-    await this.badgeRewardRepository.getEntityManager().flush();
+    await this.badgeRewardRepository.getEntityManager().persistAndFlush(reward);
     return reward;
   }
 
@@ -169,7 +168,9 @@ export class RewardService {
     });
 
     if (existing) {
-      return existing;
+      throw new ConflictException(
+        `Reward with ID ${rewardId} already assigned to event with ID ${eventId}`,
+      );
     }
 
     const eventReward = this.eventRewardRepository.create({
@@ -179,8 +180,9 @@ export class RewardService {
       updatedAt: new Date(),
     });
 
-    await this.eventRewardRepository.create(eventReward);
-    await this.eventRewardRepository.getEntityManager().flush();
+    await this.eventRewardRepository
+      .getEntityManager()
+      .persistAndFlush(eventReward);
     return eventReward;
   }
 
@@ -194,7 +196,7 @@ export class RewardService {
     }
 
     const eventRewards = await this.eventRewardRepository.find(
-      { event: id },
+      { event: { _id: new ObjectId(id) } },
       { populate: ['reward'], fields: ['reward'] },
     );
 
@@ -208,12 +210,6 @@ export class RewardService {
   /**
    * Remove a reward from an event
    */
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Removing reward from event',
-    exitMessage: 'Reward removed from event',
-  })
   async removeRewardFromEvent({
     eventId,
     rewardId,
