@@ -17,7 +17,7 @@ export class MetricsService implements OnModuleInit {
   public serviceInfo: Gauge;
 
   constructor(@Inject('METRICS_OPTIONS') private options: MetricsModuleOptions) {
-    this.prefix = options.serviceName;
+    this.prefix = this.sanitizeMetricName(options.serviceName);
     this.registry = new Registry();
     
     // Register default Node.js metrics
@@ -96,5 +96,25 @@ export class MetricsService implements OnModuleInit {
   // Get content type
   getContentType(): string {
     return this.registry.contentType;
+  }
+  
+  /**
+   * Sanitizes a string to be used as a Prometheus metric name.
+   * Metric names can only contain letters, numbers, and underscores,
+   * and must start with a letter.
+   */
+  private sanitizeMetricName(name: string): string {
+    // Replace any non-alphanumeric character with underscore
+    let sanitized = name.replace(/[^a-zA-Z0-9]/g, '_');
+    
+    // Ensure the name starts with a letter (if it starts with a number, prepend 'n_')
+    if (/^[0-9]/.test(sanitized)) {
+      sanitized = `n_${sanitized}`;
+    }
+    
+    // Ensure we don't have consecutive underscores
+    sanitized = sanitized.replace(/_+/g, '_');
+    
+    return sanitized;
   }
 } 

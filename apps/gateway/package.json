@@ -28,6 +28,7 @@
     "@libs/logger": "workspace:*",
     "@libs/pipe": "workspace:*",
     "@libs/types": "workspace:*",
+    "@libs/metrics": "workspace:*",
     "@nestjs/common": "^11.1.1",
     "@nestjs/core": "^11.1.1",
     "@nestjs/jwt": "^11.0.0",

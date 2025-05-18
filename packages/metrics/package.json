@@ -1,5 +1,5 @@
 {
-  "name": "@libs/metrics",
+  "name": "@event-server/metrics",
   "version": "0.0.1",
   "description": "Metrics module for event-server microservices",
   "main": "dist/index.js",

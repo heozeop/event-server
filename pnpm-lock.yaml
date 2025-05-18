@@ -78,6 +78,9 @@ importers:
       '@libs/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@libs/metrics':
+        specifier: workspace:*
+        version: link:../../packages/metrics
       '@libs/pipe':
         specifier: workspace:*
         version: link:../../packages/pipe
@@ -238,6 +241,9 @@ importers:
       '@libs/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@libs/metrics':
+        specifier: workspace:*
+        version: link:../../packages/metrics
       '@libs/pipe':
         specifier: workspace:*
         version: link:../../packages/pipe
@@ -383,6 +389,9 @@ importers:
       '@libs/logger':
         specifier: workspace:*
         version: link:../../packages/logger
+      '@libs/metrics':
+        specifier: workspace:*
+        version: link:../../packages/metrics
       '@libs/pipe':
         specifier: workspace:*
         version: link:../../packages/pipe

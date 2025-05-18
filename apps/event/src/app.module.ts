@@ -1,5 +1,7 @@
 import { MicroServiceExceptionModule } from '@libs/filter';
 import { LoggerModule } from '@libs/logger';
+import { MetricsModule } from '@libs/metrics';
+import { PipeModule } from '@libs/pipe';
 import { MikroORM } from '@mikro-orm/core';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -11,7 +13,6 @@ import {
 import { DatabaseModule } from './database/database.module';
 import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
 import { EventService, RewardRequestService, RewardService } from './services';
-import { PipeModule } from '@libs/pipe';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -45,7 +46,11 @@ import { PipeModule } from '@libs/pipe';
         },
       }),
     }),
-    PipeModule
+    PipeModule,
+    MetricsModule.forRoot({
+      serviceName: 'event-service',
+      serviceVersion: '1.0.0',
+    }),
   ],
   providers: [
     EventService,

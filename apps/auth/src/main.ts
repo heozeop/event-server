@@ -1,4 +1,5 @@
 import { LogContextInterceptor, PinoLoggerService } from '@libs/logger';
+import { MetricsInterceptor } from '@libs/metrics';
 import { ValidationPipe } from '@libs/pipe';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
@@ -18,10 +19,11 @@ async function bootstrap() {
 
   const logger = app.get(PinoLoggerService);
 
-  const loggerIntercepter = app.get(LogContextInterceptor);
-  const requestContextInterceptor = app.get(RequestContextInterceptor);
-
-  app.useGlobalInterceptors(loggerIntercepter, requestContextInterceptor);
+  app.useGlobalInterceptors(
+    app.get(LogContextInterceptor),
+    app.get(RequestContextInterceptor),
+    app.get(MetricsInterceptor),
+  );
 
   app.useGlobalPipes(app.get(ValidationPipe));
 

@@ -1,5 +1,6 @@
 import { ClientServiceExceptionModule } from '@libs/filter';
 import { LoggerModule } from '@libs/logger';
+import { MetricsModule } from '@libs/metrics';
 import { PipeModule } from '@libs/pipe';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -30,6 +31,10 @@ import { EventModule } from './event/event.module';
     PipeModule,
     AuthModule,
     EventModule,
+    MetricsModule.forRoot({
+      serviceName: 'gateway',
+      serviceVersion: '1.0.0',
+    }),
     ClientServiceExceptionModule,
   ],
 })

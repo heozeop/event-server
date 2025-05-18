@@ -1,5 +1,7 @@
 import { MicroServiceExceptionModule } from '@libs/filter';
 import { LoggerModule } from '@libs/logger';
+import { MetricsModule } from '@libs/metrics';
+import { PipeModule } from '@libs/pipe';
 import { MikroORM } from '@mikro-orm/core';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -10,7 +12,6 @@ import { DatabaseModule } from './database/database.module';
 import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
 import { AuthService } from './services/auth.service';
 import { UserService } from './services/user.service';
-import { PipeModule } from '@libs/pipe';
 
 @Module({
   imports: [
@@ -61,6 +62,10 @@ import { PipeModule } from '@libs/pipe';
     DatabaseModule,
     PipeModule,
     MicroServiceExceptionModule,
+    MetricsModule.forRoot({
+      serviceName: 'auth-service',
+      serviceVersion: '1.0.0',
+    }),
   ],
   controllers: [UserController, AuthController],
   providers: [

@@ -1,4 +1,5 @@
 import { LogContextInterceptor, PinoLoggerService } from '@libs/logger';
+import { MetricsInterceptor } from '@libs/metrics';
 import { ValidationPipe } from '@libs/pipe';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
@@ -11,10 +12,12 @@ async function bootstrap() {
     bufferLogs: true, // Buffer logs until logger is ready
   });
 
-  // Get the logger service
-  const loggerMiddleware = app.get(LogContextInterceptor);
-  app.useGlobalInterceptors(loggerMiddleware);
+  app.useGlobalInterceptors(
+    app.get(LogContextInterceptor),
+    app.get(MetricsInterceptor),
+  );
 
+  // Get the logger service
   const logger = app.get(PinoLoggerService);
   logger.log('Starting gateway service...');
 

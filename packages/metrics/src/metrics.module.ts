@@ -26,7 +26,7 @@ export class MetricsModule {
         MetricsService,
         MetricsInterceptor,
       ],
-      exports: [MetricsService],
+      exports: [MetricsService, MetricsInterceptor],
     };
   }
 } 
