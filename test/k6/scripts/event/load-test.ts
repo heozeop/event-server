@@ -1,5 +1,5 @@
 import { getAdminToken } from "@/common/admin.login";
-import { EventEntity } from "@libs/types/event";
+import { loadEventAndRewardData } from "@/common/load-data";
 import { check, sleep } from "k6";
 import { SharedArray } from "k6/data";
 import http from "k6/http";
@@ -19,25 +19,8 @@ export const options: Options = {
     "http_reqs{status:200}": ["rate>0.9"], // 90% success rate
   },
 };
-// Load data from JSON files
-function loadTestData(): {
-  activeEvents: EventEntity[];
-  inactiveEvents: EventEntity[];
-} {
-  // Load events data
-  const events = JSON.parse(open("/data/events.json")) as EventEntity[];
 
-  // Filter events by status
-  const activeEvents = events.filter((event) => event.status === "ACTIVE");
-  const inactiveEvents = events.filter((event) => event.status === "INACTIVE");
-
-  return {
-    activeEvents,
-    inactiveEvents,
-  };
-}
-
-const testData = loadTestData();
+const testData = loadEventAndRewardData();
 
 // Initialize test data if needed
 const eventIds = new SharedArray("eventIds", function () {

@@ -1,10 +1,11 @@
+import { loadUserData } from "@/common/load-data";
 import { EventResponseDto, LoginResponseDto } from "@libs/dtos";
 import { check } from "k6";
 import { SharedArray } from "k6/data";
 import http from "k6/http";
 import { Counter } from "k6/metrics";
 import { Options } from "k6/options";
-import { API_BASE_URL, TEST_PASSWORD } from "prepare/constants";
+import { ADMIN_EMAIL, API_BASE_URL, TEST_PASSWORD } from "prepare/constants";
 
 // Custom metrics
 const successfulFlows = new Counter("successful_complete_flows");
@@ -12,18 +13,10 @@ const loginSuccess = new Counter("successful_logins");
 const eventListSuccess = new Counter("successful_event_list");
 const rewardRequestSuccess = new Counter("successful_reward_requests");
 
-// Define test user interface to match the actual data structure
-interface TestUser {
-  id: string;
-  email: string;
-  password: string;
-  roles: string[];
-  createdAt: string;
-}
 
 // Load test users from generated JSON file
 const testUsers = new SharedArray("test_users", function () {
-  return JSON.parse(open("..//data/users.json")) as TestUser[];
+  return loadUserData().users;
 });
 
 // Define test options
@@ -55,35 +48,13 @@ export const options: Options = {
 // Default function executed for each virtual user
 export default function () {
   // Find an admin user in the test users array
-  let userData;
-  for (let i = 0; i < testUsers.length; i++) {
-    const user = testUsers[i] as TestUser;
-    if (user.roles.includes("ADMIN")) {
-      userData = user;
-      break;
-    }
-  }
-
-  // If no admin user found, fall back to a random user
-  if (!userData) {
-    userData = testUsers[
-      Math.floor(Math.random() * testUsers.length)
-    ] as TestUser;
-    console.log("No admin user found, falling back to regular user");
-  }
-
   let token = "";
   let eventId = "";
   let userId = "";
 
-  // Debug info
-  console.log(
-    `Using test user: ${userData.email} with roles: ${userData.roles.join(",")}`,
-  );
-
   // 1. Login
   const loginPayload = JSON.stringify({
-    email: userData.email,
+    email: ADMIN_EMAIL,
     password: TEST_PASSWORD,
   });
 

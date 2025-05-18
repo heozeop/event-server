@@ -1,7 +1,7 @@
 import { getAdminToken } from "@/common/admin.login";
+import { loadEventAndRewardData, loadUserData } from "@/common/load-data";
 import { RewardRequestResponseDto } from "@libs/dtos";
 import { Role } from "@libs/enums";
-import { EventEntity, UserEntity } from "@libs/types";
 import { check } from "k6";
 import http from "k6/http";
 import { Counter } from "k6/metrics";
@@ -12,11 +12,11 @@ import { randomSleep } from "../utils";
 // Function to load test data
 function loadTestData(): { eventIds: string[]; userIds: string[] } {
   // Load events data
-  const events = JSON.parse(open("/data/events.json")) as EventEntity[];
+  const events = loadEventAndRewardData().activeEvents;
   const eventIds = events.map((event) => event._id.toString());
 
   // Load users data
-  const users = JSON.parse(open("/data/users.json")) as UserEntity[];
+  const users = loadUserData().users;
   const userIds = users
     .filter(
       (user) => !user.roles.includes(Role.ADMIN) && user.email !== ADMIN_EMAIL,

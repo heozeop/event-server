@@ -1,9 +1,10 @@
 import { getAdminToken } from "@/common/admin.login";
+import { loadEventAndRewardData } from "@/common/load-data";
 import { check } from "k6";
 import http from "k6/http";
 import { Counter } from "k6/metrics";
 import { Options } from "k6/options";
-import { ADMIN_EMAIL, API_BASE_URL, TEST_PASSWORD } from "prepare/constants";
+import { API_BASE_URL } from "prepare/constants";
 import { randomSleep } from "../utils";
 
 // Define types for data
@@ -34,25 +35,6 @@ type User = {
 // Custom metrics
 const successfulRequests = new Counter("successful_reward_requests");
 
-// Load data from JSON files
-function loadTestData(): { events: Event[]; users: User[] } {
-  // Load events data from the prepare directory
-  const events = JSON.parse(open("/data/events.json")) as Event[];
-
-  // Load users data from the prepare directory
-  const users = JSON.parse(open("/data/users.json")) as User[];
-
-  // Filter active events and regular users (non-admin)
-  const activeEvents = events.filter((event) => event.status === "ACTIVE");
-  const regularUsers = users.filter(
-    (user) => !user.roles.includes("ADMIN") && user.email !== ADMIN_EMAIL,
-  );
-
-  return {
-    events: activeEvents,
-    users: regularUsers,
-  };
-}
 
 // Define test options based on requirements: 50 requests per second, 150ms response time
 export const options: Options = {
@@ -74,11 +56,8 @@ export const options: Options = {
   },
 };
 
-// Admin user credentials
-const ADMIN_PASSWORD = TEST_PASSWORD;
-
 // Load test data
-const testData = loadTestData();
+const testData = loadEventAndRewardData();
 
 // Setup function - runs once per VU
 export function setup() {

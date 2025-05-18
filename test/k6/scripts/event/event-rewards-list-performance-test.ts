@@ -1,5 +1,6 @@
 import { getAdminToken } from "@/common/admin.login";
-import { EventEntity, RewardBaseEntity } from "@libs/types";
+import { loadEventAndRewardData } from "@/common/load-data";
+import { RewardBaseEntity } from "@libs/types";
 import { check } from "k6";
 import http from "k6/http";
 import { Counter } from "k6/metrics";
@@ -38,7 +39,7 @@ export const options: Options = {
 // Load event data from JSON file
 function loadEventData(): string[] {
   // Load events data from the prepare directory
-  const events = JSON.parse(open("/data/events.json")) as EventEntity[];
+  const events = loadEventAndRewardData().activeEvents;
 
   // Extract event IDs
   const eventIds = events.map((event) => event._id.toString());

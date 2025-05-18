@@ -1,11 +1,10 @@
 import { getAdminToken } from "@/common/admin.login";
+import { loadRewardsData } from "@/common/load-data";
 import { faker } from "@faker-js/faker";
-import { RewardType } from "@libs/enums";
 import {
   BadgeRewardEntity,
   CouponRewardEntity,
-  PointRewardEntity,
-  RewardBaseEntity,
+  PointRewardEntity
 } from "@libs/types";
 import { check } from "k6";
 import http from "k6/http";
@@ -24,37 +23,6 @@ const successfulBadgeRewardCreations = new Counter(
 const successfulCouponRewardCreations = new Counter(
   "successful_coupon_reward_creations",
 );
-
-// Function to load rewards data from JSON
-function loadRewardsData(): {
-  pointRewards: PointRewardEntity[];
-  badgeRewards: BadgeRewardEntity[];
-  couponRewards: CouponRewardEntity[];
-} {
-  // Load rewards data from JSON file
-  const allRewards = JSON.parse(
-    open("/data/rewards.json"),
-  ) as RewardBaseEntity[];
-
-  // Filter by reward type
-  const pointRewards = allRewards.filter(
-    (reward): reward is PointRewardEntity => reward.type === RewardType.POINT,
-  );
-
-  const badgeRewards = allRewards.filter(
-    (reward): reward is BadgeRewardEntity => reward.type === RewardType.BADGE,
-  );
-
-  const couponRewards = allRewards.filter(
-    (reward): reward is CouponRewardEntity => reward.type === RewardType.COUPON,
-  );
-
-  return {
-    pointRewards,
-    badgeRewards,
-    couponRewards,
-  };
-}
 
 // Define test options with three scenarios as per requirements
 export const options: Options = {

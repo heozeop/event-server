@@ -1,34 +1,11 @@
 import { getAdminToken } from "@/common/admin.login";
+import { EventEntity, RewardBaseEntity } from "@libs/types/event";
 import { check } from "k6";
 import http from "k6/http";
 import { Counter } from "k6/metrics";
 import { Options } from "k6/options";
 import { API_BASE_URL, TEST_PASSWORD } from "prepare/constants";
 import { randomSleep } from "../utils";
-
-// Type definitions for events and rewards
-type Event = {
-  id: string;
-  name: string;
-  condition: {
-    minPurchase: number;
-    maxRewards: number;
-  };
-  period: {
-    start: string;
-    end: string;
-  };
-  status: string;
-  createdAt: string;
-};
-
-type Reward = {
-  _id: string;
-  type: string;
-  name: string;
-  [key: string]: unknown;
-};
-
 // Custom metrics
 const successfulNewEventConnections = new Counter(
   "successful_new_event_connections",
@@ -42,19 +19,19 @@ const ADMIN_PASSWORD = TEST_PASSWORD;
 
 // Load data from JSON files
 function loadTestData(): {
-  activeEvents: Event[];
-  inactiveEvents: Event[];
-  rewards: Reward[];
+  activeEvents: EventEntity[];
+  inactiveEvents: EventEntity[];
+  rewards: RewardBaseEntity[];
 } {
   // Load events data
-  const events = JSON.parse(open("/data/events.json")) as Event[];
+  const events = JSON.parse(open("/data/events.json")) as EventEntity[];
 
   // Filter events by status
   const activeEvents = events.filter((event) => event.status === "ACTIVE");
   const inactiveEvents = events.filter((event) => event.status === "INACTIVE");
 
   // Load rewards data
-  const rewards = JSON.parse(open("/data/rewards.json")) as Reward[];
+  const rewards = JSON.parse(open("/data/rewards.json")) as RewardBaseEntity[];
 
   return {
     activeEvents,
@@ -122,9 +99,9 @@ export function setup() {
 export function newEventScenario(data: {
   token: string;
   testData: {
-    activeEvents: Event[];
-    inactiveEvents: Event[];
-    rewards: Reward[];
+    activeEvents: EventEntity[];
+    inactiveEvents: EventEntity[];
+    rewards: RewardBaseEntity[];
   };
 }) {
   randomSleep(2, 10);
@@ -141,7 +118,7 @@ export function newEventScenario(data: {
 
   // Add reward to event
   const response = http.post(
-    `${API_BASE_URL}/events/${event.id}/rewards`,
+    `${API_BASE_URL}/events/${event._id}/rewards`,
     JSON.stringify({
       rewardId: reward._id,
     }),
@@ -168,9 +145,9 @@ export function newEventScenario(data: {
 export function existingEventScenario(data: {
   token: string;
   testData: {
-    activeEvents: Event[];
-    inactiveEvents: Event[];
-    rewards: Reward[];
+    activeEvents: EventEntity[];
+    inactiveEvents: EventEntity[];
+    rewards: RewardBaseEntity[];
   };
 }) {
   randomSleep(2, 10);
@@ -188,7 +165,7 @@ export function existingEventScenario(data: {
 
   // Add reward to event
   const response = http.post(
-    `${API_BASE_URL}/events/${event.id}/rewards`,
+    `${API_BASE_URL}/events/${event._id}/rewards`,
     JSON.stringify({
       rewardId: reward._id,
     }),

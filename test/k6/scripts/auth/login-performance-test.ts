@@ -1,10 +1,10 @@
-import { Role } from "@libs/enums";
+import { loadUserData } from "@/common/load-data";
 import { UserEntity } from "@libs/types";
 import { check } from "k6";
 import http from "k6/http";
 import { Counter } from "k6/metrics";
 import { Options } from "k6/options";
-import { ADMIN_EMAIL, API_BASE_URL, TEST_PASSWORD } from "prepare/constants";
+import { API_BASE_URL, TEST_PASSWORD } from "prepare/constants";
 import { randomSleep } from "../utils";
 
 // Custom metrics
@@ -67,43 +67,30 @@ export const options: Options = {
   },
 };
 
-// Load test data from files
-function loadTestData(): { users: UserEntity[]; nonExistentEmails: string[] } {
-  // Load users data from the K6 bundle
-  const usersData = JSON.parse(open("/data/users.json")) as UserEntity[];
 
-  // Filter regular users (non-admin)
-  const regularUsers = usersData.filter(
-    (user) => !user.roles.includes(Role.ADMIN) && user.email !== ADMIN_EMAIL,
-  );
-
-  // Generate non-existent emails by modifying existing emails
-  const nonExistentEmails = regularUsers
-    .slice(0, 20)
-    .map((user) => `nonexistent_${user.email}`);
-
-  return {
-    users: regularUsers,
-    nonExistentEmails: nonExistentEmails,
-  };
-}
-
-const testData = loadTestData();
+const users = loadUserData();
 
 // Setup function - runs once per VU
 export function setup() {
   return {
-    testData,
+    testData: {
+      users: users.users,
+      nonExistentEmails: users.users
+        .slice(0, 20)
+        .map((user) => `nonexistent_${user.email}`),
+    },
   };
 }
 
 // Scenario 1: Normal login
-export function normalLoginScenario() {
+export function normalLoginScenario(data: {
+  testData: { users: UserEntity[]; nonExistentEmails: string[] };
+}) {
   randomSleep(1, 2); // Reduced sleep time for quick mode
 
   // Select a random user
-  const user =
-    testData.users[Math.floor(Math.random() * testData.users.length)];
+  const { users } = data.testData;
+  const user = users[Math.floor(Math.random() * users.length)];
 
   // Make login request with correct credentials
   const payload = JSON.stringify({
@@ -138,12 +125,14 @@ export function normalLoginScenario() {
 }
 
 // Scenario 2: Wrong password
-export function wrongPasswordScenario() {
+export function wrongPasswordScenario(data: {
+  testData: { users: UserEntity[]; nonExistentEmails: string[] };
+}) {
   randomSleep(1, 2);
 
   // Select a random user
-  const user =
-    testData.users[Math.floor(Math.random() * testData.users.length)];
+  const { users } = data.testData;
+  const user = users[Math.floor(Math.random() * users.length)];
 
   // Make login request with incorrect password
   const payload = JSON.stringify({
@@ -181,14 +170,15 @@ export function wrongPasswordScenario() {
 }
 
 // Scenario 3: Non-existent user
-export function nonExistentUserScenario() {
+export function nonExistentUserScenario(data: {
+  testData: { users: UserEntity[]; nonExistentEmails: string[] };
+}) {
   randomSleep(1, 2);
 
   // Select a random non-existent email
+  const { nonExistentEmails } = data.testData;
   const nonExistentEmail =
-    testData.nonExistentEmails[
-      Math.floor(Math.random() * testData.nonExistentEmails.length)
-    ];
+    nonExistentEmails[Math.floor(Math.random() * nonExistentEmails.length)];
 
   // Make login request with non-existent user
   const payload = JSON.stringify({
@@ -229,9 +219,11 @@ export function nonExistentUserScenario() {
 }
 
 // Default function for quick mode testing
-export default function () {
+export default function (data: {
+  testData: { users: UserEntity[]; nonExistentEmails: string[] };
+}) {
   // Run all three scenarios in sequence during quick mode to ensure all metrics are tested
-  normalLoginScenario();
-  wrongPasswordScenario();
-  nonExistentUserScenario();
+  normalLoginScenario(data);
+  wrongPasswordScenario(data);
+  nonExistentUserScenario(data);
 }

@@ -1,19 +1,16 @@
 import { getAdminToken } from "@/common/admin.login";
-import { Role } from "@libs/enums";
+import { loadUserData } from "@/common/load-data";
 import { UserEntity } from "@libs/types";
 import { check } from "k6";
 import http from "k6/http";
 import { Counter } from "k6/metrics";
 import { Options } from "k6/options";
-import { ADMIN_EMAIL, API_BASE_URL } from "prepare/constants";
+import { API_BASE_URL } from "prepare/constants";
 import { randomSleep } from "../utils";
 
 // Custom metrics
 const successfulIdLookups = new Counter("successful_id_lookups");
 const successfulEmailLookups = new Counter("successful_email_lookups");
-
-// Admin user credentials - from the prepared data
-const ADMIN_PASSWORD = "Password123!";
 
 // Define test options with two scenarios as per requirements
 export const options: Options = {
@@ -56,23 +53,8 @@ export const options: Options = {
   },
 };
 
-// Load test data from files
-function loadTestData(): { users: UserEntity[] } {
-  // Load users data from the K6 bundle
-  const usersData = JSON.parse(open("/data/users.json")) as UserEntity[];
-
-  // Filter regular users (non-admin)
-  const regularUsers = usersData.filter(
-    (user: UserEntity) =>
-      !user.roles.includes(Role.ADMIN) && user.email !== ADMIN_EMAIL,
-  );
-
-  return {
-    users: regularUsers,
-  };
-}
 // Load test data
-const testData = loadTestData();
+const testData = loadUserData();
 
 // Setup function - runs once per VU
 export function setup(): { token: string; testData: { users: UserEntity[] } } {

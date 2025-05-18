@@ -4,7 +4,7 @@ import { check } from "k6";
 import http from "k6/http";
 import { Counter } from "k6/metrics";
 import { Options } from "k6/options";
-import { API_BASE_URL, TEST_PASSWORD } from "prepare/constants";
+import { API_BASE_URL } from "prepare/constants";
 import { randomSleep } from "../utils";
 
 // Custom metrics
@@ -15,9 +15,6 @@ const successfulDateFilterRequests = new Counter(
 const successfulLocationFilterRequests = new Counter(
   "successful_location_filter_requests",
 );
-
-// Admin user credentials - from the prepared data
-const ADMIN_PASSWORD = TEST_PASSWORD;
 
 // Define test options with three scenarios as per requirements
 export const options: Options = {
