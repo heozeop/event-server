@@ -18,7 +18,7 @@ export class SensitiveDataFilter {
 
   constructor(options: SensitiveDataOptions = {}) {
     this.maskValue = options.maskValue || "[REDACTED]";
-    this.sensitiveKeys = options.sensitiveKeys || [
+    this.sensitiveKeys = [
       "password",
       "token",
       "secret",
@@ -33,6 +33,7 @@ export class SensitiveDataFilter {
       "refresh_token",
       "accessToken",
       "refreshToken",
+      ...(options.sensitiveKeys || []),
     ];
 
     this.sensitivePatterns = options.sensitivePatterns || [
@@ -49,7 +50,7 @@ export class SensitiveDataFilter {
       /\b\d{3}[-]?\d{2}[-]?\d{4}\b/g,
     ];
 
-    this.objectPaths = options.objectPaths || [
+    this.objectPaths = [
       "req.body.password",
       "req.body.accessToken",
       "req.body.refreshToken",
@@ -67,6 +68,7 @@ export class SensitiveDataFilter {
       "data.password",
       "data.credentials",
       "data.token",
+      ...(options.objectPaths || []),
     ];
   }
 

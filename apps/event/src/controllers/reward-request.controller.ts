@@ -63,6 +63,7 @@ export class RewardRequestController {
   ): Promise<RewardRequestResponseDto[]> {
     const rewardRequests =
       await this.rewardRequestService.getRewardRequests(getRewardRequestsDto);
+    this.logger.log('rewardRequests', rewardRequests);
 
     return rewardRequests.requests.map(RewardRequestResponseDto.fromEntity);
   }

@@ -92,6 +92,130 @@ export class EventController {
     );
   }
 
+  @Get('events/requests')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.USER, Role.AUDITOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Get all reward requests' })
+  @ApiQuery({ type: QueryRewardRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Reward requests retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting reward requests',
+    exitMessage: 'Reward requests retrieved',
+  })
+  async getRewardRequests(
+    @Query() query: QueryRewardRequestDto,
+  ): Promise<RewardRequestResponseDto[]> {
+    return await lastValueFrom(
+      this.eventClient.send({ cmd: EVENT_CMP.GET_REWARD_REQUESTS }, query),
+    );
+  }
+
+  @Post('events/:eventId/rewards')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Request a reward for an event' })
+  @ApiParam({ name: 'eventId', description: 'ID of the event' })
+  @ApiResponse({
+    status: 201,
+    description: 'Reward request successfully created',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Requesting reward',
+    exitMessage: 'Reward requested',
+  })
+  async requestReward(
+    @Param('eventId') eventId: string,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<RewardRequestResponseDto> {
+    const createRewardRequestDto: CreateRewardRequestDto = {
+      eventId,
+      userId: user.id,
+    };
+
+    return await lastValueFrom(
+      this.eventClient.send(
+        { cmd: EVENT_CMP.CREATE_REWARD_REQUEST },
+        createRewardRequestDto,
+      ),
+    );
+  }
+
+  @Get('events/:eventId/rewards')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get all rewards for an event' })
+  @ApiParam({ name: 'eventId', description: 'ID of the event' })
+  @ApiResponse({ status: 200, description: 'Rewards retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting rewards for event',
+    exitMessage: 'Rewards retrieved',
+  })
+  async getRewardsForEvent(
+    @Param('eventId') eventId: string,
+  ): Promise<RewardResponseDto[]> {
+    return await lastValueFrom(
+      this.eventClient.send(
+        { cmd: EVENT_CMP.GET_REWARDS_BY_EVENT_ID },
+        { id: eventId },
+      ),
+    );
+  }
+
+  @Post('events/:eventId/request')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OPERATOR, Role.ADMIN)
+  @ApiOperation({
+    summary: 'Add a reward to an event',
+    requestBody: {
+      content: {
+        'application/json': {
+          schema: {
+            type: 'object',
+            properties: { rewardId: { type: 'string' } },
+          },
+        },
+      },
+    },
+  })
+  @ApiParam({ name: 'eventId', description: 'ID of the event' })
+  @ApiResponse({
+    status: 201,
+    description: 'Reward added to event successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Adding reward to event',
+    exitMessage: 'Reward added to event',
+  })
+  async addRewardToEvent(
+    @Param('eventId') eventId: string,
+    @Body('rewardId') rewardId: string,
+  ): Promise<void> {
+    await this.eventClient.send(
+      { cmd: EVENT_CMP.ADD_REWARD_TO_EVENT },
+      { eventId, rewardId },
+    );
+  }
   @Get('events/:eventId')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get an event by ID' })
@@ -174,133 +298,6 @@ export class EventController {
   ): Promise<RewardResponseDto[]> {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_REWARDS }, query),
-    );
-  }
-
-  @Post('events/:eventId/request')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Request a reward for an event' })
-  @ApiParam({ name: 'eventId', description: 'ID of the event' })
-  @ApiResponse({
-    status: 201,
-    description: 'Reward request successfully created',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Requesting reward',
-    exitMessage: 'Reward requested',
-  })
-  async requestReward(
-    @Param('eventId') eventId: string,
-    @CurrentUser() user: CurrentUserData,
-  ): Promise<RewardRequestResponseDto> {
-    const createRewardRequestDto: CreateRewardRequestDto = {
-      eventId,
-      userId: user.id,
-    };
-
-    return await lastValueFrom(
-      this.eventClient.send(
-        { cmd: EVENT_CMP.CREATE_REWARD_REQUEST },
-        createRewardRequestDto,
-      ),
-    );
-  }
-
-  @Get('events/requests')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.USER, Role.AUDITOR, Role.ADMIN)
-  @ApiOperation({ summary: 'Get all reward requests' })
-  @ApiQuery({ type: QueryRewardRequestDto })
-  @ApiResponse({
-    status: 200,
-    description: 'Reward requests retrieved successfully',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - insufficient permissions',
-  })
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Getting reward requests',
-    exitMessage: 'Reward requests retrieved',
-  })
-  async getRewardRequests(
-    @Query() query: QueryRewardRequestDto,
-  ): Promise<RewardRequestResponseDto[]> {
-    return await lastValueFrom(
-      this.eventClient.send({ cmd: EVENT_CMP.GET_REWARD_REQUESTS }, query),
-    );
-  }
-
-  @Get('events/:eventId/rewards')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get all rewards for an event' })
-  @ApiParam({ name: 'eventId', description: 'ID of the event' })
-  @ApiResponse({ status: 200, description: 'Rewards retrieved successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Getting rewards for event',
-    exitMessage: 'Rewards retrieved',
-  })
-  async getRewardsForEvent(
-    @Param('eventId') eventId: string,
-  ): Promise<RewardResponseDto[]> {
-    return await lastValueFrom(
-      this.eventClient.send(
-        { cmd: EVENT_CMP.GET_REWARDS_BY_EVENT_ID },
-        { id: eventId },
-      ),
-    );
-  }
-
-  @Post('events/:eventId/rewards')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.OPERATOR, Role.ADMIN)
-  @ApiOperation({
-    summary: 'Add a reward to an event',
-    requestBody: {
-      content: {
-        'application/json': {
-          schema: {
-            type: 'object',
-            properties: { rewardId: { type: 'string' } },
-          },
-        },
-      },
-    },
-  })
-  @ApiParam({ name: 'eventId', description: 'ID of the event' })
-  @ApiResponse({
-    status: 200,
-    description: 'Reward added to event successfully',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden - insufficient permissions',
-  })
-  @LogExecution({
-    entryLevel: 'log',
-    exitLevel: 'log',
-    entryMessage: 'Adding reward to event',
-    exitMessage: 'Reward added to event',
-  })
-  async addRewardToEvent(
-    @Param('eventId') eventId: string,
-    @Body('rewardId') rewardId: string,
-  ): Promise<void> {
-    return await lastValueFrom(
-      this.eventClient.send(
-        { cmd: EVENT_CMP.ADD_REWARD_TO_EVENT },
-        { eventId, rewardId },
-      ),
     );
   }
 }

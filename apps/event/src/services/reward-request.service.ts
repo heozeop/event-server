@@ -48,7 +48,7 @@ export class RewardRequestService {
     const existingRequest = await this.rewardRequestRepository.findOne(
       {
         userId: new ObjectId(userId),
-        event: { _id: new ObjectId(eventId) },
+        event: new ObjectId(eventId),
       },
       {
         fields: ['_id'],
@@ -119,7 +119,7 @@ export class RewardRequestService {
     }
 
     if (eventId) {
-      query.event = { _id: new ObjectId(eventId) };
+      query.event = new ObjectId(eventId);
     }
 
     if (status) {

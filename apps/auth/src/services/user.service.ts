@@ -92,6 +92,11 @@ export class UserService {
       throw new BadRequestException('roles should be more than 1');
     }
 
+    const rolesSet = new Set(Object.values(Role));
+    if (updateRolesDto.roles.some((role) => !rolesSet.has(role))) {
+      throw new BadRequestException('Invalid role');
+    }
+
     const user = await this.userRepository.findOne({
       _id: this.transformIdToObjectId(id),
     });

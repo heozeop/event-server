@@ -2,7 +2,7 @@ import { EventStatus } from "@libs/enums";
 import { EventEntity } from "@libs/types";
 import { ApiProperty } from "@nestjs/swagger";
 import {
-  IsDateString,
+  IsDate,
   IsEnum,
   IsNotEmpty,
   IsObject,
@@ -34,7 +34,7 @@ export class CreateEventDto
   @ApiProperty({
     description: "The period of the event",
   })
-  @IsDateString()
+  @IsDate()
   @IsNotEmpty()
   periodStart!: Date;
 
@@ -42,7 +42,7 @@ export class CreateEventDto
     example: "2023-10-31T23:59:59Z",
     description: "The end date of the event period",
   })
-  @IsDateString()
+  @IsDate()
   @IsOptional()
   periodEnd?: Date;
 

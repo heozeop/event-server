@@ -1,6 +1,7 @@
 import { PinoLoggerService } from "@libs/logger";
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   ValidationPipe as NestValidationPipe,
   ValidationError,
@@ -11,8 +12,6 @@ export class ValidationPipe extends NestValidationPipe {
   constructor(private readonly logger: PinoLoggerService) {
     super({
       transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
       transformOptions: {
         enableImplicitConversion: true,
       },
@@ -38,7 +37,7 @@ export class ValidationPipe extends NestValidationPipe {
 
         // Return the exception with formatted details
         return new BadRequestException({
-          statusCode: 400,
+          statusCode: HttpStatus.BAD_REQUEST,
           message: "Validation Failed",
           errors: formattedErrors,
           timestamp: new Date().toISOString(),

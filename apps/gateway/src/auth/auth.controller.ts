@@ -145,7 +145,6 @@ export class AuthController {
   async getUserByEmail(
     @Query() queryUserByEmailDto: QueryUserByEmailDto,
   ): Promise<UserResponseDto> {
-    console.log('queryUserByEmailDto', queryUserByEmailDto);
     return await lastValueFrom(
       this.authClient.send(
         { cmd: AUTH_CMP.GET_USER_BY_EMAIL },
@@ -173,9 +172,14 @@ export class AuthController {
     exitMessage: 'User found',
   })
   async getUserById(@Param('id') id: string): Promise<UserResponseDto> {
-    return await lastValueFrom(
-      this.authClient.send({ cmd: AUTH_CMP.GET_USER_BY_ID }, { id }),
-    );
+    try {
+      return await lastValueFrom(
+        this.authClient.send({ cmd: AUTH_CMP.GET_USER_BY_ID }, { id }),
+      );
+    } catch (error) {
+      this.logger.log('error', error as any);
+      throw error;
+    }
   }
 
   @Put('users/:id/roles')
