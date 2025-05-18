@@ -46,6 +46,7 @@ VUS=1
 TEST_DIR="$K6_DIR/dist"
 BASE_URL=""
 MODE="quick" # quick, full, or single
+RUN_ALL=false # Flag to run all tests
 K6_PATH="k6" # Default to k6 in PATH
 USE_DOCKER=true # Docker is now the default
 DOCKER_COMPOSE_FILE="$PROJECT_ROOT/docker-compose.k6.yml"
@@ -84,7 +85,7 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         -a|--all)
-            MODE="all"
+            RUN_ALL=true
             shift
             ;;
         -d|--duration)
@@ -136,7 +137,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # After parsing all arguments, add this:
-echo -e "${YELLOW}Current MODE: $MODE ${NC}"
+echo -e "${YELLOW}Current MODE: $MODE, RUN_ALL: $RUN_ALL ${NC}"
 
 # Save current directory
 PREV_DIR=$(pwd)
@@ -294,8 +295,8 @@ TOTAL_TESTS=0
 # Start timer
 START_TIME=$(date +%s)
 
-# Run tests based on mode
-if [ "$MODE" = "all" ]; then
+# Run tests based on mode and RUN_ALL flag
+if [ "$RUN_ALL" = true ]; then
     echo -e "${GREEN}Running all tests in $TEST_DIR${NC}"
     
     # Find all JavaScript files in the test directory
