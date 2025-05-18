@@ -9,9 +9,6 @@ import { Event } from '../../src/entities/event.entity';
 import { EventService } from '../../src/services/event.service';
 import { TestAppModule } from '../test.app.module';
 
-// Increase timeout for slow tests
-jest.setTimeout(30000);
-
 describe('EventService', () => {
   let service: EventService;
   let orm: MikroORM;
