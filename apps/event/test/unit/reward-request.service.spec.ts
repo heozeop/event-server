@@ -554,4 +554,393 @@ describe('RewardRequestService', () => {
       ).rejects.toThrow(NotFoundException);
     });
   });
+
+  // 추가 테스트 케이스 - 사용자 시나리오 기반 (USER.md)
+  describe('사용자 리워드 요청 테스트', () => {
+    // 이벤트 리워드 요청 테스트
+    it('사용자가 활성 이벤트에 대한 리워드 요청을 성공적으로 생성할 수 있어야 함', async () => {
+      // Arrange
+      const 사용자ID = new ObjectId().toString();
+      const 현재시간 = new Date();
+      const 이벤트종료일 = new Date(현재시간.getTime() + 7 * 86400000); // 7일 후
+
+      // 활성 이벤트 생성
+      const 이벤트 = await eventService.createEvent({
+        name: '신규 사용자 가입 이벤트',
+        condition: { newUser: true },
+        period: {
+          start: new Date(현재시간.getTime() - 86400000).toISOString(), // 1일 전 시작
+          end: 이벤트종료일.toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      // Act
+      const 결과 = await service.createRewardRequest({
+        userId: 사용자ID,
+        eventId: 이벤트._id.toString(),
+      });
+
+      // Assert
+      expect(결과).toBeDefined();
+      expect(결과.userId.toString()).toBe(사용자ID);
+      expect(결과.event._id.toString()).toBe(이벤트._id.toString());
+      expect(결과.status).toBe(RewardRequestStatus.PENDING);
+    });
+
+    // 사용자의 리워드 요청 목록 조회 테스트
+    it('사용자가 자신의 리워드 요청 목록을 조회할 수 있어야 함', async () => {
+      // Arrange
+      const 사용자ID = new ObjectId().toString();
+      const 다른사용자ID = new ObjectId().toString();
+
+      // 이벤트 생성
+      const 이벤트1 = await eventService.createEvent({
+        name: '여름 이벤트',
+        condition: { season: 'summer' },
+        period: {
+          start: new Date(Date.now() - 86400000).toISOString(),
+          end: new Date(Date.now() + 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      const 이벤트2 = await eventService.createEvent({
+        name: '가을 이벤트',
+        condition: { season: 'autumn' },
+        period: {
+          start: new Date(Date.now() - 86400000).toISOString(),
+          end: new Date(Date.now() + 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      // 사용자의 리워드 요청 생성
+      await service.createRewardRequest({
+        userId: 사용자ID,
+        eventId: 이벤트1._id.toString(),
+      });
+
+      await service.createRewardRequest({
+        userId: 사용자ID,
+        eventId: 이벤트2._id.toString(),
+      });
+
+      // 다른 사용자의 리워드 요청 생성
+      await service.createRewardRequest({
+        userId: 다른사용자ID,
+        eventId: 이벤트1._id.toString(),
+      });
+
+      // Act
+      const 결과 = await service.getRewardRequests({ userId: 사용자ID });
+
+      // Assert
+      expect(결과.requests).toBeDefined();
+      expect(결과.requests.length).toBe(2);
+      expect(결과.total).toBe(2);
+      // 모든 요청이 해당 사용자의 것인지 확인
+      결과.requests.forEach((요청) => {
+        expect(요청.userId.toString()).toBe(사용자ID);
+      });
+    });
+
+    // 이벤트 기간 제한 테스트
+    it('이벤트 기간이 종료된 후에는 리워드 요청이 거부되어야 함', async () => {
+      // Arrange
+      const 사용자ID = new ObjectId().toString();
+      const 현재시간 = new Date();
+      const 이벤트시작일 = new Date(현재시간.getTime() - 14 * 86400000); // 14일 전
+      const 이벤트종료일 = new Date(현재시간.getTime() - 7 * 86400000); // 7일 전 종료
+
+      // 이미 종료된 이벤트 생성
+      const 이벤트 = await eventService.createEvent({
+        name: '종료된 이벤트',
+        condition: { type: 'any' },
+        period: {
+          start: 이벤트시작일.toISOString(),
+          end: 이벤트종료일.toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      // Act & Assert
+      await expect(
+        service.createRewardRequest({
+          userId: 사용자ID,
+          eventId: 이벤트._id.toString(),
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    // 중복 요청 방지 테스트
+    it('사용자가 동일한 이벤트에 중복 리워드 요청시 ConflictException이 발생해야 함', async () => {
+      // Arrange
+      const 사용자ID = new ObjectId().toString();
+
+      // 이벤트 생성
+      const 이벤트 = await eventService.createEvent({
+        name: '중복 요청 테스트 이벤트',
+        condition: { type: 'any' },
+        period: {
+          start: new Date(Date.now() - 86400000).toISOString(),
+          end: new Date(Date.now() + 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      // 첫 번째 요청 생성
+      await service.createRewardRequest({
+        userId: 사용자ID,
+        eventId: 이벤트._id.toString(),
+      });
+
+      // Act & Assert
+      await expect(
+        service.createRewardRequest({
+          userId: 사용자ID,
+          eventId: 이벤트._id.toString(),
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+  });
+
+  // 추가 테스트 케이스 - 관리자/감사자 시나리오 기반 (ADMIN.md & AUDITOR.md)
+  describe('관리자 및 감사자 리워드 요청 관리 테스트', () => {
+    // 상태별 리워드 요청 조회 테스트
+    it('관리자가 상태별로 리워드 요청을 필터링하여 조회할 수 있어야 함', async () => {
+      // Arrange
+      // 활성 이벤트 생성
+      const 이벤트 = await eventService.createEvent({
+        name: '상태 필터 테스트 이벤트',
+        condition: { type: 'any' },
+        period: {
+          start: new Date(Date.now() - 86400000).toISOString(),
+          end: new Date(Date.now() + 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      // 다양한 상태의 리워드 요청 생성
+      const 대기요청 = await service.createRewardRequest({
+        userId: new ObjectId().toString(),
+        eventId: 이벤트._id.toString(),
+      });
+
+      const 승인요청 = await service.createRewardRequest({
+        userId: new ObjectId().toString(),
+        eventId: 이벤트._id.toString(),
+      });
+      await service.updateRewardRequestStatus({
+        rewardRequestid: 승인요청._id.toString(),
+        status: RewardRequestStatus.APPROVED,
+      });
+
+      const 거절요청 = await service.createRewardRequest({
+        userId: new ObjectId().toString(),
+        eventId: 이벤트._id.toString(),
+      });
+      await service.updateRewardRequestStatus({
+        rewardRequestid: 거절요청._id.toString(),
+        status: RewardRequestStatus.REJECTED,
+      });
+
+      // Act - 대기중 요청 조회
+      const 대기중결과 = await service.getRewardRequests({
+        status: RewardRequestStatus.PENDING,
+      });
+
+      // Act - 승인된 요청 조회
+      const 승인결과 = await service.getRewardRequests({
+        status: RewardRequestStatus.APPROVED,
+      });
+
+      // Act - 거절된 요청 조회
+      const 거절결과 = await service.getRewardRequests({
+        status: RewardRequestStatus.REJECTED,
+      });
+
+      // Assert
+      expect(대기중결과.requests.length).toBe(1);
+      expect(대기중결과.requests[0]._id.toString()).toBe(
+        대기요청._id.toString(),
+      );
+
+      expect(승인결과.requests.length).toBe(1);
+      expect(승인결과.requests[0]._id.toString()).toBe(승인요청._id.toString());
+
+      expect(거절결과.requests.length).toBe(1);
+      expect(거절결과.requests[0]._id.toString()).toBe(거절요청._id.toString());
+    });
+
+    // 특정 이벤트의 리워드 요청 조회 테스트
+    it('특정 이벤트에 대한 모든 리워드 요청을 조회할 수 있어야 함', async () => {
+      // Arrange
+      // 여러 이벤트 생성
+      const 이벤트1 = await eventService.createEvent({
+        name: '이벤트 필터 테스트 1',
+        condition: { type: 'any' },
+        period: {
+          start: new Date(Date.now() - 86400000).toISOString(),
+          end: new Date(Date.now() + 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      const 이벤트2 = await eventService.createEvent({
+        name: '이벤트 필터 테스트 2',
+        condition: { type: 'any' },
+        period: {
+          start: new Date(Date.now() - 86400000).toISOString(),
+          end: new Date(Date.now() + 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      // 여러 사용자의 리워드 요청 생성
+      await service.createRewardRequest({
+        userId: new ObjectId().toString(),
+        eventId: 이벤트1._id.toString(),
+      });
+
+      await service.createRewardRequest({
+        userId: new ObjectId().toString(),
+        eventId: 이벤트1._id.toString(),
+      });
+
+      await service.createRewardRequest({
+        userId: new ObjectId().toString(),
+        eventId: 이벤트1._id.toString(),
+      });
+
+      await service.createRewardRequest({
+        userId: new ObjectId().toString(),
+        eventId: 이벤트2._id.toString(),
+      });
+
+      // Act
+      const 결과 = await service.getRewardRequests({
+        eventId: 이벤트1._id.toString(),
+      });
+
+      // Assert
+      expect(결과.requests.length).toBe(3);
+      expect(결과.total).toBe(3);
+      // 모든 요청이 해당 이벤트에 대한 것인지 확인
+      결과.requests.forEach((요청) => {
+        expect(요청.event._id.toString()).toBe(이벤트1._id.toString());
+      });
+    });
+  });
+
+  // 추가 테스트 케이스 - 운영자 시나리오 기반 (OPERATOR.md)
+  describe('운영자 리워드 요청 처리 테스트', () => {
+    // 리워드 요청 승인 테스트
+    it('운영자가 대기 중인 리워드 요청을 승인할 수 있어야 함', async () => {
+      // Arrange
+      // 활성 이벤트 생성
+      const 이벤트 = await eventService.createEvent({
+        name: '승인 테스트 이벤트',
+        condition: { type: 'any' },
+        period: {
+          start: new Date(Date.now() - 86400000).toISOString(),
+          end: new Date(Date.now() + 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      // 리워드 요청 생성
+      const 요청 = await service.createRewardRequest({
+        userId: new ObjectId().toString(),
+        eventId: 이벤트._id.toString(),
+      });
+
+      // Act
+      const 결과 = await service.updateRewardRequestStatus({
+        rewardRequestid: 요청._id.toString(),
+        status: RewardRequestStatus.APPROVED,
+      });
+
+      // Assert
+      expect(결과).toBeDefined();
+      expect(결과.status).toBe(RewardRequestStatus.APPROVED);
+
+      // 데이터베이스에 반영되었는지 확인
+      const repository = orm.em.getRepository(RewardRequest);
+      const 업데이트된요청 = await repository.findOne({ _id: 요청._id });
+      expect(업데이트된요청).toBeDefined();
+      expect(업데이트된요청?.status).toBe(RewardRequestStatus.APPROVED);
+    });
+
+    // 리워드 요청 거절 테스트
+    it('운영자가 대기 중인 리워드 요청을 거절할 수 있어야 함', async () => {
+      // Arrange
+      // 활성 이벤트 생성
+      const 이벤트 = await eventService.createEvent({
+        name: '거절 테스트 이벤트',
+        condition: { type: 'any' },
+        period: {
+          start: new Date(Date.now() - 86400000).toISOString(),
+          end: new Date(Date.now() + 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      // 리워드 요청 생성
+      const 요청 = await service.createRewardRequest({
+        userId: new ObjectId().toString(),
+        eventId: 이벤트._id.toString(),
+      });
+
+      // Act
+      const 결과 = await service.updateRewardRequestStatus({
+        rewardRequestid: 요청._id.toString(),
+        status: RewardRequestStatus.REJECTED,
+      });
+
+      // Assert
+      expect(결과).toBeDefined();
+      expect(결과.status).toBe(RewardRequestStatus.REJECTED);
+
+      // 데이터베이스에 반영되었는지 확인
+      const repository = orm.em.getRepository(RewardRequest);
+      const 업데이트된요청 = await repository.findOne({ _id: 요청._id });
+      expect(업데이트된요청).toBeDefined();
+      expect(업데이트된요청?.status).toBe(RewardRequestStatus.REJECTED);
+    });
+
+    // 이미 처리된 요청 재처리 방지 테스트
+    it('이미 처리된 리워드 요청의 상태를 변경할 수 없어야 함', async () => {
+      // Arrange
+      // 활성 이벤트 생성
+      const 이벤트 = await eventService.createEvent({
+        name: '중복 처리 방지 테스트 이벤트',
+        condition: { type: 'any' },
+        period: {
+          start: new Date(Date.now() - 86400000).toISOString(),
+          end: new Date(Date.now() + 86400000).toISOString(),
+        },
+        status: EventStatus.ACTIVE,
+      });
+
+      // 리워드 요청 생성 및 승인
+      const 요청 = await service.createRewardRequest({
+        userId: new ObjectId().toString(),
+        eventId: 이벤트._id.toString(),
+      });
+
+      await service.updateRewardRequestStatus({
+        rewardRequestid: 요청._id.toString(),
+        status: RewardRequestStatus.APPROVED,
+      });
+
+      // Act & Assert
+      await expect(
+        service.updateRewardRequestStatus({
+          rewardRequestid: 요청._id.toString(),
+          status: RewardRequestStatus.REJECTED,
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
 });
