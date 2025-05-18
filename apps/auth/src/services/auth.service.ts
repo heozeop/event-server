@@ -23,7 +23,7 @@ export class AuthService {
 
     // Generate token
     const payload = {
-      sub: user._id.toString(),
+      sub: user.id.toString(),
       roles: user.roles,
       iat: new Date().getTime(),
     };
@@ -32,7 +32,7 @@ export class AuthService {
 
     // Log additional information about successful login
     this.logger.log('Login details', {
-      userId: user._id.toString(),
+      userId: user.id.toString(),
       email: user.email,
       roles: user.roles,
       tokenExpiration: new Date(
