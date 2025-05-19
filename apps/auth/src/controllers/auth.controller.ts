@@ -5,6 +5,7 @@ import {
   LoginResponseDto,
   RefreshTokenDto,
   RefreshTokenResponseDto,
+  ValidateTokenDto,
 } from '@libs/dtos';
 import { LogExecution, PinoLoggerService } from '@libs/logger';
 import { Controller } from '@nestjs/common';
@@ -46,5 +47,21 @@ export class AuthController {
     );
 
     return RefreshTokenResponseDto.fromEntity(accessToken);
+  }
+
+  @MessagePattern({ cmd: AUTH_CMP.VALIDATE_TOKEN })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Token validation attempt',
+    exitMessage: 'Token validation completed',
+  })
+  async validateToken(
+    @Payload() validateTokenDto: ValidateTokenDto,
+  ): Promise<boolean> {
+    return await this.authService.validateAccessToken(
+      validateTokenDto.userId,
+      validateTokenDto.accessToken,
+    );
   }
 }
