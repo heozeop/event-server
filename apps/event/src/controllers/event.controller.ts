@@ -9,6 +9,14 @@ import {
 import { LogExecution, PinoLoggerService } from '@libs/logger';
 import { Controller } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
+
+interface CursorPaginatedEventResponseDto {
+  items: EventResponseDto[];
+  total: number;
+  hasMore: boolean;
+  nextCursor?: string;
+}
+
 @Controller('event')
 export class EventController {
   constructor(
@@ -54,11 +62,17 @@ export class EventController {
     exitMessage: 'Events retrieved',
   })
   async getEvents(
-    @Payload() getEventsDto: QueryEventDto,
-  ): Promise<EventResponseDto[]> {
-    const events = await this.eventService.getEvents(getEventsDto);
+    @Payload() getEventsDto: QueryEventDto & { cursor?: string },
+  ): Promise<CursorPaginatedEventResponseDto> {
+    const { events, total, hasMore, nextCursor } =
+      await this.eventService.getEvents(getEventsDto);
 
-    return events.events.map(EventResponseDto.fromEntity);
+    return {
+      items: events.map(EventResponseDto.fromEntity),
+      total,
+      hasMore,
+      nextCursor,
+    };
   }
 
   @EventPattern({ cmd: EVENT_CMP.UPDATE_EVENT })
