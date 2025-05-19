@@ -22,6 +22,12 @@ export class MetricsService implements OnModuleInit {
   public httpClientErrors: Counter;
   public serviceInfo: Gauge;
 
+  // Business metrics
+  public eventsTotal: Counter;
+  public activeUsersTotal: Counter;
+  public rewardsTotal: Counter;
+  public rewardRequestsTotal: Counter;
+
   constructor(
     @Inject("METRICS_OPTIONS") private options: MetricsModuleOptions,
   ) {
@@ -90,6 +96,31 @@ export class MetricsService implements OnModuleInit {
       name: `${this.prefix}_info`,
       help: "Service information",
       labelNames: ["version"],
+      registers: [this.registry],
+    });
+
+    // Business metrics
+    this.eventsTotal = new Counter({
+      name: "events_total",
+      help: "Total number of events",
+      registers: [this.registry],
+    });
+
+    this.activeUsersTotal = new Counter({
+      name: "active_users_total",
+      help: "Total number of active users",
+      registers: [this.registry],
+    });
+
+    this.rewardsTotal = new Counter({
+      name: "rewards_total",
+      help: "Total number of rewards",
+      registers: [this.registry],
+    });
+
+    this.rewardRequestsTotal = new Counter({
+      name: "reward_requests_total",
+      help: "Total number of reward requests",
       registers: [this.registry],
     });
   }
