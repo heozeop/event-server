@@ -1,3 +1,4 @@
+import { toObjectId } from '@/common/to-object-id';
 import {
   CreateRewardRequestDto,
   QueryByIdDto,
@@ -63,8 +64,8 @@ export class RewardRequestService {
 
     // Create the request
     const rewardRequest = this.rewardRequestRepository.create({
-      userId: new ObjectId(userId),
-      event: new ObjectId(eventId),
+      userId: toObjectId(userId),
+      event: toObjectId(eventId),
       status: RewardRequestStatus.PENDING,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -116,11 +117,11 @@ export class RewardRequestService {
     const query: FilterQuery<RewardRequest> = {};
 
     if (userId) {
-      query.userId = new ObjectId(userId);
+      query.userId = toObjectId(userId);
     }
 
     if (eventId) {
-      query.event = new ObjectId(eventId);
+      query.event = toObjectId(eventId);
     }
 
     if (status) {

@@ -1,3 +1,4 @@
+import { toObjectId } from '@/common/to-object-id';
 import { CacheService } from '@libs/cache';
 import {
   CreateEventDto,
@@ -6,7 +7,6 @@ import {
   UpdateEventDto,
 } from '@libs/dtos';
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
-import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Event } from '../entities/event.entity';
@@ -53,14 +53,19 @@ export class EventService {
   async getEventById({ id }: QueryByIdDto): Promise<Event> {
     // Try to get from cache first
     const cacheKey = `events:${id}`;
-    const cachedEvent = await this.cacheService.get<Event>(cacheKey);
+    const cachedEvent = await this.cacheService.get<
+      Omit<Event, '_id'> & { _id?: string; id?: string }
+    >(cacheKey);
 
     if (cachedEvent) {
-      return cachedEvent;
+      return {
+        ...cachedEvent,
+        _id: toObjectId(cachedEvent._id ?? cachedEvent.id),
+      };
     }
 
     const event = await this.eventRepository.findOne({
-      _id: new ObjectId(id),
+      _id: toObjectId(id),
     });
 
     if (!event) {
@@ -76,7 +81,9 @@ export class EventService {
   async isEventExist({ id }: QueryByIdDto): Promise<boolean> {
     // Check cache first
     const cacheKey = `events:${id}`;
-    const cachedEvent = await this.cacheService.get<Event>(cacheKey);
+    const cachedEvent = await this.cacheService.get<
+      Omit<Event, '_id'> & { _id?: string; id?: string }
+    >(cacheKey);
 
     if (cachedEvent) {
       return true;
@@ -84,7 +91,7 @@ export class EventService {
 
     const event = await this.eventRepository.findOne(
       {
-        _id: new ObjectId(id),
+        _id: toObjectId(id),
       },
       {
         fields: ['_id'],
@@ -114,14 +121,22 @@ export class EventService {
 
     // Try to get from cache first
     const cachedResult = await this.cacheService.get<{
-      events: Event[];
+      events: (Omit<Event, '_id'> & { _id?: string; id?: string })[];
       total: number;
       hasMore: boolean;
       nextCursor?: string;
     }>(cacheKey);
 
     if (cachedResult) {
-      return cachedResult;
+      return {
+        events: cachedResult.events.map(({ id, _id, ...event }) => ({
+          ...event,
+          _id: toObjectId(_id ?? id),
+        })),
+        total: cachedResult.total,
+        hasMore: cachedResult.hasMore,
+        nextCursor: cachedResult.nextCursor,
+      };
     }
 
     const query: FilterQuery<Event> = {};
@@ -154,7 +169,7 @@ export class EventService {
           Buffer.from(cursor, 'base64').toString(),
         );
         if (decodedCursor.id) {
-          query._id = { $gt: new ObjectId(decodedCursor.id) };
+          query._id = { $gt: toObjectId(decodedCursor.id) };
         }
       } catch (error) {
         // Invalid cursor, ignore it
@@ -186,8 +201,8 @@ export class EventService {
       nextCursor,
     };
 
-    // Cache the result for 2 minutes
-    await this.cacheService.set(cacheKey, result, 120);
+    // Cache the result for 1 minutes
+    await this.cacheService.set(cacheKey, result, 10);
 
     return result;
   }

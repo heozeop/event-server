@@ -1,3 +1,4 @@
+import { toObjectId } from '@/common/to-object-id';
 import {
   CreateBadgeRewardDto,
   CreateCouponRewardDto,
@@ -12,7 +13,6 @@ import {
 import { RewardType } from '@libs/enums';
 import { PinoLoggerService } from '@libs/logger';
 import { EntityManager, EntityRepository, FilterQuery } from '@mikro-orm/core';
-import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
   BadRequestException,
@@ -141,7 +141,7 @@ export class RewardService {
    */
   async getRewardById({ id }: QueryByIdDto): Promise<RewardBase> {
     const reward = await this.em.findOne(RewardBase, {
-      _id: new ObjectId(id),
+      _id: toObjectId(id),
     });
 
     if (!reward) {
@@ -163,8 +163,8 @@ export class RewardService {
 
     // Check if this reward is already assigned to this event
     const existing = await this.eventRewardRepository.findOne({
-      event: { _id: new ObjectId(eventId) },
-      reward: { _id: new ObjectId(rewardId) },
+      event: { _id: toObjectId(eventId) },
+      reward: { _id: toObjectId(rewardId) },
     });
 
     if (existing) {
@@ -196,7 +196,7 @@ export class RewardService {
     }
 
     const eventRewards = await this.eventRewardRepository.find(
-      { event: { _id: new ObjectId(id) } },
+      { event: { _id: toObjectId(id) } },
       { populate: ['reward'], fields: ['reward'] },
     );
 
@@ -215,8 +215,8 @@ export class RewardService {
     rewardId,
   }: RemoveRewardDto): Promise<void> {
     const eventReward = await this.eventRewardRepository.findOne({
-      event: { _id: new ObjectId(eventId) },
-      reward: { _id: new ObjectId(rewardId) },
+      event: { _id: toObjectId(eventId) },
+      reward: { _id: toObjectId(rewardId) },
     });
 
     if (!eventReward) {

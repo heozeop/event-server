@@ -8,6 +8,7 @@ import {
   EventResponseDto,
   QueryByIdDto,
   QueryEventDto,
+  QueryRewardRequestBaseDto,
   QueryRewardRequestDto,
   RewardRequestResponseDto,
   RewardResponseDto,
@@ -101,13 +102,47 @@ export class EventController {
     @Query() query: QueryEventDto,
   ): Promise<CursorPaginationResponseDto<EventResponseDto>> {
     return await lastValueFrom(
-      this.eventClient.send({ cmd: EVENT_CMP.GET_EVENTS }, query),
+      this.eventClient.send({ cmd: EVENT_CMP.GET_EVENTS }, { ...query }),
+    );
+  }
+
+  @Get('events/requests/mine')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get all reward requests' })
+  @ApiQuery({ type: QueryRewardRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Reward requests retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Getting reward requests',
+    exitMessage: 'Reward requests retrieved',
+  })
+  async getMyRewardRequests(
+    @Query() query: QueryRewardRequestBaseDto,
+    @CurrentUser() user: CurrentUserData,
+  ): Promise<PaginationResponseDto<RewardRequestResponseDto>> {
+    return await lastValueFrom(
+      this.eventClient.send(
+        { cmd: EVENT_CMP.GET_REWARD_REQUESTS },
+        {
+          ...query,
+          userId: user.id,
+        },
+      ),
     );
   }
 
   @Get('events/requests')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.USER, Role.AUDITOR, Role.ADMIN)
+  @Roles(Role.OPERATOR, Role.AUDITOR, Role.ADMIN)
   @ApiOperation({ summary: 'Get all reward requests' })
   @ApiQuery({ type: QueryRewardRequestDto })
   @ApiResponse({
@@ -126,17 +161,10 @@ export class EventController {
     exitMessage: 'Reward requests retrieved',
   })
   async getRewardRequests(
-    @Query() query: QueryRewardRequestDto,
-    @CurrentUser() user: CurrentUserData,
+    @Query() query: QueryRewardRequestBaseDto,
   ): Promise<PaginationResponseDto<RewardRequestResponseDto>> {
     return await lastValueFrom(
-      this.eventClient.send(
-        { cmd: EVENT_CMP.GET_REWARD_REQUESTS },
-        {
-          ...query,
-          userId: user.id,
-        },
-      ),
+      this.eventClient.send({ cmd: EVENT_CMP.GET_REWARD_REQUESTS }, query),
     );
   }
 

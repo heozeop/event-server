@@ -62,7 +62,7 @@ export class EventController {
       await this.eventService.getEvents(getEventsDto);
 
     return {
-      items: events.map(EventResponseDto.fromEntity),
+      items: events.map((event) => EventResponseDto.fromEntity(event)),
       hasMore,
       nextCursor: nextCursor || null,
     };

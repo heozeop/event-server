@@ -7,6 +7,7 @@ import { Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -31,14 +32,34 @@ async function bootstrap() {
   // Enable cookie parsing
   app.use(cookieParser());
 
+  // Apply Helmet middleware for security headers
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:'],
+        },
+      },
+      xssFilter: true,
+      noSniff: true,
+      referrerPolicy: { policy: 'same-origin' },
+    }),
+  );
+
   app.useGlobalInterceptors(
     app.get(LogContextInterceptor),
     app.get(MetricsInterceptor),
   );
 
+  // Apply strict validation pipe globally
   app.useGlobalPipes(app.get(ValidationPipe));
 
+  // Apply rate limiting globally using the CustomThrottlerGuard from module
   app.useGlobalFilters(app.get(ClientServiceExceptionFilter));
+
   // Apply compression for all responses
   app.use(
     compression({
