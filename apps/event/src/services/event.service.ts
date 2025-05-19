@@ -162,6 +162,8 @@ export class EventService {
       query.name = new RegExp(name, 'i');
     }
 
+    const total = await this.eventRepository.count(query);
+
     // Implement cursor-based pagination
     if (cursor) {
       try {
@@ -177,7 +179,7 @@ export class EventService {
     }
 
     // Fetch one more item than requested to determine if there are more items
-    const [events, total] = await this.eventRepository.findAndCount(query, {
+    const events = await this.eventRepository.find(query, {
       limit: limit + 1,
       orderBy: { _id: 'asc' },
     });

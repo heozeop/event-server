@@ -41,7 +41,6 @@ describe('RewardRequestService', () => {
 
       await orm.getSchemaGenerator().createSchema();
     } catch (error) {
-      console.error('Error initializing test module:', error);
       throw error;
     }
   });

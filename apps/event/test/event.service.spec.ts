@@ -297,9 +297,12 @@ describe('EventService', () => {
       await eventRepository.getEntityManager().persistAndFlush(events);
 
       // Act - 첫 번째 페이지 (5개)
-      const firstPage = await service.getEvents({ limit: 5, offset: 0 });
+      const firstPage = await service.getEvents({ limit: 5 });
       // Act - 두 번째 페이지 (5개)
-      const secondPage = await service.getEvents({ limit: 5, offset: 5 });
+      const secondPage = await service.getEvents({
+        limit: 5,
+        cursor: firstPage.nextCursor,
+      });
 
       // Assert
       expect(firstPage.events).toHaveLength(5);
