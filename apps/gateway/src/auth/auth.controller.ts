@@ -127,7 +127,13 @@ export class AuthController {
     exitMessage: 'Token refresh successful',
   })
   async refreshToken(@Req() req: Request): Promise<RefreshTokenResponseDto> {
-    const refreshToken = req.cookies.refreshToken;
+    const refreshToken =
+      req.cookies?.refreshToken ??
+      req.headers?.cookie
+        ?.split(';')
+        .find((c) => c.trim().startsWith('refreshToken='))
+        ?.split('=')[1];
+
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token not found');
     }
@@ -135,7 +141,7 @@ export class AuthController {
     return await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.REFRESH_TOKEN }, {
         refreshToken,
-      } as RefreshTokenDto),
+      } satisfies RefreshTokenDto),
     );
   }
 
