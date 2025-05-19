@@ -158,33 +158,37 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **응답:**
 
 ```json
-[
-  {
-    "id": "645f2d1b8c5cd2f948e9a250",
-    "name": "신규 사용자 가입 이벤트",
-    "condition": {
-      "newUser": true
+{
+  "items": [
+    {
+      "id": "645f2d1b8c5cd2f948e9a250",
+      "name": "신규 사용자 가입 이벤트",
+      "condition": {
+        "newUser": true
+      },
+      "period": {
+        "start": "2023-05-01T00:00:00.000Z",
+        "end": "2023-05-31T23:59:59.999Z"
+      },
+      "status": "ACTIVE"
     },
-    "period": {
-      "start": "2023-05-01T00:00:00.000Z",
-      "end": "2023-05-31T23:59:59.999Z"
-    },
-    "status": "ACTIVE"
-  },
-  {
-    "id": "645f2d1b8c5cd2f948e9a254",
-    "name": "여름 방학 특별 이벤트",
-    "condition": {
-      "minUserAge": 13,
-      "maxUserAge": 19
-    },
-    "period": {
-      "start": "2023-07-01T00:00:00.000Z",
-      "end": "2023-08-31T23:59:59.999Z"
-    },
-    "status": "ACTIVE"
-  }
-]
+    {
+      "id": "645f2d1b8c5cd2f948e9a254",
+      "name": "여름 방학 특별 이벤트",
+      "condition": {
+        "minUserAge": 13,
+        "maxUserAge": 19
+      },
+      "period": {
+        "start": "2023-07-01T00:00:00.000Z",
+        "end": "2023-08-31T23:59:59.999Z"
+      },
+      "status": "ACTIVE"
+    }
+  ],
+  "total": 2,
+  "hasMore": false
+}
 ```
 
 ### 2.2. 특정 이벤트 상세 조회
@@ -248,22 +252,27 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **응답:**
 
 ```json
-[
-  {
-    "id": "645f2d1b8c5cd2f948e9a257",
-    "userId": "645f2d1b8c5cd2f948e9a249",
-    "eventId": "645f2d1b8c5cd2f948e9a250",
-    "status": "PENDING",
-    "createdAt": "2023-05-13T14:30:00.000Z"
-  },
-  {
-    "id": "645f2d1b8c5cd2f948e9a258",
-    "userId": "645f2d1b8c5cd2f948e9a260",
-    "eventId": "645f2d1b8c5cd2f948e9a254",
-    "status": "APPROVED",
-    "createdAt": "2023-07-15T09:45:00.000Z"
-  }
-]
+{
+  "requests": [
+    {
+      "id": "645f2d1b8c5cd2f948e9a257",
+      "userId": "645f2d1b8c5cd2f948e9a249",
+      "eventId": "645f2d1b8c5cd2f948e9a250",
+      "status": "PENDING",
+      "createdAt": "2023-05-13T14:30:00.000Z",
+      "updatedAt": "2023-05-13T14:30:00.000Z"
+    },
+    {
+      "id": "645f2d1b8c5cd2f948e9a258",
+      "userId": "645f2d1b8c5cd2f948e9a249",
+      "eventId": "645f2d1b8c5cd2f948e9a254",
+      "status": "APPROVED",
+      "createdAt": "2023-05-13T15:00:00.000Z",
+      "updatedAt": "2023-05-13T15:10:00.000Z"
+    }
+  ],
+  "total": 2
+}
 ```
 
 ### 3.2. 상태별 리워드 요청 조회

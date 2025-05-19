@@ -182,33 +182,37 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **응답:**
 
 ```json
-[
-  {
-    "id": "645f2d1b8c5cd2f948e9a250",
-    "name": "신규 사용자 가입 이벤트",
-    "condition": {
-      "newUser": true
+{
+  "items": [
+    {
+      "id": "645f2d1b8c5cd2f948e9a250",
+      "name": "신규 사용자 가입 이벤트",
+      "condition": {
+        "newUser": true
+      },
+      "period": {
+        "start": "2023-05-01T00:00:00.000Z",
+        "end": "2023-05-31T23:59:59.999Z"
+      },
+      "status": "ACTIVE"
     },
-    "period": {
-      "start": "2023-05-01T00:00:00.000Z",
-      "end": "2023-05-31T23:59:59.999Z"
-    },
-    "status": "ACTIVE"
-  },
-  {
-    "id": "645f2d1b8c5cd2f948e9a254",
-    "name": "여름 방학 특별 이벤트",
-    "condition": {
-      "minUserAge": 13,
-      "maxUserAge": 19
-    },
-    "period": {
-      "start": "2023-07-01T00:00:00.000Z",
-      "end": "2023-08-31T23:59:59.999Z"
-    },
-    "status": "ACTIVE"
-  }
-]
+    {
+      "id": "645f2d1b8c5cd2f948e9a254",
+      "name": "여름 방학 특별 이벤트",
+      "condition": {
+        "minUserAge": 13,
+        "maxUserAge": 19
+      },
+      "period": {
+        "start": "2023-07-01T00:00:00.000Z",
+        "end": "2023-08-31T23:59:59.999Z"
+      },
+      "status": "ACTIVE"
+    }
+  ],
+  "total": 2,
+  "hasMore": false
+}
 ```
 
 ### 2.2. 특정 이벤트 상세 조회
@@ -258,30 +262,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ]
 ```
 
-## 3. 리워드 요청
+## 3. 리워드 요청 관리
 
-### 3.1. 이벤트에 대한 리워드 요청
-
-**요청:**
-
-```http
-POST /events/645f2d1b8c5cd2f948e9a250/request
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-**응답:**
-
-```json
-{
-  "id": "645f2d1b8c5cd2f948e9a257",
-  "userId": "645f2d1b8c5cd2f948e9a249",
-  "eventId": "645f2d1b8c5cd2f948e9a250",
-  "status": "PENDING",
-  "createdAt": "2023-05-13T14:30:00.000Z"
-}
-```
-
-### 3.2. 자신의 리워드 요청 목록 조회
+### 3.1. 리워드 요청 목록 조회
 
 **요청:**
 
@@ -293,18 +276,22 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **응답:**
 
 ```json
-[
-  {
-    "id": "645f2d1b8c5cd2f948e9a257",
-    "userId": "645f2d1b8c5cd2f948e9a249",
-    "eventId": "645f2d1b8c5cd2f948e9a250",
-    "status": "PENDING",
-    "createdAt": "2023-05-13T14:30:00.000Z"
-  }
-]
+{
+  "requests": [
+    {
+      "id": "645f2d1b8c5cd2f948e9a260",
+      "userId": "645f2d1b8c5cd2f948e9a249",
+      "eventId": "645f2d1b8c5cd2f948e9a250",
+      "status": "PENDING",
+      "createdAt": "2023-05-13T08:30:00.000Z",
+      "updatedAt": "2023-05-13T08:30:00.000Z"
+    }
+  ],
+  "total": 1
+}
 ```
 
-### 3.3. 상태별 리워드 요청 조회
+### 3.2. 상태별 리워드 요청 조회
 
 **요청:**
 
@@ -327,7 +314,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ]
 ```
 
-### 3.4. 특정 이벤트의 리워드 요청 조회
+### 3.3. 특정 이벤트의 리워드 요청 조회
 
 **요청:**
 

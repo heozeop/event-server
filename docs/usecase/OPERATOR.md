@@ -199,33 +199,37 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **응답:**
 
 ```json
-[
-  {
-    "id": "645f2d1b8c5cd2f948e9a250",
-    "name": "신규 사용자 가입 이벤트",
-    "condition": {
-      "newUser": true
+{
+  "items": [
+    {
+      "id": "645f2d1b8c5cd2f948e9a250",
+      "name": "신규 사용자 가입 이벤트",
+      "condition": {
+        "newUser": true
+      },
+      "period": {
+        "start": "2023-05-01T00:00:00.000Z",
+        "end": "2023-05-31T23:59:59.999Z"
+      },
+      "status": "ACTIVE"
     },
-    "period": {
-      "start": "2023-05-01T00:00:00.000Z",
-      "end": "2023-05-31T23:59:59.999Z"
-    },
-    "status": "ACTIVE"
-  },
-  {
-    "id": "645f2d1b8c5cd2f948e9a254",
-    "name": "여름 방학 특별 이벤트",
-    "condition": {
-      "minUserAge": 13,
-      "maxUserAge": 19
-    },
-    "period": {
-      "start": "2023-07-01T00:00:00.000Z",
-      "end": "2023-08-31T23:59:59.999Z"
-    },
-    "status": "ACTIVE"
-  }
-]
+    {
+      "id": "645f2d1b8c5cd2f948e9a254",
+      "name": "여름 방학 특별 이벤트",
+      "condition": {
+        "minUserAge": 13,
+        "maxUserAge": 19
+      },
+      "period": {
+        "start": "2023-07-01T00:00:00.000Z",
+        "end": "2023-08-31T23:59:59.999Z"
+      },
+      "status": "ACTIVE"
+    }
+  ],
+  "total": 2,
+  "hasMore": false
+}
 ```
 
 ### 2.3. 특정 이벤트 조회
@@ -295,19 +299,28 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **응답:**
 
 ```json
-[
-  {
-    "id": "645f2d1b8c5cd2f948e9a251",
-    "type": "POINT",
-    "points": 1000
-  },
-  {
-    "id": "645f2d1b8c5cd2f948e9a255",
-    "type": "COUPON",
-    "couponCode": "SUMMER2023",
-    "expiry": "2023-09-30T23:59:59.999Z"
-  }
-]
+{
+  "rewards": [
+    {
+      "id": "645f2d1b8c5cd2f948e9a251",
+      "type": "POINT",
+      "details": {
+        "amount": 1000,
+        "expiryDate": "2023-12-31T23:59:59.999Z"
+      }
+    },
+    {
+      "id": "645f2d1b8c5cd2f948e9a252",
+      "type": "COUPON",
+      "details": {
+        "code": "SUMMER2023",
+        "discountPercent": 10,
+        "expiryDate": "2023-08-31T23:59:59.999Z"
+      }
+    }
+  ],
+  "total": 2
+}
 ```
 
 ### 3.3. 이벤트에 리워드 추가
@@ -411,9 +424,82 @@ Content-Type: application/json
 }
 ```
 
-## 5. 엣지 케이스 시나리오
+### 4.3. 모든 리워드 조회
 
-### 5.1. 잘못된 날짜 형식으로 이벤트 생성 시도
+**요청:**
+
+```http
+GET /rewards
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**응답:**
+
+```json
+{
+  "rewards": [
+    {
+      "id": "645f2d1b8c5cd2f948e9a251",
+      "type": "POINT",
+      "details": {
+        "amount": 1000,
+        "expiryDate": "2023-12-31T23:59:59.999Z"
+      }
+    },
+    {
+      "id": "645f2d1b8c5cd2f948e9a252",
+      "type": "COUPON",
+      "details": {
+        "code": "SUMMER2023",
+        "discountPercent": 10,
+        "expiryDate": "2023-08-31T23:59:59.999Z"
+      }
+    }
+  ],
+  "total": 2
+}
+```
+
+## 5. 리워드 요청 관리
+
+### 5.1. 모든 리워드 요청 조회
+
+**요청:**
+
+```http
+GET /events/requests
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**응답:**
+
+```json
+{
+  "requests": [
+    {
+      "id": "645f2d1b8c5cd2f948e9a257",
+      "userId": "645f2d1b8c5cd2f948e9a249",
+      "eventId": "645f2d1b8c5cd2f948e9a250",
+      "status": "PENDING",
+      "createdAt": "2023-05-13T14:30:00.000Z",
+      "updatedAt": "2023-05-13T14:30:00.000Z"
+    },
+    {
+      "id": "645f2d1b8c5cd2f948e9a258",
+      "userId": "645f2d1b8c5cd2f948e9a249",
+      "eventId": "645f2d1b8c5cd2f948e9a254",
+      "status": "APPROVED",
+      "createdAt": "2023-05-13T15:00:00.000Z",
+      "updatedAt": "2023-05-13T15:10:00.000Z"
+    }
+  ],
+  "total": 2
+}
+```
+
+## 6. 엣지 케이스 시나리오
+
+### 6.1. 잘못된 날짜 형식으로 이벤트 생성 시도
 
 **요청:**
 
@@ -445,7 +531,7 @@ Content-Type: application/json
 }
 ```
 
-### 5.2. 종료일이 시작일보다 앞서는 이벤트 생성 시도
+### 6.2. 종료일이 시작일보다 앞서는 이벤트 생성 시도
 
 **요청:**
 
@@ -477,7 +563,7 @@ Content-Type: application/json
 }
 ```
 
-### 5.3. 필수 필드가 누락된 이벤트 생성 시도
+### 6.3. 필수 필드가 누락된 이벤트 생성 시도
 
 **요청:**
 
@@ -504,7 +590,7 @@ Content-Type: application/json
 }
 ```
 
-### 5.4. 존재하지 않는 리워드 타입으로 생성 시도
+### 6.4. 존재하지 않는 리워드 타입으로 생성 시도
 
 **요청:**
 
@@ -528,7 +614,7 @@ Content-Type: application/json
 }
 ```
 
-### 5.5. 음수 포인트로 포인트 리워드 생성 시도
+### 6.5. 음수 포인트로 포인트 리워드 생성 시도
 
 **요청:**
 
@@ -552,7 +638,7 @@ Content-Type: application/json
 }
 ```
 
-### 5.6. 이미 만료된 날짜로 쿠폰 리워드 생성 시도
+### 6.6. 이미 만료된 날짜로 쿠폰 리워드 생성 시도
 
 **요청:**
 
@@ -577,7 +663,7 @@ Content-Type: application/json
 }
 ```
 
-### 5.7. 존재하지 않는 리워드를 이벤트에 추가 시도
+### 6.7. 존재하지 않는 리워드를 이벤트에 추가 시도
 
 **요청:**
 
@@ -601,7 +687,7 @@ Content-Type: application/json
 }
 ```
 
-### 5.8. 이미 추가된 리워드를 이벤트에 중복 추가 시도
+### 6.8. 이미 추가된 리워드를 이벤트에 중복 추가 시도
 
 **요청:**
 
