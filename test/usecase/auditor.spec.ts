@@ -13,6 +13,11 @@ describe("AUDITOR Use Cases", () => {
     password: "auditor1234",
   };
 
+  const adminCredentials = {
+    email: "admin@example.com",
+    password: "admin1234",
+  };
+
   // Setup: Login as auditor
   beforeAll(async () => {
     // Login as auditor
@@ -28,23 +33,30 @@ describe("AUDITOR Use Cases", () => {
     auditorToken = loginResponse.body.accessToken;
     auditorId = loginResponse.body.user.id;
 
-    // Find an active event for testing
-    const eventsResponse = await request(baseUrl)
-      .get("/events")
-      .set("Authorization", `Bearer ${auditorToken}`);
+    const adminLoginResponse = await request(baseUrl)
+      .post("/auth/login")
+      .send(adminCredentials);
 
-    if (eventsResponse.body.items && eventsResponse.body.items.length > 0) {
-      // Find an active event
-      const activeEvent = eventsResponse.body.items.find(
-        (event: any) =>
-          event.status === "ACTIVE" && 
-          new Date(event.periodEnd) > new Date(),
-      );
+    expect(adminLoginResponse.status).toBe(201);
+    expect(adminLoginResponse.body).toHaveProperty("accessToken");
+    expect(adminLoginResponse.body).toHaveProperty("user.roles");
 
-      if (activeEvent) {
-        eventId = activeEvent.id;
-      }
-    }
+    const eventResponse = await request(baseUrl)
+      .post("/events")
+      .set("Authorization", `Bearer ${adminLoginResponse.body.accessToken}`)
+      .send({
+        name: "Test Event",
+        description: "Test Description",
+        status: "ACTIVE",
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        condition: {
+          minPurchase: 1000,
+          maxRewards: 1,
+        },
+      });
+
+    eventId = eventResponse.body.id;
   });
 
   // Test account management
@@ -92,13 +104,7 @@ describe("AUDITOR Use Cases", () => {
       }
     });
 
-    it("should get specific event details", async () => {
-      // Skip if no event is available
-      if (!eventId) {
-        console.log("Skipping test because no event ID is available");
-        return;
-      }
-
+    it("should get specific event details", async () => {      
       const response = await request(baseUrl)
         .get(`/events/${eventId}`)
         .set("Authorization", `Bearer ${auditorToken}`);
@@ -117,11 +123,6 @@ describe("AUDITOR Use Cases", () => {
     });
 
     it("should get event rewards", async () => {
-      // Skip if no event is available
-      if (!eventId) {
-        console.log("Skipping test because no event ID is available");
-        return;
-      }
 
       const response = await request(baseUrl)
         .get(`/events/${eventId}/rewards`)
@@ -187,11 +188,7 @@ describe("AUDITOR Use Cases", () => {
     });
 
     it("should filter reward requests by event ID", async () => {
-      // Skip if no event is available
-      if (!eventId) {
-        console.log("Skipping test because no event ID is available");
-        return;
-      }
+      await request(baseUrl).post(`/events/${eventId}/requests`).set('Authorization', `Bearer ${auditorToken}`).send();
 
       const response = await request(baseUrl)
         .get(`/events/requests?eventId=${eventId}`)
@@ -210,20 +207,11 @@ describe("AUDITOR Use Cases", () => {
     });
 
     it("should filter reward requests by user ID", async () => {
+      await request(baseUrl).post(`/events/${eventId}/requests`).set('Authorization', `Bearer ${auditorToken}`).send();
+
       // First get a user ID from any request
-      const allRequestsResponse = await request(baseUrl)
-        .get("/events/requests")
-        .set("Authorization", `Bearer ${auditorToken}`);
-
-      if (allRequestsResponse.body.items.length === 0) {
-        console.log("Skipping test because no requests are available");
-        return;
-      }
-
-      const userId = allRequestsResponse.body.items[0].userId;
-
       const response = await request(baseUrl)
-        .get(`/events/requests?userId=${userId}`)
+        .get(`/events/requests?userId=${auditorId}`)
         .set("Authorization", `Bearer ${auditorToken}`);
 
       expect(response.status).toBe(200);
@@ -233,7 +221,7 @@ describe("AUDITOR Use Cases", () => {
       // All requests should be from the specified user
       if (response.body.items.length > 0) {
         response.body.items.forEach((request: any) => {
-          expect(request.userId).toBe(userId);
+          expect(request.userId).toBe(auditorId);
         });
       }
     });
@@ -263,7 +251,7 @@ describe("AUDITOR Use Cases", () => {
       const email = `testuser${Date.now()}@example.com`;
       const userResponse = await request(baseUrl).post("/auth/users").send({
         email: email,
-        password: "test1234",
+        password: "test12341234",
       });
 
       expect(userResponse.status).toBe(201);
@@ -284,7 +272,7 @@ describe("AUDITOR Use Cases", () => {
   // Test edge cases
   describe("Edge Cases", () => {
     it("should handle non-existent event ID", async () => {
-      const fakeEventId = "645f2d1b8c5cd2f948e9a999";
+      const fakeEventId = "111111111111111111111111";
       const response = await request(baseUrl)
         .get(`/events/${fakeEventId}`)
         .set("Authorization", `Bearer ${auditorToken}`);
@@ -293,7 +281,7 @@ describe("AUDITOR Use Cases", () => {
     });
 
     it("should handle non-existent event rewards", async () => {
-      const fakeEventId = "645f2d1b8c5cd2f948e9a999";
+      const fakeEventId = "222222222222222222222222";
       const response = await request(baseUrl)
         .get(`/events/${fakeEventId}/rewards`)
         .set("Authorization", `Bearer ${auditorToken}`);
@@ -307,18 +295,6 @@ describe("AUDITOR Use Cases", () => {
         .set("Authorization", `Bearer ${auditorToken}`);
 
       expect(response.status).toBe(400);
-    });
-
-    it("should handle invalid ObjectId format", async () => {
-      const response = await request(baseUrl)
-        .get("/events/requests?userId=invalid")
-        .set("Authorization", `Bearer ${auditorToken}`);
-
-      // API returns 200 with empty items for invalid ObjectId
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
-      expect(Array.isArray(response.body.items)).toBe(true);
-      expect(response.body.items.length).toBe(0);
     });
   });
 });

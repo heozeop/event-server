@@ -109,13 +109,7 @@ describe("OPERATOR Use Cases", () => {
     });
 
     it("should get specific event details", async () => {
-      // Skip if no event is available
-      if (!eventId) {
-        console.log("Skipping test because no event ID is available");
-        return;
-      }
-
-      const response = await request(baseUrl)
+           const response = await request(baseUrl)
         .get(`/events/${eventId}`)
         .set("Authorization", `Bearer ${operatorToken}`);
 
@@ -170,35 +164,19 @@ describe("OPERATOR Use Cases", () => {
     });
 
     it("should add reward to event", async () => {
-      // Skip if no event or reward is available
-      if (!eventId || !rewardId) {
-        console.log(
-          "Skipping test because event ID or reward ID is not available",
-        );
-        return;
-      }
-
       const response = await request(baseUrl)
         .post(`/events/${eventId}/rewards`)
         .set("Authorization", `Bearer ${operatorToken}`)
         .send({
           rewardId: rewardId,
         });
-      console.log(response.body);
 
       // The API appears to have an internal error with this endpoint
       // It could be a 201 on success or 500 on error
       expect([201, 500]).toContain(response.status);
     });
 
-    it("should get rewards for a specific event", async () => {
-      // Skip if no event ID is available
-      if (!eventId) {
-        console.log("Skipping test because no event ID is available");
-        return;
-      }
-
-      const response = await request(baseUrl)
+    it("should get rewards for a specific event", async () => {      const response = await request(baseUrl)
         .get(`/events/${eventId}/rewards`)
         .set("Authorization", `Bearer ${operatorToken}`);
 
@@ -395,14 +373,6 @@ describe("OPERATOR Use Cases", () => {
     });
 
     it("should prevent adding the same reward to an event twice", async () => {
-      // Skip if no event or reward is available
-      if (!eventId || !rewardId) {
-        console.log(
-          "Skipping test because event ID or reward ID is not available",
-        );
-        return;
-      }
-      
       // Try to add the same reward again
       const response = await request(baseUrl)
         .post(`/events/${eventId}/rewards`)

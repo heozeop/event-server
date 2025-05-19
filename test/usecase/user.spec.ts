@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker/.";
 import { Role } from "@libs/enums";
 import request from "supertest";
 
@@ -10,8 +11,13 @@ describe("USER Use Cases", () => {
 
   // Regular user credentials
   const userCredentials = {
-    email: "user@example.com",
-    password: "user1234",
+    email: faker.internet.email(),
+    password: faker.internet.password(),
+  };
+
+  const adminCredentials = {
+    email: "admin@example.com",
+    password: "admin1234",
   };
 
   // Setup: Create user and login
@@ -46,22 +52,21 @@ describe("USER Use Cases", () => {
     userId = loginResponse.body.user.id;
 
     // Find an active event for testing
-    const eventsResponse = await request(baseUrl)
-      .get("/events")
-      .set("Authorization", `Bearer ${userToken}`);
+    const eventResponse = await request(baseUrl)
+      .post("/events")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({
+        name: "Test Event",
+        description: "Test Description",
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        condition: {
+          minPurchase: 1000,
+          maxRewards: 1,
+        },
+      });
 
-    if (eventsResponse.body.items && eventsResponse.body.items.length > 0) {
-      // Find an active event
-      const activeEvent = eventsResponse.body.items.find(
-        (event: any) =>
-          event.status === "ACTIVE" && 
-          new Date(event.periodEnd) > new Date(),
-      );
-
-      if (activeEvent) {
-        eventId = activeEvent.id;
-      }
-    }
+    eventId = eventResponse.body.id;
   });
 
   // Test account management
@@ -133,30 +138,15 @@ describe("USER Use Cases", () => {
     });
 
     it("should get event details", async () => {
-      // Skip if no event is available
-      if (!eventId) {
-        console.log("Skipping test because no event ID is available");
-        return;
-      }
-
       const response = await request(baseUrl)
         .get(`/events/${eventId}`)
         .set("Authorization", `Bearer ${userToken}`);
 
-      // The API might be failing with 500 error, allow both outcomes
-      expect([200, 500]).toContain(response.status);
-      
-      if (response.status === 200) {
-        expect(response.body).toHaveProperty("id", eventId);
-      }
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("id", eventId);
     });
 
     it("should get event rewards", async () => {
-      // Skip if no event is available
-      if (!eventId) {
-        console.log("Skipping test because no event ID is available");
-        return;
-      }
 
       const response = await request(baseUrl)
         .get(`/events/${eventId}/rewards`)
@@ -170,45 +160,21 @@ describe("USER Use Cases", () => {
   // Test reward requests
   describe("Reward Requests", () => {
     it("should request a reward for an event", async () => {
-      // Skip if no event is available
-      if (!eventId) {
-        console.log("Skipping test because no event ID is available");
-        return;
-      }
-
-      // This test might fail if the user has already requested the reward
-      // or if the user doesn't meet the event conditions
       const response = await request(baseUrl)
         .post(`/events/${eventId}/requests`)
         .set("Authorization", `Bearer ${userToken}`);
 
       // Success case (201) or already requested case (409)
-      expect([201, 409]).toContain(response.status);
-
-      if (response.status === 201) {
-        expect(response.body).toHaveProperty("id");
-        expect(response.body).toHaveProperty("userId", userId);
-        expect(response.body).toHaveProperty("eventId", eventId);
-        requestId = response.body.id;
-      } else {
-        const data = await request(baseUrl)
-          .get(`/events/requests`)
-          .set("Authorization", `Bearer ${userToken}`);
-
-        expect(data.status).toBe(200);
-        expect(data.body).toHaveProperty('items');
-        expect(Array.isArray(data.body.items)).toBe(true);
-        expect(data.body).toHaveProperty('totalItems');
-
-        if (data.body.items.length > 0) {
-          requestId = data.body.items[0].id;
-        }
-      }
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty("id");
+      expect(response.body).toHaveProperty("userId", userId);
+      expect(response.body.event.id).toBe(eventId);
+      requestId = response.body.id;
     });
 
     it("should get user reward requests", async () => {
       const response = await request(baseUrl)
-        .get("/events/requests")
+        .get("/events/requests/mine")
         .set("Authorization", `Bearer ${userToken}`);
 
       expect(response.status).toBe(200);
@@ -226,7 +192,7 @@ describe("USER Use Cases", () => {
 
     it("should filter reward requests by status", async () => {
       const response = await request(baseUrl)
-        .get("/events/requests?status=PENDING")
+        .get("/events/requests/mine?status=PENDING")
         .set("Authorization", `Bearer ${userToken}`);
 
       expect(response.status).toBe(200);
@@ -244,14 +210,9 @@ describe("USER Use Cases", () => {
     });
 
     it("should filter reward requests by event ID", async () => {
-      // Skip if no event is available
-      if (!eventId) {
-        console.log("Skipping test because no event ID is available");
-        return;
-      }
 
       const response = await request(baseUrl)
-        .get(`/events/requests?eventId=${eventId}`)
+        .get(`/events/requests/mine?eventId=${eventId}`)
         .set("Authorization", `Bearer ${userToken}`);
 
       expect(response.status).toBe(200);
@@ -277,12 +238,6 @@ describe("USER Use Cases", () => {
     });
 
     it("should return 401 when requesting reward without token", async () => {
-      // Skip if no event is available
-      if (!eventId) {
-        console.log("Skipping test because no event ID is available");
-        return;
-      }
-
       const response = await request(baseUrl).post(
         `/events/${eventId}/requests`,
       );
