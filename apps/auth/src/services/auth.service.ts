@@ -3,7 +3,8 @@ import { User } from '@/entities/user.entity';
 import { LoginDto } from '@libs/dtos';
 import { TokenStatus } from '@libs/enums';
 import { LogExecution, PinoLoggerService } from '@libs/logger';
-import { MikroORM, ObjectId } from '@mikro-orm/mongodb';
+import { EntityRepository, ObjectId } from '@mikro-orm/mongodb';
+import { InjectRepository } from '@mikro-orm/nestjs';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Redis } from 'ioredis';
@@ -17,7 +18,8 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly logger: PinoLoggerService,
-    private readonly orm: MikroORM,
+    @InjectRepository(UserToken)
+    private readonly userTokenRepository: EntityRepository<UserToken>,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
 
@@ -92,13 +94,11 @@ export class AuthService {
     userId: string,
     refreshToken: string,
   ): Promise<void> {
-    const em = this.orm.em.fork();
-
     // Revoke any existing tokens for this user
     await this.revokeToken(userId);
 
     // Create a new token
-    const userToken = em.create(UserToken, {
+    const userToken = this.userTokenRepository.create({
       userId: new ObjectId(userId),
       refreshToken,
       status: TokenStatus.ACTIVE,
@@ -107,14 +107,16 @@ export class AuthService {
       revokedAt: null,
     });
 
-    await em.persistAndFlush(userToken);
+    await this.userTokenRepository
+      .getEntityManager()
+      .persistAndFlush(userToken);
   }
 
   private async storeAccessToken(
     userId: string,
     accessToken: string,
   ): Promise<void> {
-    const key = `access_token:${userId}`;
+    const key = this.redisAccessTokenKey(userId);
     const tokenData = JSON.stringify({
       token: accessToken,
       createdAt: Date.now(),
@@ -127,11 +129,11 @@ export class AuthService {
     );
   }
 
-  async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
-    const em = this.orm.em.fork();
-
+  async refreshAccessToken(
+    refreshToken: string,
+  ): Promise<{ accessToken: string }> {
     // Find the token in database
-    const userToken = await em.findOne(UserToken, {
+    const userToken = await this.userTokenRepository.findOne({
       refreshToken,
       status: TokenStatus.ACTIVE,
     });
@@ -167,10 +169,8 @@ export class AuthService {
   }
 
   async revokeToken(userId: string): Promise<void> {
-    const em = this.orm.em.fork();
-
     // Find active tokens for the user
-    const userTokens = await em.find(UserToken, {
+    const userTokens = await this.userTokenRepository.find({
       userId: new ObjectId(userId),
       status: TokenStatus.ACTIVE,
     });
@@ -180,7 +180,7 @@ export class AuthService {
       token.revokedAt = new Date();
     }
 
-    await em.flush();
+    await this.userTokenRepository.getEntityManager().flush();
   }
 
   async logout(userId: string): Promise<void> {
@@ -188,7 +188,7 @@ export class AuthService {
     await this.revokeToken(userId);
 
     // Remove access token from Redis
-    const key = `access_token:${userId}`;
+    const key = this.redisAccessTokenKey(userId);
     await this.redis.del(key);
   }
 
@@ -198,7 +198,7 @@ export class AuthService {
   ): Promise<boolean> {
     try {
       // Check if token is in Redis
-      const key = `access_token:${userId}`;
+      const key = this.redisAccessTokenKey(userId);
       const tokenData = await this.redis.get(key);
 
       if (!tokenData) {
@@ -219,5 +219,9 @@ export class AuthService {
     } catch (error) {
       return false;
     }
+  }
+
+  private redisAccessTokenKey(userId: string): string {
+    return `access_token:${userId}`;
   }
 }

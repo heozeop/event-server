@@ -2,6 +2,7 @@ export const AUTH_CMP = {
   // auth
   LOGIN: "login",
   VALIDATE_USER: "validate_user",
+  REFRESH_TOKEN: "refresh_token",
 
   // user
   CREATE_USER: "create_user",

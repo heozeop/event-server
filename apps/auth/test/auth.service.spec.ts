@@ -1,3 +1,4 @@
+import { REDIS_CLIENT } from '@/database/database.module';
 import { LoginDto } from '@libs/dtos';
 import { Role, TokenStatus } from '@libs/enums';
 import { MongoMemoryOrmModule } from '@libs/test';
@@ -34,7 +35,7 @@ describe('AuthService', () => {
       service = moduleFixture.get<AuthService>(AuthService);
       userService = moduleFixture.get<UserService>(UserService);
       jwtService = moduleFixture.get<JwtService>(JwtService);
-      redis = moduleFixture.get('REDIS_CLIENT');
+      redis = moduleFixture.get(REDIS_CLIENT);
 
       await orm.getSchemaGenerator().createSchema();
       await app.init();
@@ -409,7 +410,7 @@ describe('AuthService', () => {
       const refreshToken = loginResult.refreshToken;
 
       // 행동
-      const result = await service.refreshToken(refreshToken);
+      const result = await service.refreshAccessToken(refreshToken);
 
       // 검증
       expect(result).toBeDefined();
@@ -426,9 +427,9 @@ describe('AuthService', () => {
       const invalidRefreshToken = 'invalid-refresh-token';
 
       // 행동 및 검증
-      await expect(service.refreshToken(invalidRefreshToken)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.refreshAccessToken(invalidRefreshToken),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('만료된 리프레시 토큰이 주어졌을 때 UnauthorizedException을 발생시켜야 함', async () => {
@@ -451,7 +452,7 @@ describe('AuthService', () => {
 
       // 행동 및 검증
       await expect(
-        service.refreshToken(loginResult.refreshToken),
+        service.refreshAccessToken(loginResult.refreshToken),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -468,7 +469,7 @@ describe('AuthService', () => {
       await service.revokeToken(loginResult.user.id);
 
       // 행동 및 검증 - 취소된 토큰으로 갱신 시도
-      await expect(service.refreshToken(refreshToken)).rejects.toThrow(
+      await expect(service.refreshAccessToken(refreshToken)).rejects.toThrow(
         UnauthorizedException,
       );
     });
@@ -486,7 +487,7 @@ describe('AuthService', () => {
       await service.logout(loginResult.user.id);
 
       // 행동 및 검증
-      await expect(service.refreshToken(refreshToken)).rejects.toThrow(
+      await expect(service.refreshAccessToken(refreshToken)).rejects.toThrow(
         UnauthorizedException,
       );
     });
@@ -549,12 +550,12 @@ describe('AuthService', () => {
       expect(firstToken).not.toBe(secondToken);
 
       // 첫 번째 토큰이 취소되었는지 확인
-      await expect(service.refreshToken(firstToken)).rejects.toThrow(
+      await expect(service.refreshAccessToken(firstToken)).rejects.toThrow(
         UnauthorizedException,
       );
 
       // 두 번째 토큰은 유효해야 함
-      const refreshResult = await service.refreshToken(secondToken);
+      const refreshResult = await service.refreshAccessToken(secondToken);
       expect(refreshResult).toBeDefined();
       expect(refreshResult.accessToken).toBeDefined();
     });

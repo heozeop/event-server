@@ -16,6 +16,15 @@ export class LoginResponseDto {
   accessToken!: string;
 
   @ApiProperty({
+    description: "The JWT refresh token for authentication",
+    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  })
+  @IsString()
+  @IsNotEmpty()
+  @Expose()
+  refreshToken!: string;
+
+  @ApiProperty({
     description: "The user information",
     type: UserResponseDto,
   })
@@ -24,10 +33,11 @@ export class LoginResponseDto {
   @Expose()
   user!: UserResponseDto;
 
-  static fromEntity(accessToken: string, user: UserEntity): LoginResponseDto {
+  static fromEntity(accessToken: string, refreshToken: string, user: UserEntity): LoginResponseDto {
     const instance = new LoginResponseDto();
 
     instance.accessToken = accessToken;
+    instance.refreshToken = refreshToken;
     instance.user = UserResponseDto.fromEntity(user);
 
     return instance;
