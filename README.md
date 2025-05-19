@@ -99,7 +99,7 @@ event-server/
 
 - **백엔드 프레임워크**: NestJS (TypeScript)
 - **데이터베이스**: MongoDB, Redis
-- **통신 프로토콜**: TCP/IP (마이크로서비스 간), gRPC, AMQP, MQTT, NATS, Kafka
+- **통신 프로토콜**: TCP/IP (마이크로서비스 간)
 - **인증**: JWT (Access Token + HTTP-only Cookie Refresh Token)
 - **문서화**: Swagger/OpenAPI
 - **모니터링**: Prometheus, Grafana, cAdvisor, Loki
