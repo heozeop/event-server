@@ -10,7 +10,6 @@ NestJS를 사용한 이벤트 및 리워드 관리를 위한 마이크로서비�
 - 사용자 인증 및 권한 관리
 - 이벤트 생성 및 관리
 - 리워드 요청 및 승인 프로세스
-- 분석 및 모니터링 대시보드
 
 ## 시스템 아키텍처
 
@@ -34,26 +33,79 @@ graph TD
     subgraph "데이터베이스"
         Auth -->|MongoDB| AuthDB[(인증 DB\nmongo-user:27017)]
         Event -->|MongoDB| EventDB[(이벤트 DB\nmongo-event:27017)]
+        Auth -->|Redis-Security| Redis-Security[(Redis\n:6379)]
+        Event -->|Redis| Redis[Redis\n:6379]
     end
 
-    subgraph "로깅 인프라"
-        GW -->|로그| Alloy[Grafana Alloy]
-        Auth -->|로그| Alloy
-        Event -->|로그| Alloy
-        Alloy -->|저장| Loki[(Grafana Loki)]
-        Loki -->|시각화| Grafana[Grafana\n:3000]
+    subgraph "모니터링 인프라"
+        GW -->|Metrics| Prometheus[Prometheus\n:9090]
+        Auth -->|Metrics| Prometheus
+        Event -->|Metrics| Prometheus
+        Prometheus -->|Visualization| Grafana[Grafana\n:3000]
+        cadvisor[cAdvisor\n:8080] -->|Container Metrics| Prometheus
     end
+```
+
+## 프로젝트 구조
+
+```
+event-server/
+├── apps/                    # 마이크로서비스
+│   ├── gateway/             # API 게이트웨이 서비스
+│   ├── auth/                # 인증 서비스
+│   └── event/               # 이벤트 서비스
+│       ├── src/
+│           ├── controllers/ # API 컨트롤러
+│           ├── services/    # 비즈니스 로직
+│           ├── entities/    # 데이터 모델
+│           ├── processors/  # 데이터 처리기
+│           ├── events/      # 이벤트 핸들러
+│           ├── database/    # 데이터베이스 설정
+│           ├── interceptors/# 요청/응답 인터셉터
+│           ├── common/      # 공통 유틸리티
+│           ├── app.module.ts# 모듈 설정
+│           └── main.ts      # 애플리케이션 진입점
+├── packages/                # 공유 라이브러리
+│   ├── cache/               # 캐싱 관련 패키지
+│   ├── cmd/                 # 커맨드 라인 유틸리티
+│   ├── decorator/           # 커스텀 데코레이터
+│   ├── dtos/                # 데이터 전송 객체
+│   ├── enums/               # 열거형
+│   ├── eslint-config/       # ESLint 설정
+│   ├── filter/              # 예외 필터
+│   ├── logger/              # 로깅 유틸리티
+│   ├── message-broker/      # 메시지 브로커 관련 패키지
+│   ├── metrics/             # 메트릭스 관련 패키지
+│   ├── pagination/          # 페이지네이션 유틸리티
+│   ├── pipe/                # 커스텀 파이프
+│   ├── test/                # 테스트 유틸리티
+│   ├── tsconfig/            # TypeScript 구성
+│   └── types/               # 타입 정의
+├── docker/                  # Docker 구성 파일
+│   ├── docker-compose.yml           # 기본 서비스 구성
+│   ├── docker-compose.k6.yml        # k6 테스트 구성
+│   └── docker-compose.log.yml       # 로깅 인프라 구성
+├── infrastructure/          # 인프라 설정 파일
+│   ├── grafana/             # Grafana 구성
+│   ├── loki/                # Loki 로그 집계 구성
+│   ├── prometheus/          # Prometheus 모니터링 구성
+│   └── alloy/               # 추가 인프라 구성
+├── scripts/                 # 유틸리티 스크립트
+├── keys/                    # 암호화 키
+└── test/                    # 테스트 파일
 ```
 
 ## 핵심 기술 스택
 
 - **백엔드 프레임워크**: NestJS (TypeScript)
-- **데이터베이스**: MongoDB
-- **통신 프로토콜**: TCP/IP (마이크로서비스 간)
+- **데이터베이스**: MongoDB, Redis
+- **통신 프로토콜**: TCP/IP (마이크로서비스 간), gRPC, AMQP, MQTT, NATS, Kafka
 - **인증**: JWT (Access Token + HTTP-only Cookie Refresh Token)
 - **문서화**: Swagger/OpenAPI
-- **로깅**: Pino, Grafana Loki, Grafana Alloy
+- **모니터링**: Prometheus, Grafana, cAdvisor, Loki
 - **테스트**: Jest (단위 테스트, 통합 테스트), k6 (성능 테스트)
+- **빌드 도구**: Turbo
+- **패키지 관리자**: pnpm
 - **컨테이너화**: Docker, Docker Compose
 
 ## API 엔드포인트
@@ -168,8 +220,14 @@ make logs-follow
 # 실행 중인 서비스 목록 확인
 make ps
 
-# k6 테스트 실행 (테스트 데이터 시드 포함)
+# k6 테스트 실행
 make k6
+
+# 특정 k6 테스트 실행
+make k6-test TEST=event/event-creation-test.js
+
+# 모든 k6 테스트 빠르게 실행
+make k6-all
 
 # 모든 테스트 실행 (단위 테스트 및 유스케이스 테스트)
 make test
@@ -213,8 +271,13 @@ cd apps/gateway && pnpm test
 
 ```bash
 # k6 성능 테스트 실행 (테스트 데이터 자동 시드)
-make k6 # 동작 여부 확인
-make k6 --all --full # 전체 실험 순차적으로 실행
+make k6
+
+# 특정 k6 테스트 실행
+make k6-test TEST=event/event-creation-test.js
+
+# 모든 k6 테스트 빠르게 실행
+make k6-all
 ```
 
 ## API 문서
@@ -225,15 +288,14 @@ Swagger 문서는 다음에서 확인할 수 있습니다:
 http://localhost:3333/docs
 ```
 
-## 로깅 시스템 (개선 필요)
+## 모니터링 시스템
 
-현재 로깅 시스템은 Grafana Loki 및 Grafana Alloy를 사용한 중앙 집중식 로깅을 구현하고 있으나, 다음과 같은 개선이 필요합니다:
+프로젝트는 다음과 같은 모니터링 도구를 포함합니다:
 
-- **로그 필터링 최적화**: 더 효율적인 쿼리를 위한 로그 레이블 및 필터 개선
-- **알림 시스템 구현**: 중요 이벤트 및 오류에 대한 알림 메커니즘 추가
-- **대시보드 세분화**: 특정 비즈니스 프로세스에 초점을 맞춘 사용자 정의 대시보드 개발
-- **분산 추적 기능 강화**: 서비스 간 요청 추적을 위한 OpenTelemetry 통합 고려
-- **로그 보존 정책 구현**: 다양한 로그 유형에 대한 적절한 보존 기간 설정
+- **Prometheus**: 메트릭 수집 및 저장 (`http://localhost:9090`)
+- **Grafana**: 시각화 및 대시보드 (`http://localhost:3000`)
+- **cAdvisor**: 컨테이너 리소스 모니터링 (`http://localhost:8080`)
+- **Loki**: 로그 집계 및 쿼리
 
 ## 데이터베이스 설계
 
@@ -243,6 +305,11 @@ http://localhost:3333/docs
   - 주소: `mongodb://mongo-user:27017/user-db`
 - **이벤트 서비스**: 이벤트, 리워드, 리워드 요청 저장
   - 주소: `mongodb://mongo-event:27017/event-db`
+
+또한 Redis를 사용하여 캐싱 및 세션 관리를 지원합니다:
+- 주소: 
+    1. 데이터: `redis://redis-data:6379`
+    2. 토큰 등 중요 데이터: `redis://redis-secure:6379`
 
 db 인스턴스 자체를 분리한 이유는 아래와 같습니다:
 
