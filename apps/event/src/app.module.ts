@@ -58,7 +58,7 @@ import { EventService, RewardRequestService, RewardService } from './services';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         redis: {
-          host: configService.get('REDIS_HOST', 'redis'),
+          host: configService.get('REDIS_HOST', 'redis-data'),
           port: configService.get('REDIS_PORT', 6379),
           password: configService.get('REDIS_PASSWORD', undefined),
           db: configService.get('REDIS_DB', 0),
@@ -72,7 +72,7 @@ import { EventService, RewardRequestService, RewardService } from './services';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         redis: {
-          host: configService.get('REDIS_HOST', 'redis'),
+          host: configService.get('REDIS_HOST', 'redis-data'),
           port: configService.get('REDIS_PORT', 6379),
           password: configService.get('REDIS_PASSWORD', undefined),
         },

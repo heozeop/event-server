@@ -22,6 +22,8 @@ help:
 
 # Docker Compose Operations
 init: generate-keys
+	pnpm install
+	pnpm build
 	docker compose -f $(COMPOSE_FILE) up -d
 
 up:

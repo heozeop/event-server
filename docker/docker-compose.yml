@@ -95,7 +95,7 @@ services:
     environment:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://mongo-user:27017
-      - REDIS_HOST=redis
+      - REDIS_HOST=redis-secure
       - REDIS_PORT=6379
     networks:
       - event-network
@@ -103,7 +103,7 @@ services:
       - ../:/app
     depends_on:
       - mongo-user
-      - redis
+      - redis-secure
     logging:
       driver: "json-file"
       options:
@@ -122,7 +122,7 @@ services:
     environment:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://mongo-event:27017
-      - REDIS_HOST=redis
+      - REDIS_HOST=redis-data
       - REDIS_PORT=6379
     networks:
       - event-network
@@ -130,7 +130,7 @@ services:
       - ../:/app
     depends_on:
       - mongo-event
-      - redis
+      - redis-data
     logging:
       driver: "json-file"
       options:
@@ -159,7 +159,7 @@ services:
 
   redis-data:
     image: redis:7.2-alpine
-    container_name: redis
+    container_name: redis-data
     ports:
       - "6379:6379"
     volumes:
