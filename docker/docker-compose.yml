@@ -95,12 +95,15 @@ services:
     environment:
       - NODE_ENV=development
       - MONGODB_URI=mongodb://mongo-user:27017
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     networks:
       - event-network
     volumes:
       - ../:/app
     depends_on:
       - mongo-user
+      - redis
     logging:
       driver: "json-file"
       options:
@@ -153,6 +156,22 @@ services:
     networks:
       - event-network
 
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - event-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
 networks:
   event-network:
     driver: bridge
@@ -164,3 +183,4 @@ volumes:
   loki-data:
   grafana-data:
   prometheus-data:
+  redis-data:
