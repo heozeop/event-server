@@ -1,0 +1,27 @@
+{
+  "name": "@libs/cache",
+  "version": "0.0.1",
+  "description": "Redis caching layer for the event reward platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "test": "jest"
+  },
+  "dependencies": {
+    "ioredis": "^5.6.1",
+    "@nestjs/common": "^11.1.1",
+    "reflect-metadata": "^0.2.2",
+    "@libs/logger": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.7",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.7.3"
+  }
+} 
