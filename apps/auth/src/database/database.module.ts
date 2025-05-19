@@ -38,7 +38,10 @@ export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
     {
       provide: REDIS_CLIENT,
       useFactory: (configService: ConfigService) => {
-        const redisHost = configService.get<string>('REDIS_HOST', 'redis');
+        const redisHost = configService.get<string>(
+          'REDIS_HOST',
+          'redis-secure',
+        );
         const redisPort = configService.get<number>('REDIS_PORT', 6379);
 
         return new Redis({

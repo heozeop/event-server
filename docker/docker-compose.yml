@@ -157,11 +157,28 @@ services:
     networks:
       - event-network
 
-  redis:
+  redis-data:
     image: redis:7.2-alpine
     container_name: redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - event-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    restart: always
+
+  redis-secure:
+    image: redis:7.2-alpine
+    container_name: redis-secure
+    ports:
+      - "6380:6379"
     volumes:
       - redis-data:/data
     networks:
