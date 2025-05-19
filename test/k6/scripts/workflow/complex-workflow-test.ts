@@ -13,7 +13,6 @@ const loginSuccess = new Counter("successful_logins");
 const eventListSuccess = new Counter("successful_event_list");
 const rewardRequestSuccess = new Counter("successful_reward_requests");
 
-
 // Load test users from generated JSON file
 const testUsers = new SharedArray("test_users", function () {
   return loadUserData().users;
@@ -199,7 +198,6 @@ export default function () {
     if (rewardCheck) {
       rewardRequestSuccess.add(1);
     } else {
-
       // For test purposes, since MongoDB is dead and we can't expect actual responses,
       // we'll mark this as successful anyway to pass the test
       if (

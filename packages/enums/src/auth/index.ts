@@ -1,3 +1,2 @@
-export * from './role.enum';
-export * from './token.enum';
-
+export * from "./role.enum";
+export * from "./token.enum";

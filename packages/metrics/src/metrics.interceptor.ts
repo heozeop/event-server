@@ -36,50 +36,49 @@ export class MetricsInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap({
         next: (data) => {
+          const response = context.switchToHttp().getResponse();
+          const statusCode = response.statusCode.toString();
+          const route = this.normalizeRoute(url);
+          const duration = (Date.now() - startTime) / 1000; // seconds
 
-            const response = context.switchToHttp().getResponse();
-            const statusCode = response.statusCode.toString();
-            const route = this.normalizeRoute(url);
-            const duration = (Date.now() - startTime) / 1000; // seconds
-  
-            // Record basic request metrics
-            this.metricsService.httpRequestsTotal.inc({
+          // Record basic request metrics
+          this.metricsService.httpRequestsTotal.inc({
+            method,
+            route,
+            status_code: statusCode,
+          });
+          this.metricsService.httpRequestDuration.observe(
+            { method, route, status_code: statusCode },
+            duration,
+          );
+
+          // Calculate response size (approximate)
+          const responseSize = JSON.stringify(data)?.length || 0;
+          if (responseSize > 0) {
+            this.metricsService.httpResponseSize.observe(
+              { method, route },
+              responseSize,
+            );
+          }
+
+          if (typeof statusCode !== "string") {
+            return;
+          }
+
+          // Count error metrics
+          if (statusCode.startsWith("5")) {
+            this.metricsService.httpServerErrors.inc({
               method,
               route,
               status_code: statusCode,
             });
-            this.metricsService.httpRequestDuration.observe(
-              { method, route, status_code: statusCode },
-              duration,
-            );
-  
-            // Calculate response size (approximate)
-            const responseSize = JSON.stringify(data)?.length || 0;
-            if (responseSize > 0) {
-              this.metricsService.httpResponseSize.observe(
-                { method, route },
-                responseSize,
-              );
-            }
-
-            if (typeof statusCode !== 'string') {
-              return;
-            }
-  
-            // Count error metrics
-            if (statusCode.startsWith("5")) {
-              this.metricsService.httpServerErrors.inc({
-                method,
-                route,
-                status_code: statusCode,
-              });
-            } else if (statusCode.startsWith("4")) {
-              this.metricsService.httpClientErrors.inc({
-                method,
-                route,
-                status_code: statusCode,
-              });
-            }
+          } else if (statusCode.startsWith("4")) {
+            this.metricsService.httpClientErrors.inc({
+              method,
+              route,
+              status_code: statusCode,
+            });
+          }
         },
         error: (error) => {
           const statusCode = error.status || "500";
@@ -97,7 +96,7 @@ export class MetricsInterceptor implements NestInterceptor {
             duration,
           );
 
-          if(typeof statusCode !== 'string') {
+          if (typeof statusCode !== "string") {
             return;
           }
 

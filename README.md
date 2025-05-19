@@ -15,17 +15,17 @@ NestJS를 사용한 이벤트 및 리워드 관리를 위한 마이크로서비�
 ```mermaid
 graph TD
     Client[클라이언트] -->|HTTP| GW[게이트웨이 서비스\n:3333]
-    
+
     subgraph "마이크로서비스"
         GW -->|TCP/IP| Auth[인증 서비스\n:3001]
         GW -->|TCP/IP| Event[이벤트 서비스\n:3002]
     end
-    
+
     subgraph "데이터베이스"
         Auth -->|MongoDB| AuthDB[(인증 DB\nmongo-user:27017)]
         Event -->|MongoDB| EventDB[(이벤트 DB\nmongo-event:27017)]
     end
-    
+
     subgraph "로깅 인프라"
         GW -->|로그| Alloy[Grafana Alloy]
         Auth -->|로그| Alloy
@@ -44,23 +44,23 @@ graph LR
         Auth[인증 서비스]
         Event[이벤트 서비스]
     end
-    
+
     subgraph "로그 수집 및 처리"
         GW -->|JSON 로그| Alloy[Grafana Alloy]
         Auth -->|JSON 로그| Alloy
         Event -->|JSON 로그| Alloy
-        
+
         Alloy -->|필터링/처리| Loki[(Grafana Loki)]
     end
-    
+
     subgraph "시각화 및 분석"
         Loki --> Dashboard1[요청 추적 대시보드]
         Loki --> Dashboard2[로그 뷰어]
-        
+
         Dashboard1 --> Grafana[Grafana UI]
         Dashboard2 --> Grafana
     end
-    
+
     Browser[사용자 브라우저] -->|http://localhost:3000| Grafana
 ```
 
@@ -170,6 +170,7 @@ http://localhost:3333/docs
 ```
 
 Swagger UI는 다음을 제공합니다:
+
 - 대화형 API 문서
 - 모든 엔드포인트 테스트 기능
 - JWT 토큰을 사용한 인증
@@ -208,8 +209,8 @@ import { LoggerModule } from "@libs/logger";
           maskValue: "***MASKED***",
           objectPaths: [
             "req.headers.authorization",
-            "req.headers.cookie", 
-            "req.body.password"
+            "req.headers.cookie",
+            "req.body.password",
           ],
         },
         // Alloy 통합 설정
@@ -260,10 +261,10 @@ import { LogContextInterceptor, PinoLoggerService } from "@libs/logger";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   // 인터셉터 등록
   app.useGlobalInterceptors(app.get(LogContextInterceptor));
-  
+
   await app.listen(3000);
 }
 bootstrap();
@@ -280,27 +281,27 @@ sequenceDiagram
     participant Auth as 인증 서비스
     participant Event as 이벤트 서비스
     participant Loki as Grafana Loki
-    
+
     Client->>Gateway: HTTP 요청
-    
+
     Note over Gateway: LogContextInterceptor가<br/>X-Request-Id 생성 또는 추출
-    
+
     Gateway->>Auth: 인증 요청<br/>(X-Request-Id 포함)
-    
+
     Note over Auth: LogContextInterceptor가<br/>X-Request-Id 캡처
     Auth-->>Gateway: 인증 응답
 
     Gateway->>Event: 이벤트 요청<br/>(X-Request-Id 포함)
-    
+
     Note over Event: LogContextInterceptor가<br/>X-Request-Id 캡처
     Event-->>Gateway: 이벤트 응답
-    
+
     Gateway-->>Client: HTTP 응답
-    
+
     Gateway->>Loki: 로그(requestId 포함)
     Auth->>Loki: 로그(동일한 requestId 포함)
     Event->>Loki: 로그(동일한 requestId 포함)
-    
+
     Note over Loki: 동일한 requestId로<br/>요청 추적 가능
 ```
 
@@ -353,11 +354,11 @@ export class UserService {
 
   @LogExecution({
     entryLevel: "debug", // 메서드 진입 시 로그 레벨
-    exitLevel: "debug",  // 메서드 종료 시 로그 레벨
+    exitLevel: "debug", // 메서드 종료 시 로그 레벨
     errorLevel: "error", // 오류 발생 시 로그 레벨
-    logParams: true,     // 매개변수 로깅 여부
-    logResult: true,     // 결과 로깅 여부
-    logExecutionTime: true // 실행 시간 로깅 여부
+    logParams: true, // 매개변수 로깅 여부
+    logResult: true, // 결과 로깅 여부
+    logExecutionTime: true, // 실행 시간 로깅 여부
   })
   async getUser(userId: string) {
     // 비즈니스 로직...
@@ -379,18 +380,20 @@ import { LogContextStore } from "@libs/logger";
 export class ApiService {
   constructor(
     private readonly httpService: HttpService,
-    private readonly logContextStore: LogContextStore
+    private readonly logContextStore: LogContextStore,
   ) {}
 
   async callAnotherService() {
     // 현재 요청 ID 가져오기
     const requestId = this.logContextStore.getRequestId();
-    
+
     // 다른 서비스로 요청 시 헤더에 요청 ID 추가
     const headers = { "X-Request-Id": requestId };
-    
+
     // 요청 ID가 포함된 HTTP 요청
-    return await this.httpService.get("http://another-service/api", { headers }).toPromise();
+    return await this.httpService
+      .get("http://another-service/api", { headers })
+      .toPromise();
   }
 }
 ```
@@ -400,6 +403,7 @@ export class ApiService {
 Grafana는 `http://localhost:3000`에서 기본 자격 증명 `admin/admin`으로 사용할 수 있습니다.
 
 사전 구성된 대시보드에는 다음이 포함됩니다:
+
 - 요청 추적 대시보드: 서비스 간 요청을 추적하기 위해 requestId별로 그룹화된 로그 표시
 - 로그 뷰어: 필터링 기능이 있는 일반 로그 뷰어
 
@@ -435,6 +439,7 @@ Grafana는 `http://localhost:3000`에서 기본 자격 증명 `admin/admin`으�
 - 이벤트 서비스: mongodb://mongo-event:27017/event-db
 
 db 인스턴스 자체를 분리한 이유는 아래 입니다.
+
 1. User 데이터는 사람의 개인정보를 다룬다는 점에서 유의가 필요합니다.
 2. Event 데이터는 중복, 재처리등에서 비교적 자유롭습니다.
 3. 차후 보안과 관련하여 철저한 암호화 처리 등의 필요성이 발생할 경우, 인스턴스 레벨에서 분리가 필요할 수 있습니다.

@@ -8,9 +8,7 @@ import { MicroServiceExceptionFilter } from "./micro-service-exception.filter";
  */
 @Module({
   imports: [LoggerModule],
-  providers: [
-    MicroServiceExceptionFilter,
-  ],
+  providers: [MicroServiceExceptionFilter],
   exports: [MicroServiceExceptionFilter],
 })
 export class MicroServiceExceptionModule {}

@@ -1,11 +1,20 @@
 import { Role } from "@libs/enums/auth";
 import { RewardType } from "@libs/enums/event";
 import { UserEntity } from "@libs/types/auth";
-import { BadgeRewardEntity, CouponRewardEntity, EventEntity, PointRewardEntity, RewardBaseEntity } from "@libs/types/event";
+import {
+  BadgeRewardEntity,
+  CouponRewardEntity,
+  EventEntity,
+  PointRewardEntity,
+  RewardBaseEntity,
+} from "@libs/types/event";
 import { ADMIN_EMAIL } from "prepare/constants";
 
 // Load test data from files
-export function loadUserData(): { users: UserEntity[]; nonExistentEmails: string[] } {
+export function loadUserData(): {
+  users: UserEntity[];
+  nonExistentEmails: string[];
+} {
   // Load users data from the K6 bundle
   const usersData = JSON.parse(open("/data/users.json")) as UserEntity[];
 
@@ -47,7 +56,6 @@ export function loadEventAndRewardData(): {
     rewards,
   };
 }
-
 
 // Function to load rewards data from JSON
 export function loadRewardsData(): {

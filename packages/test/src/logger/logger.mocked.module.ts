@@ -1,6 +1,10 @@
-import { DynamicModule, Module } from '@nestjs/common';
-import { LogLevel } from '../../../../packages/logger/src/core/log-level-manager';
-import { LogContext, LoggerModuleAsyncOptions, LoggerModuleOptions } from '../../../../packages/logger/src/interfaces';
+import { DynamicModule, Module } from "@nestjs/common";
+import { LogLevel } from "../../../../packages/logger/src/core/log-level-manager";
+import {
+  LogContext,
+  LoggerModuleAsyncOptions,
+  LoggerModuleOptions,
+} from "../../../../packages/logger/src/interfaces";
 
 // Mock for the LogContextStore
 export class MockLogContextStore {
@@ -15,7 +19,7 @@ export class MockLogContextStore {
   }
 
   getContext(): LogContext {
-    return { serviceId: 'test-service' };
+    return { serviceId: "test-service" };
   }
 
   clear(): void {
@@ -25,7 +29,7 @@ export class MockLogContextStore {
 
 // Mock for the PinoLogLevelManager
 export class MockPinoLogLevelManager {
-  private logLevel: string = 'info';
+  private logLevel: string = "info";
 
   constructor(defaultLevel?: LogLevel) {
     if (defaultLevel) {
@@ -65,35 +69,35 @@ export class MockSensitiveDataFilter {
   private processedObjects: WeakSet<object>;
 
   constructor(options?: any) {
-    this.maskValue = options?.maskValue || '[REDACTED]';
+    this.maskValue = options?.maskValue || "[REDACTED]";
     this.sensitiveKeys = options?.sensitiveKeys || [
-      'password',
-      'token',
-      'secret',
-      'credential',
-      'apikey',
-      'api_key',
-      'key',
-      'auth',
-      'authorization',
-      'jwt',
-      'access_token',
-      'refresh_token',
-      'accessToken',
-      'refreshToken',
+      "password",
+      "token",
+      "secret",
+      "credential",
+      "apikey",
+      "api_key",
+      "key",
+      "auth",
+      "authorization",
+      "jwt",
+      "access_token",
+      "refresh_token",
+      "accessToken",
+      "refreshToken",
     ];
     this.objectPaths = options?.objectPaths || [
-      'req.headers.authorization',
-      'req.headers.cookie',
-      'req.body.password',
-      'req.body.accessToken',
-      'req.body.refreshToken',
+      "req.headers.authorization",
+      "req.headers.cookie",
+      "req.body.password",
+      "req.body.accessToken",
+      "req.body.refreshToken",
     ];
     this.processedObjects = new WeakSet();
   }
 
   mask(data: any): any {
-    if (typeof data === 'string') {
+    if (typeof data === "string") {
       return this.maskString(data);
     }
 
@@ -102,10 +106,10 @@ export class MockSensitiveDataFilter {
     }
 
     if (Array.isArray(data)) {
-      return data.map(item => this.mask(item));
+      return data.map((item) => this.mask(item));
     }
 
-    if (typeof data === 'object') {
+    if (typeof data === "object") {
       // Check for circular references
       if (this.processedObjects.has(data)) {
         return this.maskValue;
@@ -115,19 +119,21 @@ export class MockSensitiveDataFilter {
       const result = { ...data };
       for (const key in result) {
         // Check if the current key is sensitive
-        if (this.sensitiveKeys.some(k => k.toLowerCase() === key.toLowerCase())) {
+        if (
+          this.sensitiveKeys.some((k) => k.toLowerCase() === key.toLowerCase())
+        ) {
           result[key] = this.maskValue;
           continue;
         }
 
         // Recursively process nested objects
-        if (result[key] !== null && typeof result[key] === 'object') {
+        if (result[key] !== null && typeof result[key] === "object") {
           result[key] = this.mask(result[key]);
           continue;
         }
 
         // Mask sensitive patterns in strings
-        if (typeof result[key] === 'string') {
+        if (typeof result[key] === "string") {
           result[key] = this.maskString(result[key]);
         }
       }
@@ -139,7 +145,11 @@ export class MockSensitiveDataFilter {
 
   private maskString(str: string): string {
     // Simple string masking - just return the mask value for sensitive strings
-    if (this.sensitiveKeys.some(key => str.toLowerCase().includes(key.toLowerCase()))) {
+    if (
+      this.sensitiveKeys.some((key) =>
+        str.toLowerCase().includes(key.toLowerCase()),
+      )
+    ) {
       return this.maskValue;
     }
     return str;
@@ -159,15 +169,19 @@ export class MockPinoLoggerService {
   private contextStore?: MockLogContextStore;
 
   constructor(
-    private options: LoggerModuleOptions = { serviceName: 'test-service' },
+    private options: LoggerModuleOptions = { serviceName: "test-service" },
     contextStore?: MockLogContextStore,
   ) {
     this.serviceName = options.serviceName;
-    this.logLevelManager = new MockPinoLogLevelManager(options.logLevel as LogLevel);
+    this.logLevelManager = new MockPinoLogLevelManager(
+      options.logLevel as LogLevel,
+    );
     this.contextStore = contextStore;
 
     if (options.sensitiveDataOptions?.enabled !== false) {
-      this.sensitiveDataFilter = new MockSensitiveDataFilter(options.sensitiveDataOptions);
+      this.sensitiveDataFilter = new MockSensitiveDataFilter(
+        options.sensitiveDataOptions,
+      );
     }
   }
 
@@ -202,7 +216,7 @@ export class MockPinoLoggerService {
   }
 
   private maskMessage(message: string): string {
-    if (this.sensitiveDataFilter && typeof message === 'string') {
+    if (this.sensitiveDataFilter && typeof message === "string") {
       return this.sensitiveDataFilter.mask(message);
     }
     return message;
@@ -213,25 +227,23 @@ export class MockPinoLoggerService {
     return this;
   }
 
-  log(message: string, context?: LogContext): void {
-  }
+  log(message: string, context?: LogContext): void {}
 
   error(message: string, trace?: string, context?: LogContext): void {
     const errorContext = this.formatContext(context);
 
     if (trace) {
-      errorContext.stack = this.sensitiveDataFilter ? this.sensitiveDataFilter.mask(trace) : trace;
+      errorContext.stack = this.sensitiveDataFilter
+        ? this.sensitiveDataFilter.mask(trace)
+        : trace;
     }
   }
 
-  warn(message: string, context?: LogContext): void {
-  }
+  warn(message: string, context?: LogContext): void {}
 
-  debug(message: string, context?: LogContext): void {
-  }
+  debug(message: string, context?: LogContext): void {}
 
-  verbose(message: string, context?: LogContext): void {
-  }
+  verbose(message: string, context?: LogContext): void {}
 
   setLogLevel(level: LogLevel): void {
     this.logLevelManager.setLogLevel(level);
@@ -242,23 +254,26 @@ export class MockPinoLoggerService {
   }
 
   child(context: any): MockPinoLoggerService {
-    const childLogger = new MockPinoLoggerService(this.options, this.contextStore);
+    const childLogger = new MockPinoLoggerService(
+      this.options,
+      this.contextStore,
+    );
     childLogger.setContext(context);
     return childLogger;
   }
 }
 
 // Mock Symbol for LOGGER_MODULE_OPTIONS
-export const MOCK_LOGGER_MODULE_OPTIONS = Symbol('MOCK_LOGGER_MODULE_OPTIONS');
+export const MOCK_LOGGER_MODULE_OPTIONS = Symbol("MOCK_LOGGER_MODULE_OPTIONS");
 
 // Default options
 const defaultOptions: LoggerModuleOptions = {
-  serviceName: 'test-service',
+  serviceName: "test-service",
   prettyPrint: false,
-  logLevel: 'info',
+  logLevel: "info",
   sensitiveDataOptions: {
     enabled: false,
-    maskValue: '***',
+    maskValue: "***",
   },
   alloyConfig: {
     enabled: false,
@@ -298,7 +313,10 @@ export class MockLoggerModule {
         },
         {
           provide: MockPinoLoggerService,
-          useFactory: (options: LoggerModuleOptions, contextStore: MockLogContextStore) => {
+          useFactory: (
+            options: LoggerModuleOptions,
+            contextStore: MockLogContextStore,
+          ) => {
             return new MockPinoLoggerService(options, contextStore);
           },
           inject: [MOCK_LOGGER_MODULE_OPTIONS, MockLogContextStore],
@@ -363,4 +381,4 @@ export class MockLoggerModule {
       ],
     };
   }
-} 
+}

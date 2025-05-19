@@ -7,6 +7,7 @@ USER 사용자는 일반 사용자로서 이벤트를 조회하고 리워드를 
 ### 1.1. 계정 생성
 
 **요청:**
+
 ```http
 POST /auth/users
 Content-Type: application/json
@@ -18,6 +19,7 @@ Content-Type: application/json
 ```
 
 **응답:**
+
 ```json
 {
   "id": "645f2d1b8c5cd2f948e9a249",
@@ -29,6 +31,7 @@ Content-Type: application/json
 ### 1.2. 로그인
 
 **요청:**
+
 ```http
 POST /auth/login
 Content-Type: application/json
@@ -40,6 +43,7 @@ Content-Type: application/json
 ```
 
 **응답:**
+
 ```http
 HTTP/1.1 200 OK
 Content-Type: application/json
@@ -60,12 +64,14 @@ Set-Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secu
 #### 1.3.1. 유효한 리프레시 토큰으로 액세스 토큰 갱신
 
 **요청:**
+
 ```http
 POST /auth/refresh
 Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```http
 HTTP/1.1 200 OK
 Content-Type: application/json
@@ -79,12 +85,14 @@ Set-Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secu
 #### 1.3.2. 만료된 리프레시 토큰으로 갱신 시도
 
 **요청:**
+
 ```http
 POST /auth/refresh
 Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```http
 HTTP/1.1 401 Unauthorized
 Content-Type: application/json
@@ -100,12 +108,14 @@ Set-Cookie: refreshToken=; HttpOnly; Secure; SameSite=Strict; Path=/auth/refresh
 #### 1.3.3. 유효하지 않은 리프레시 토큰으로 갱신 시도
 
 **요청:**
+
 ```http
 POST /auth/refresh
 Cookie: refreshToken=invalid.token.here
 ```
 
 **응답:**
+
 ```http
 HTTP/1.1 401 Unauthorized
 Content-Type: application/json
@@ -121,11 +131,13 @@ Set-Cookie: refreshToken=; HttpOnly; Secure; SameSite=Strict; Path=/auth/refresh
 #### 1.3.4. 리프레시 토큰 누락으로 갱신 시도
 
 **요청:**
+
 ```http
 POST /auth/refresh
 ```
 
 **응답:**
+
 ```http
 HTTP/1.1 400 Bad Request
 Content-Type: application/json
@@ -140,12 +152,14 @@ Content-Type: application/json
 ### 1.4. 자신의 계정 정보 조회
 
 **요청:**
+
 ```http
 GET /auth/me
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 {
   "id": "645f2d1b8c5cd2f948e9a249",
@@ -159,12 +173,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 2.1. 이벤트 목록 조회
 
 **요청:**
+
 ```http
 GET /events
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 [
   {
@@ -198,12 +214,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 2.2. 특정 이벤트 상세 조회
 
 **요청:**
+
 ```http
 GET /events/645f2d1b8c5cd2f948e9a250
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 {
   "id": "645f2d1b8c5cd2f948e9a250",
@@ -222,12 +240,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 2.3. 이벤트의 리워드 목록 조회
 
 **요청:**
+
 ```http
 GET /events/645f2d1b8c5cd2f948e9a250/rewards
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 [
   {
@@ -243,12 +263,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 3.1. 이벤트에 대한 리워드 요청
 
 **요청:**
+
 ```http
 POST /events/645f2d1b8c5cd2f948e9a250/request
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 {
   "id": "645f2d1b8c5cd2f948e9a257",
@@ -262,12 +284,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 3.2. 자신의 리워드 요청 목록 조회
 
 **요청:**
+
 ```http
 GET /events/requests
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 [
   {
@@ -283,12 +307,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 3.3. 상태별 리워드 요청 조회
 
 **요청:**
+
 ```http
 GET /events/requests?status=PENDING
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 [
   {
@@ -304,12 +330,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 3.4. 특정 이벤트의 리워드 요청 조회
 
 **요청:**
+
 ```http
 GET /events/requests?eventId=645f2d1b8c5cd2f948e9a250
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 [
   {
@@ -327,11 +355,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 4.1. 토큰 없이 이벤트 목록 조회 시도
 
 **요청:**
+
 ```http
 GET /events
 ```
 
 **응답:**
+
 ```json
 {
   "statusCode": 401,
@@ -343,11 +373,13 @@ GET /events
 ### 4.2. 토큰 없이 리워드 요청 시도
 
 **요청:**
+
 ```http
 POST /events/645f2d1b8c5cd2f948e9a250/request
 ```
 
 **응답:**
+
 ```json
 {
   "statusCode": 401,
@@ -359,6 +391,7 @@ POST /events/645f2d1b8c5cd2f948e9a250/request
 ### 4.3. 접근 권한이 없는 API 호출 시도
 
 **요청:**
+
 ```http
 POST /rewards/POINT
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (USER 권한 토큰)
@@ -370,6 +403,7 @@ Content-Type: application/json
 ```
 
 **응답:**
+
 ```json
 {
   "statusCode": 403,
@@ -383,6 +417,7 @@ Content-Type: application/json
 ### 5.1. 유효하지 않은 이메일 형식으로 계정 생성 시도
 
 **요청:**
+
 ```http
 POST /auth/users
 Content-Type: application/json
@@ -394,6 +429,7 @@ Content-Type: application/json
 ```
 
 **응답:**
+
 ```json
 {
   "statusCode": 400,
@@ -405,6 +441,7 @@ Content-Type: application/json
 ### 5.2. 너무 짧은 비밀번호로 계정 생성 시도
 
 **요청:**
+
 ```http
 POST /auth/users
 Content-Type: application/json
@@ -416,6 +453,7 @@ Content-Type: application/json
 ```
 
 **응답:**
+
 ```json
 {
   "statusCode": 400,
@@ -427,6 +465,7 @@ Content-Type: application/json
 ### 5.3. 잘못된 인증 정보로 로그인 시도
 
 **요청:**
+
 ```http
 POST /auth/login
 Content-Type: application/json
@@ -438,6 +477,7 @@ Content-Type: application/json
 ```
 
 **응답:**
+
 ```json
 {
   "statusCode": 401,
@@ -449,12 +489,14 @@ Content-Type: application/json
 ### 5.4. 존재하지 않는 이벤트에 대한 리워드 요청 시도
 
 **요청:**
+
 ```http
 POST /events/645f2d1b8c5cd2f948e9a999/request
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 {
   "statusCode": 404,
@@ -466,12 +508,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 5.5. 비활성화된 이벤트에 대한 리워드 요청 시도
 
 **요청:**
+
 ```http
 POST /events/645f2d1b8c5cd2f948e9a280/request
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 {
   "statusCode": 400,
@@ -483,12 +527,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 5.6. 이미 종료된 이벤트에 대한 리워드 요청 시도
 
 **요청:**
+
 ```http
 POST /events/645f2d1b8c5cd2f948e9a281/request
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 {
   "statusCode": 400,
@@ -500,12 +546,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 5.7. 이미 리워드를 요청한 이벤트에 대한 중복 요청 시도
 
 **요청:**
+
 ```http
 POST /events/645f2d1b8c5cd2f948e9a250/request
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 {
   "statusCode": 409,
@@ -517,16 +565,18 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### 5.8. 이벤트 참여 조건을 충족하지 못한 리워드 요청 시도
 
 **요청:**
+
 ```http
 POST /events/645f2d1b8c5cd2f948e9a254/request
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 **응답:**
+
 ```json
 {
   "statusCode": 403,
   "message": "User does not meet the event conditions",
   "error": "Forbidden"
 }
-``` 
+```

@@ -35,7 +35,6 @@ type User = {
 // Custom metrics
 const successfulRequests = new Counter("successful_reward_requests");
 
-
 // Define test options based on requirements: 50 requests per second, 150ms response time
 export const options: Options = {
   scenarios: {

@@ -16,7 +16,8 @@ export class LoginResponseDto {
   accessToken!: string;
 
   @ApiProperty({
-    description: "The JWT refresh token for authentication (sent via HTTP-only cookie)",
+    description:
+      "The JWT refresh token for authentication (sent via HTTP-only cookie)",
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     required: false,
   })
@@ -34,7 +35,11 @@ export class LoginResponseDto {
   @Expose()
   user!: UserResponseDto;
 
-  static fromEntity(accessToken: string, refreshToken: string, user: UserEntity): LoginResponseDto {
+  static fromEntity(
+    accessToken: string,
+    refreshToken: string,
+    user: UserEntity,
+  ): LoginResponseDto {
     const instance = new LoginResponseDto();
 
     instance.accessToken = accessToken;

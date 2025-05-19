@@ -67,7 +67,6 @@ export const options: Options = {
   },
 };
 
-
 const users = loadUserData();
 
 // Setup function - runs once per VU

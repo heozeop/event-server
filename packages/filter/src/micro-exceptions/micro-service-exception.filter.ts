@@ -24,12 +24,10 @@ export class MicroServiceExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const request = ctx.getRequest<Request>();
-    this.logger.warn('exception', exception as any);
+    this.logger.warn("exception", exception as any);
 
     // Handle validation errors with enhanced details
-    if (
-      exception instanceof HttpException
-    ) {
+    if (exception instanceof HttpException) {
       const exceptionResponse = exception.getResponse();
 
       // Check if this has the enhanced validation errors format
@@ -48,9 +46,8 @@ export class MicroServiceExceptionFilter implements ExceptionFilter {
 
         throw new RpcException(exceptionDto);
       } else {
-
-        const message = exception.message
-        const status = exception.getStatus()
+        const message = exception.message;
+        const status = exception.getStatus();
 
         throw new RpcException({
           statusCode: status,
@@ -60,11 +57,14 @@ export class MicroServiceExceptionFilter implements ExceptionFilter {
       }
     }
 
-    const exceptionResponse = Object.hasOwn(exception as object, 'response') ? (exception as {response: any}).response : null;
+    const exceptionResponse = Object.hasOwn(exception as object, "response")
+      ? (exception as { response: any }).response
+      : null;
 
-    const status = exceptionResponse?.statusCode ?? HttpStatus.INTERNAL_SERVER_ERROR;
+    const status =
+      exceptionResponse?.statusCode ?? HttpStatus.INTERNAL_SERVER_ERROR;
     const message = exceptionResponse?.message ?? "Internal server error";
-        // Log the error with stack trace for non-HTTP exceptions
+    // Log the error with stack trace for non-HTTP exceptions
     if (!(exception instanceof HttpException)) {
       this.logger.error(
         `${request.method} ${request.url} - ${status}`,

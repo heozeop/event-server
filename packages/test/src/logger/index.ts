@@ -1,2 +1,1 @@
-export * from './logger.mocked.module';
-
+export * from "./logger.mocked.module";

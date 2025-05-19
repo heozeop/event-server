@@ -7,7 +7,7 @@ import {
   IsNotEmpty,
   IsObject,
   IsOptional,
-  IsString
+  IsString,
 } from "class-validator";
 
 /**

@@ -4,7 +4,7 @@ import { faker } from "@faker-js/faker";
 import {
   BadgeRewardEntity,
   CouponRewardEntity,
-  PointRewardEntity
+  PointRewardEntity,
 } from "@libs/types";
 import { check } from "k6";
 import http from "k6/http";

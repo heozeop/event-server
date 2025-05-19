@@ -87,7 +87,7 @@ export class SensitiveDataFilter {
     }
 
     if (Array.isArray(data)) {
-      return data.map(item => this.mask(item, processedObjects));
+      return data.map((item) => this.mask(item, processedObjects));
     }
 
     if (isObjectType(data)) {
