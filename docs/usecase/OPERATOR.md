@@ -18,7 +18,11 @@ Content-Type: application/json
 ```
 
 **응답:**
-```json
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Set-Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; SameSite=Strict; Path=/auth/refresh; Max-Age=604800
+
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
@@ -29,7 +33,89 @@ Content-Type: application/json
 }
 ```
 
-### 1.2. 자신의 계정 정보 조회
+### 1.2. 토큰 갱신
+
+#### 1.2.1. 유효한 리프레시 토큰으로 액세스 토큰 갱신
+
+**요청:**
+```http
+POST /auth/refresh
+Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**응답:**
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Set-Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; SameSite=Strict; Path=/auth/refresh; Max-Age=604800
+
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+#### 1.2.2. 만료된 리프레시 토큰으로 갱신 시도
+
+**요청:**
+```http
+POST /auth/refresh
+Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**응답:**
+```http
+HTTP/1.1 401 Unauthorized
+Content-Type: application/json
+Set-Cookie: refreshToken=; HttpOnly; Secure; SameSite=Strict; Path=/auth/refresh; Max-Age=0
+
+{
+  "statusCode": 401,
+  "message": "Refresh token has expired",
+  "error": "Unauthorized"
+}
+```
+
+#### 1.2.3. 유효하지 않은 리프레시 토큰으로 갱신 시도
+
+**요청:**
+```http
+POST /auth/refresh
+Cookie: refreshToken=invalid.token.here
+```
+
+**응답:**
+```http
+HTTP/1.1 401 Unauthorized
+Content-Type: application/json
+Set-Cookie: refreshToken=; HttpOnly; Secure; SameSite=Strict; Path=/auth/refresh; Max-Age=0
+
+{
+  "statusCode": 401,
+  "message": "Invalid refresh token",
+  "error": "Unauthorized"
+}
+```
+
+#### 1.2.4. 리프레시 토큰 누락으로 갱신 시도
+
+**요청:**
+```http
+POST /auth/refresh
+```
+
+**응답:**
+```http
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{
+  "statusCode": 400,
+  "message": "Refresh token is required",
+  "error": "Bad Request"
+}
+```
+
+### 1.3. 자신의 계정 정보 조회
 
 **요청:**
 ```http
