@@ -5,33 +5,50 @@ import request from 'supertest';
 describe('ADMIN Use Cases', () => {
   const baseUrl = 'http://localhost:3333';
   let adminToken: string;
+  let adminId: string;
   let userId: string;
   let eventId: string;
   let rewardId: string;
 
-  // Admin credentials for login
+  // Admin credentials
   const adminCredentials = {
     email: 'admin@example.com',
     password: 'admin1234',
   };
 
+  // Test user credentials
+  const testUserCredentials = {
+    email: `testuser${Date.now()}@example.com`,
+    password: 'testuser1234',
+  };
+
   // Setup: Login as admin
   beforeAll(async () => {
-    const response = await request(baseUrl)
+    // Login as admin
+    const loginResponse = await request(baseUrl)
       .post('/auth/login')
       .send(adminCredentials);
 
-    expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty('accessToken');
-    expect(response.body).toHaveProperty('user.roles');
-    expect(response.body.user.roles).toContain(Role.ADMIN);
+    expect(loginResponse.status).toBe(201);
+    expect(loginResponse.body).toHaveProperty('accessToken');
+    expect(loginResponse.body).toHaveProperty('user.roles');
+    expect(loginResponse.body.user.roles).toContain(Role.ADMIN);
 
-    adminToken = response.body.accessToken;
+    adminToken = loginResponse.body.accessToken;
+    adminId = loginResponse.body.user.id;
+
+    // Create a test user for admin operations
+    const createUserResponse = await request(baseUrl)
+      .post('/auth/users')
+      .send(testUserCredentials);
+
+    expect(createUserResponse.status).toBe(201);
+    userId = createUserResponse.body.id;
   });
 
-  // Test admin login
-  describe('Admin Authentication', () => {
-    it('should login as admin', async () => {
+  // Test account management
+  describe('Account Management', () => {
+    it('should login with admin credentials', async () => {
       const response = await request(baseUrl)
         .post('/auth/login')
         .send(adminCredentials);
@@ -40,14 +57,16 @@ describe('ADMIN Use Cases', () => {
       expect(response.body).toHaveProperty('accessToken');
       expect(response.body).toHaveProperty('user.roles');
       expect(response.body.user.roles).toContain(Role.ADMIN);
+      adminToken = response.body.accessToken;
     });
 
-    it('should get current admin user information', async () => {
+    it('should get user by email', async () => {
       const response = await request(baseUrl)
-        .get('/auth/me')
+        .get(`/auth/users/email?email=${adminCredentials.email}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('id', adminId);
       expect(response.body).toHaveProperty('email', adminCredentials.email);
       expect(response.body).toHaveProperty('roles');
       expect(response.body.roles).toContain(Role.ADMIN);
@@ -95,8 +114,10 @@ describe('ADMIN Use Cases', () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('email', testUser.email);
       expect(response.body).toHaveProperty('id', userId);
+      expect(response.body).toHaveProperty('email', testUser.email);
+      expect(response.body).toHaveProperty('roles');
+      expect(response.body.roles).toContain(Role.USER);
     });
 
     it('should update user roles', async () => {
@@ -108,14 +129,15 @@ describe('ADMIN Use Cases', () => {
         });
 
       expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('id', userId);
       expect(response.body).toHaveProperty('roles');
       expect(response.body.roles).toContain(Role.USER);
       expect(response.body.roles).toContain(Role.OPERATOR);
     });
   });
 
-  // Test event and reward management
-  describe('Event and Reward Management', () => {
+  // Test event management
+  describe('Event Management', () => {
     it('should create a new event', async () => {
       const today = new Date();
       const nextMonth = new Date(today);
@@ -167,13 +189,13 @@ describe('ADMIN Use Cases', () => {
         .post(`/events/${eventId}/rewards`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          rewardId: rewardId,
+          rewardId,
         });
 
       expect(response.status).toBe(201);
     });
 
-    it('should get rewards for a specific event', async () => {
+    it('should get event rewards', async () => {
       const response = await request(baseUrl)
         .get(`/events/${eventId}/rewards`)
         .set('Authorization', `Bearer ${adminToken}`);
@@ -209,9 +231,46 @@ describe('ADMIN Use Cases', () => {
 
   // Test unauthorized access
   describe('Unauthorized Access', () => {
-    it('should return 401 when accessing user list without token', async () => {
-      const response = await request(baseUrl).get('/auth/users/email?email=user@example.com');
+    it('should return 401 when accessing admin endpoints without token', async () => {
+      const response = await request(baseUrl)
+        .get(`/auth/users/${userId}`);
+
       expect(response.status).toBe(401);
+    });
+
+    it('should return 403 when non-admin tries to update user roles', async () => {
+      const email = `regularuser${Date.now()}@example.com`;
+      // First create a regular user
+      const userResponse = await request(baseUrl)
+        .post('/auth/users')
+        .send({
+          email: email,
+          password: 'regular1234',
+        });
+
+      expect(userResponse.status).toBe(201);
+      const regularUserId = userResponse.body.id;
+
+      // Login as the regular user
+      const loginResponse = await request(baseUrl)
+        .post('/auth/login')
+        .send({
+          email: email,
+          password: 'regular1234',
+        });
+
+      expect(loginResponse.status).toBe(201);
+      const regularUserToken = loginResponse.body.accessToken;
+
+      // Try to update roles as regular user
+      const response = await request(baseUrl)
+        .put(`/auth/users/${userId}/roles`)
+        .set('Authorization', `Bearer ${regularUserToken}`)
+        .send({
+          roles: [Role.USER, Role.OPERATOR],
+        });
+
+      expect(response.status).toBe(403);
     });
   });
 

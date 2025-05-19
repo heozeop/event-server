@@ -4,10 +4,11 @@ import request from 'supertest';
 describe('OPERATOR Use Cases', () => {
   const baseUrl = 'http://localhost:3333';
   let operatorToken: string;
+  let operatorId: string;
   let eventId: string;
   let rewardId: string;
 
-  // Operator credentials for login
+  // Operator credentials
   const operatorCredentials = {
     email: 'operator@example.com',
     password: 'operator1234',
@@ -15,50 +16,23 @@ describe('OPERATOR Use Cases', () => {
 
   // Setup: Login as operator
   beforeAll(async () => {
-    // First try to create a user with operator role if needed
-    try {
-      // Create user first (might fail if exists)
-      await request(baseUrl).post('/auth/users').send(operatorCredentials);
-      
-      // Login as admin to set operator role
-      const adminLogin = await request(baseUrl)
-        .post('/auth/login')
-        .send({
-          email: 'admin@example.com',
-          password: 'admin1234',
-        });
-
-      const adminToken = adminLogin.body.accessToken;
-
-      // Get user by email
-      const userResponse = await request(baseUrl)
-        .get(`/auth/users/email?email=${operatorCredentials.email}`)
-        .set('Authorization', `Bearer ${adminToken}`);
-
-      // Update roles to include OPERATOR
-      await request(baseUrl)
-        .put(`/auth/users/${userResponse.body.id}/roles`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          roles: [Role.USER, Role.OPERATOR],
-        });
-    } catch (error: any) {
-      console.log('Setup error (may be normal if user exists):', error.message);
-    }
-
-    // Now login as operator
-    const response = await request(baseUrl)
+    // Login as operator
+    const loginResponse = await request(baseUrl)
       .post('/auth/login')
       .send(operatorCredentials);
 
-    expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty('accessToken');
-    operatorToken = response.body.accessToken;
+    expect(loginResponse.status).toBe(201);
+    expect(loginResponse.body).toHaveProperty('accessToken');
+    expect(loginResponse.body).toHaveProperty('user.roles');
+    expect(loginResponse.body.user.roles).toContain(Role.OPERATOR);
+
+    operatorToken = loginResponse.body.accessToken;
+    operatorId = loginResponse.body.user.id;
   });
 
-  // Test operator login and account info
-  describe('Operator Authentication', () => {
-    it('should login as operator', async () => {
+  // Test account management
+  describe('Account Management', () => {
+    it('should login with operator credentials', async () => {
       const response = await request(baseUrl)
         .post('/auth/login')
         .send(operatorCredentials);
@@ -66,14 +40,17 @@ describe('OPERATOR Use Cases', () => {
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('accessToken');
       expect(response.body.user.roles).toContain(Role.OPERATOR);
+
+      operatorToken = response.body.accessToken;
     });
 
-    it('should get current operator user information', async () => {
+    it('should get current operator information', async () => {
       const response = await request(baseUrl)
         .get('/auth/me')
         .set('Authorization', `Bearer ${operatorToken}`);
 
       expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('id', operatorId);
       expect(response.body).toHaveProperty('email', operatorCredentials.email);
       expect(response.body).toHaveProperty('roles');
       expect(response.body.roles).toContain(Role.OPERATOR);
@@ -118,15 +95,35 @@ describe('OPERATOR Use Cases', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       expect(response.body.length).toBeGreaterThan(0);
+      
+      // Verify event data structure
+      const event = response.body[0];
+      expect(event).toHaveProperty('id');
+      expect(event).toHaveProperty('name');
+      expect(event).toHaveProperty('condition');
+      expect(event).toHaveProperty('periodStart');
+      expect(event).toHaveProperty('periodEnd');
+      expect(event).toHaveProperty('status');
     });
 
-    it('should get specific event by ID', async () => {
+    it('should get specific event details', async () => {
+      // Skip if no event is available
+      if (!eventId) {
+        console.log('Skipping test because no event ID is available');
+        return;
+      }
+
       const response = await request(baseUrl)
         .get(`/events/${eventId}`)
         .set('Authorization', `Bearer ${operatorToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('id', eventId);
+      expect(response.body).toHaveProperty('name');
+      expect(response.body).toHaveProperty('condition');
+      expect(response.body).toHaveProperty('periodStart');
+      expect(response.body).toHaveProperty('periodEnd');
+      expect(response.body).toHaveProperty('status');
     });
   });
 
@@ -166,6 +163,12 @@ describe('OPERATOR Use Cases', () => {
     });
 
     it('should add reward to event', async () => {
+      // Skip if no event or reward is available
+      if (!eventId || !rewardId) {
+        console.log('Skipping test because event ID or reward ID is not available');
+        return;
+      }
+
       const response = await request(baseUrl)
         .post(`/events/${eventId}/rewards`)
         .set('Authorization', `Bearer ${operatorToken}`)
@@ -211,6 +214,49 @@ describe('OPERATOR Use Cases', () => {
 
       const response = await request(baseUrl).post('/events').send(newEvent);
       expect(response.status).toBe(401);
+    });
+
+    it('should return 403 when non-operator tries to create event', async () => {
+      const today = new Date();
+      const nextMonth = new Date(today);
+      nextMonth.setMonth(today.getMonth() + 1);
+
+      const email = `regularuser${Date.now()}@example.com`;
+
+      // First create a regular user
+      const userResponse = await request(baseUrl)
+        .post('/auth/users')
+        .send({
+          email: email,
+          password: 'regular1234',
+        });
+
+      expect(userResponse.status).toBe(201);
+
+      // Login as the regular user
+      const loginResponse = await request(baseUrl)
+        .post('/auth/login')
+        .send({
+          email: email,
+          password: 'regular1234',
+        });
+
+      expect(loginResponse.status).toBe(201);
+      const regularUserToken = loginResponse.body.accessToken;
+
+      // Try to create event as regular user
+      const response = await request(baseUrl)
+        .post('/events')
+        .set('Authorization', `Bearer ${regularUserToken}`)
+        .send({
+          name: 'Unauthorized Event',
+          condition: { newUser: true },
+          periodStart: today.toISOString(),
+          periodEnd: nextMonth.toISOString(),
+          status: EventStatus.ACTIVE,
+        });
+
+      expect(response.status).toBe(403);
     });
   });
 

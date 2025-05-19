@@ -86,6 +86,8 @@ describe('USER Use Cases', () => {
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('accessToken');
       expect(response.body.user.roles).toContain(Role.USER);
+
+      userToken = response.body.accessToken;
     });
 
     it('should get current user information', async () => {

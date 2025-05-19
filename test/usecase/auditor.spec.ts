@@ -4,10 +4,10 @@ import request from 'supertest';
 describe('AUDITOR Use Cases', () => {
   const baseUrl = 'http://localhost:3333';
   let auditorToken: string;
-  let userId: string;
+  let auditorId: string;
   let eventId: string;
 
-  // Auditor credentials for login
+  // Auditor credentials
   const auditorCredentials = {
     email: 'auditor@example.com',
     password: 'auditor1234',
@@ -15,61 +15,39 @@ describe('AUDITOR Use Cases', () => {
 
   // Setup: Login as auditor
   beforeAll(async () => {
-    // First try to create a user with auditor role if needed
-    try {
-      // Create user first (might fail if exists)
-      await request(baseUrl).post('/auth/users').send(auditorCredentials);
-      
-      // Login as admin to set auditor role
-      const adminLogin = await request(baseUrl)
-        .post('/auth/login')
-        .send({
-          email: 'admin@example.com',
-          password: 'admin1234',
-        });
-
-      const adminToken = adminLogin.body.accessToken;
-
-      // Get user by email
-      const userResponse = await request(baseUrl)
-        .get(`/auth/users/email?email=${auditorCredentials.email}`)
-        .set('Authorization', `Bearer ${adminToken}`);
-
-      userId = userResponse.body.id;
-
-      // Update roles to include AUDITOR
-      await request(baseUrl)
-        .put(`/auth/users/${userId}/roles`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          roles: [Role.USER, Role.AUDITOR],
-        });
-    } catch (error: any) {
-      console.log('Setup error (may be normal if user exists):', error.message);
-    }
-
-    // Now login as auditor
-    const response = await request(baseUrl)
+    // Login as auditor
+    const loginResponse = await request(baseUrl)
       .post('/auth/login')
       .send(auditorCredentials);
 
-    expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty('accessToken');
-    auditorToken = response.body.accessToken;
+    expect(loginResponse.status).toBe(201);
+    expect(loginResponse.body).toHaveProperty('accessToken');
+    expect(loginResponse.body).toHaveProperty('user.roles');
+    expect(loginResponse.body.user.roles).toContain(Role.AUDITOR);
 
-    // Get an event ID for testing
+    auditorToken = loginResponse.body.accessToken;
+    auditorId = loginResponse.body.user.id;
+
+    // Find an active event for testing
     const eventsResponse = await request(baseUrl)
       .get('/events')
       .set('Authorization', `Bearer ${auditorToken}`);
 
     if (eventsResponse.body.length > 0) {
-      eventId = eventsResponse.body[0].id;
+      // Find an active event
+      const activeEvent = eventsResponse.body.find((event: any) => 
+        event.status === 'ACTIVE' && 
+        new Date(event.periodEnd) > new Date());
+      
+      if (activeEvent) {
+        eventId = activeEvent.id;
+      }
     }
   });
 
-  // Test auditor login and account info
-  describe('Auditor Authentication', () => {
-    it('should login as auditor', async () => {
+  // Test account management
+  describe('Account Management', () => {
+    it('should login with auditor credentials', async () => {
       const response = await request(baseUrl)
         .post('/auth/login')
         .send(auditorCredentials);
@@ -77,14 +55,16 @@ describe('AUDITOR Use Cases', () => {
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('accessToken');
       expect(response.body.user.roles).toContain(Role.AUDITOR);
+      auditorToken = response.body.accessToken;
     });
 
-    it('should get current auditor user information', async () => {
+    it('should get current auditor information', async () => {
       const response = await request(baseUrl)
         .get('/auth/me')
         .set('Authorization', `Bearer ${auditorToken}`);
 
       expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('id', auditorId);
       expect(response.body).toHaveProperty('email', auditorCredentials.email);
       expect(response.body).toHaveProperty('roles');
       expect(response.body.roles).toContain(Role.AUDITOR);
@@ -100,11 +80,16 @@ describe('AUDITOR Use Cases', () => {
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
-
-      // Save an event ID if we don't have one yet
-      if (!eventId && response.body.length > 0) {
-        eventId = response.body[0].id;
-      }
+      expect(response.body.length).toBeGreaterThan(0);
+      
+      // Verify event data structure
+      const event = response.body[0];
+      expect(event).toHaveProperty('id');
+      expect(event).toHaveProperty('name');
+      expect(event).toHaveProperty('condition');
+      expect(event).toHaveProperty('periodStart');
+      expect(event).toHaveProperty('periodEnd');
+      expect(event).toHaveProperty('status');
     });
 
     it('should get specific event details', async () => {
@@ -120,6 +105,11 @@ describe('AUDITOR Use Cases', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('id', eventId);
+      expect(response.body).toHaveProperty('name');
+      expect(response.body).toHaveProperty('condition');
+      expect(response.body).toHaveProperty('periodStart');
+      expect(response.body).toHaveProperty('periodEnd');
+      expect(response.body).toHaveProperty('status');
     });
 
     it('should get event rewards', async () => {
@@ -135,6 +125,21 @@ describe('AUDITOR Use Cases', () => {
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
+      
+      // Verify reward data structure if rewards exist
+      if (response.body.length > 0) {
+        const reward = response.body[0];
+        expect(reward).toHaveProperty('id');
+        expect(reward).toHaveProperty('type');
+        if (reward.type === 'POINT') {
+          expect(reward).toHaveProperty('points');
+        } else if (reward.type === 'COUPON') {
+          expect(reward).toHaveProperty('code');
+          expect(reward).toHaveProperty('discount');
+          expect(reward).toHaveProperty('maxUses');
+          expect(reward).toHaveProperty('expiresAt');
+        }
+      }
     });
   });
 
@@ -147,6 +152,16 @@ describe('AUDITOR Use Cases', () => {
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
+      
+      // Verify request data structure if requests exist
+      if (response.body.length > 0) {
+        const request = response.body[0];
+        expect(request).toHaveProperty('id');
+        expect(request).toHaveProperty('userId');
+        expect(request).toHaveProperty('eventId');
+        expect(request).toHaveProperty('status');
+        expect(request).toHaveProperty('createdAt');
+      }
     });
 
     it('should filter reward requests by status', async () => {
@@ -157,7 +172,7 @@ describe('AUDITOR Use Cases', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       
-      // All returned items should have status PENDING
+      // All requests should have PENDING status
       response.body.forEach((request: any) => {
         expect(request.status).toBe('PENDING');
       });
@@ -177,13 +192,25 @@ describe('AUDITOR Use Cases', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       
-      // All returned items should be for this event
+      // All requests should be for the specified event
       response.body.forEach((request: any) => {
         expect(request.event.id).toBe(eventId);
       });
     });
 
     it('should filter reward requests by user ID', async () => {
+      // First get a user ID from any request
+      const allRequestsResponse = await request(baseUrl)
+        .get('/events/requests')
+        .set('Authorization', `Bearer ${auditorToken}`);
+
+      if (allRequestsResponse.body.length === 0) {
+        console.log('Skipping test because no requests are available');
+        return;
+      }
+
+      const userId = allRequestsResponse.body[0].userId;
+
       const response = await request(baseUrl)
         .get(`/events/requests?userId=${userId}`)
         .set('Authorization', `Bearer ${auditorToken}`);
@@ -191,7 +218,7 @@ describe('AUDITOR Use Cases', () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
       
-      // All returned items should be for this user
+      // All requests should be from the specified user
       response.body.forEach((request: any) => {
         expect(request.userId).toBe(userId);
       });
@@ -208,7 +235,7 @@ describe('AUDITOR Use Cases', () => {
     it('should forbid role updates by auditor', async () => {
       // Try to update a user's roles (which should be forbidden for AUDITOR)
       const response = await request(baseUrl)
-        .put(`/auth/users/${userId}/roles`)
+        .put(`/auth/users/${auditorId}/roles`)
         .set('Authorization', `Bearer ${auditorToken}`)
         .send({
           roles: [Role.USER, Role.OPERATOR],

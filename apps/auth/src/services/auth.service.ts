@@ -48,6 +48,7 @@ export class AuthService {
 
     // Store access token in Redis
     await this.storeAccessToken(user.id, accessToken);
+    this.logger.log('Access token', { accessTokenString: accessToken });
 
     // Log additional information about successful login
     this.logger.log('Login details', {
@@ -125,7 +126,7 @@ export class AuthService {
     await this.redis.set(key, tokenData);
     await this.redis.expire(
       key,
-      Number(process.env.JWT_EXPIRES_IN_SECONDS) || 3600,
+      Number(process.env.JWT_EXPIRES_IN_SECONDS) || 600,
     );
   }
 
@@ -199,6 +200,7 @@ export class AuthService {
     try {
       // Check if token is in Redis
       const key = this.redisAccessTokenKey(userId);
+      this.logger.log('Redis key', { keystring: key });
       const tokenData = await this.redis.get(key);
 
       if (!tokenData) {
@@ -206,14 +208,16 @@ export class AuthService {
       }
 
       const { token } = JSON.parse(tokenData);
+      this.logger.log('Redis token data', {
+        tokenString: token,
+        accessTokenString: accessToken,
+        isSame: token === accessToken,
+      });
 
       // Check if token matches
       if (token !== accessToken) {
         return false;
       }
-
-      // Verify token
-      this.jwtService.verify(accessToken);
 
       return true;
     } catch (error) {

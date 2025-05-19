@@ -9,7 +9,6 @@ import { CurrentUserData } from '../../../../packages/types/dist/auth/user.types
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    @Inject('AUTH_SERVICE') private readonly authClient: ClientProxy,
     private readonly configService: ConfigService,
     private readonly logger: PinoLoggerService,
   ) {
