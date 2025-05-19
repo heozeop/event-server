@@ -2,9 +2,19 @@
 
 NestJS를 사용한 이벤트 및 리워드 관리를 위한 마이크로서비스 기반 애플리케이션입니다.
 
-## 아키텍처
+## 프로젝트 개요
 
-이 플랫폼은 세 가지 주요 서비스로 구성됩니다:
+이 플랫폼은 사용자들이 이벤트에 참여하고 리워드를 획득할 수 있는 서비스를 제공합니다. 주요 기능으로는:
+
+- 관리자 및 운영자를 위한 이벤트 관리 대시보드
+- 사용자 인증 및 권한 관리
+- 이벤트 생성 및 관리
+- 리워드 요청 및 승인 프로세스
+- 분석 및 모니터링 대시보드
+
+## 시스템 아키텍처
+
+이 플랫폼은 세 가지 주요 마이크로서비스로 구성됩니다:
 
 1. **게이트웨이 서비스**: API 게이트웨이 역할을 하며 클라이언트의 HTTP 요청을 처리합니다.
 2. **인증 서비스**: 인증 및 사용자 관리를 담당합니다.
@@ -35,41 +45,91 @@ graph TD
     end
 ```
 
-### 로깅 시스템 아키텍처
+## 핵심 기술 스택
 
-```mermaid
-graph LR
-    subgraph "서비스"
-        GW[게이트웨이 서비스]
-        Auth[인증 서비스]
-        Event[이벤트 서비스]
-    end
+- **백엔드 프레임워크**: NestJS (TypeScript)
+- **데이터베이스**: MongoDB
+- **통신 프로토콜**: TCP/IP (마이크로서비스 간)
+- **인증**: JWT (Access Token + HTTP-only Cookie Refresh Token)
+- **문서화**: Swagger/OpenAPI
+- **로깅**: Pino, Grafana Loki, Grafana Alloy
+- **테스트**: Jest (단위 테스트, 통합 테스트), k6 (성능 테스트)
+- **컨테이너화**: Docker, Docker Compose
 
-    subgraph "로그 수집 및 처리"
-        GW -->|JSON 로그| Alloy[Grafana Alloy]
-        Auth -->|JSON 로그| Alloy
-        Event -->|JSON 로그| Alloy
+## API 엔드포인트
 
-        Alloy -->|필터링/처리| Loki[(Grafana Loki)]
-    end
+### 인증 API
 
-    subgraph "시각화 및 분석"
-        Loki --> Dashboard1[요청 추적 대시보드]
-        Loki --> Dashboard2[로그 뷰어]
+| 엔드포인트 | 메서드 | 설명 | 권한 |
+|------------|-------|------|------|
+| `/auth/test` | GET | 서비스 상태 확인 | 모두 |
+| `/auth/login` | POST | 사용자 로그인 (refresh token을 HTTP-only 쿠키로 반환) | 모두 |
+| `/auth/refresh` | POST | HTTP-only 쿠키의 refresh token을 사용하여 access token 갱신 | 모두 |
+| `/auth/me` | GET | 현재 로그인한 사용자 정보 조회 | 인증 필요 |
+| `/auth/users` | POST | 새 사용자 생성 | 모두 |
+| `/auth/users/email` | GET | 이메일로 사용자 조회 | ADMIN |
+| `/auth/users/:id` | GET | ID로 사용자 조회 | ADMIN |
+| `/auth/users/:id/roles` | PATCH | 사용자 역할 업데이트 | ADMIN |
 
-        Dashboard1 --> Grafana[Grafana UI]
-        Dashboard2 --> Grafana
-    end
+### 이벤트 및 리워드 API
 
-    Browser[사용자 브라우저] -->|http://localhost:3000| Grafana
-```
+| 엔드포인트 | 메서드 | 설명 | 권한 |
+|------------|-------|------|------|
+| `/dashboard` | GET | 대시보드 요약 데이터 조회 | ADMIN, OPERATOR |
+| `/dashboard/event-analytics` | GET | 이벤트 분석 데이터 조회 | ADMIN, OPERATOR |
+| `/dashboard/reward-analytics` | GET | 리워드 분석 데이터 조회 | ADMIN, OPERATOR |
+| `/dashboard/user-analytics` | GET | 사용자 분석 데이터 조회 | ADMIN, OPERATOR |
+| `/events` | POST | 새 이벤트 생성 | ADMIN, OPERATOR |
+| `/events` | GET | 이벤트 목록 조회 | 인증 필요 |
+| `/reward-requests` | GET | 리워드 요청 목록 조회 | 인증 필요 |
+| `/events/:eventId/request-reward` | POST | 이벤트 리워드 요청 | 인증 필요 |
+| `/events/:eventId/rewards` | GET | 이벤트의 리워드 목록 조회 | 인증 필요 |
+| `/events/:eventId/rewards` | POST | 이벤트에 리워드 추가 | ADMIN, OPERATOR |
+| `/events/:eventId` | GET | 이벤트 상세 정보 조회 | 인증 필요 |
+| `/rewards/:type` | POST | 새 리워드 생성 | ADMIN, OPERATOR |
+| `/rewards` | GET | 리워드 목록 조회 | 인증 필요 |
+| `/reward-requests/:requestId` | PATCH | 리워드 요청 상태 업데이트 | ADMIN, OPERATOR |
 
-### 상세 아키텍처
+## 인증 및 권한 제어 시스템
 
-- **마이크로서비스 통신**: 서비스 간 통신은 TCP/IP 프로토콜을 통해 이루어집니다.
-- **데이터베이스**: 각 서비스는 자체 MongoDB 인스턴스를 사용합니다.
-- **로깅**: 중앙 집중식 로깅 시스템은 Grafana Loki와 Alloy를 사용합니다.
-- **API 게이트웨이**: REST API와 Swagger 문서를 제공합니다.
+### 인증 흐름
+
+1. **회원가입**: 사용자는 `/auth/users` 엔드포인트를 통해 계정을 생성합니다.
+2. **로그인**: 사용자는 `/auth/login` 엔드포인트로 인증하여 액세스 토큰을 받고, 리프레시 토큰은 HTTP-only 쿠키로 저장됩니다.
+3. **토큰 갱신**: 액세스 토큰이 만료되면 `/auth/refresh` 엔드포인트를 통해 쿠키의 리프레시 토큰으로 갱신합니다.
+
+### 권한 제어
+
+시스템은 다음과 같은 역할(Role) 기반 권한 모델을 사용합니다:
+
+- **ADMIN**: 모든 기능에 접근 가능, 사용자 관리 및 시스템 설정 권한
+- **OPERATOR**: 이벤트 및 리워드 관리, 분석 대시보드 접근 권한
+- **USER**: 이벤트 참여 및 리워드 요청 권한
+
+권한은 `JwtAuthGuard`와 `RolesGuard`를 통해 구현되며, 엔드포인트에 접근 제어를 적용하기 위해 `@Roles()` 데코레이터를 사용합니다.
+
+## 비즈니스 로직 구현
+
+### 이벤트 관리 프로세스
+
+1. **이벤트 생성**: 관리자 또는 운영자가 새 이벤트를 생성
+2. **리워드 등록**: 이벤트에 리워드 유형 및 조건 설정 
+3. **이벤트 활성화**: 설정된 기간 동안 이벤트 활성화
+
+### 리워드 요청 처리 흐름
+
+1. **참여자 리워드 요청**: 사용자가 이벤트 참여 후 리워드 요청
+2. **요청 검증**: 시스템이 요청의 유효성 검사 (참여 조건 충족 여부)
+3. **리워드 승인/거부**: 관리자 또는 운영자가 요청 승인 또는 거부
+4. **리워드 지급**: 승인된 리워드를 사용자에게 지급
+
+### 대시보드 분석
+
+시스템은 다음과 같은 분석 데이터를 제공합니다:
+
+- **이벤트 분석**: 이벤트 상태 분포, 이벤트별 리워드 분포, 이벤트 타임라인
+- **리워드 분석**: 리워드 유형 분포, 요청 상태 분포, 요청 타임라인
+- **사용자 분석**: 참여율, 활성 사용자 수, 신규 사용자 수, 사용자 활동 타임라인
 
 ## 개발 환경 설정
 
@@ -125,9 +185,16 @@ cd event-server
 pnpm install
 ```
 
-## 테스트 실행
+## 테스트 및 품질 보증
 
-### 단위 테스트 및 통합 테스트
+### 테스트 전략
+
+1. **단위 테스트**: 개별 컴포넌트 및 서비스의 기능 테스트
+2. **통합 테스트**: 여러 컴포넌트간 상호작용 테스트
+3. **유스케이스 테스트**: 실제 비즈니스 시나리오 기반 테스트
+4. **성능 테스트**: k6를 사용한 부하 테스트
+
+### 테스트 실행
 
 ```bash
 # 모든 테스트 실행 (테스트 유저 시드 및 유스케이스 테스트 포함)
@@ -142,18 +209,7 @@ cd apps/event && pnpm test
 cd apps/gateway && pnpm test
 ```
 
-### 유스케이스 테스트
-
-유스케이스 테스트는 특정 비즈니스 시나리오를 검증합니다:
-
-```bash
-# 또는 스크립트 직접 실행
-bash scripts/run-usecase-tests.sh
-```
-
 ### 성능 테스트 (k6)
-
-k6를 사용하여 성능 테스트를 실행합니다:
 
 ```bash
 # k6 성능 테스트 실행 (테스트 데이터 자동 시드)
@@ -169,278 +225,36 @@ Swagger 문서는 다음에서 확인할 수 있습니다:
 http://localhost:3333/docs
 ```
 
-Swagger UI는 다음을 제공합니다:
+## 로깅 시스템 (개선 필요)
 
-- 대화형 API 문서
-- 모든 엔드포인트 테스트 기능
-- JWT 토큰을 사용한 인증
+현재 로깅 시스템은 Grafana Loki 및 Grafana Alloy를 사용한 중앙 집중식 로깅을 구현하고 있으나, 다음과 같은 개선이 필요합니다:
 
-## 로깅 시스템
+- **로그 필터링 최적화**: 더 효율적인 쿼리를 위한 로그 레이블 및 필터 개선
+- **알림 시스템 구현**: 중요 이벤트 및 오류에 대한 알림 메커니즘 추가
+- **대시보드 세분화**: 특정 비즈니스 프로세스에 초점을 맞춘 사용자 정의 대시보드 개발
+- **분산 추적 기능 강화**: 서비스 간 요청 추적을 위한 OpenTelemetry 통합 고려
+- **로그 보존 정책 구현**: 다양한 로그 유형에 대한 적절한 보존 기간 설정
 
-애플리케이션은 중앙 집중식 로그 관리를 위해 Grafana Loki 및 Grafana Alloy와 함께 구조화된 JSON 로깅을 사용합니다. `@libs/logger` 패키지를 통해 다음과 같은 기능을 제공합니다:
+## 데이터베이스 설계
 
-- **구조화된 JSON 로깅**: Pino 기반의 JSON 형식 로그로 분석 및 검색이 용이합니다.
-- **요청 컨텍스트 자동 캡처**: HTTP 메서드, 경로, 상태 코드 등의 요청 정보를 자동으로 캡처합니다.
-- **요청 ID 전파**: 서비스 간 요청 추적을 위한 requestId를 자동으로 전파합니다.
-- **비동기 로컬 스토리지**: 비동기 작업 간에도 로깅 컨텍스트가 유지됩니다.
-- **민감 데이터 마스킹**: 비밀번호, 토큰 등 민감한 정보를 자동으로 마스킹합니다.
-- **메서드 실행 추적**: `@LogExecution()` 데코레이터를 사용하여 메서드 호출 및 실행 시간을 자동으로 로깅합니다.
-- **로그 레벨 관리**: 환경에 따라 로그 레벨을 다르게 설정할 수 있습니다.
-- **Grafana Alloy 통합**: 로그가 자동으로 Loki에 저장되고 Grafana를 통해 조회 가능합니다.
+각 서비스는 자체 MongoDB 인스턴스를 사용합니다:
 
-### 모듈 설정
+- **인증 서비스**: 사용자 계정, 역할, 인증 토큰 저장
+  - 주소: `mongodb://mongo-user:27017/user-db`
+- **이벤트 서비스**: 이벤트, 리워드, 리워드 요청 저장
+  - 주소: `mongodb://mongo-event:27017/event-db`
 
-```typescript
-import { Module } from "@nestjs/common";
-import { LoggerModule } from "@libs/logger";
-
-@Module({
-  imports: [
-    LoggerModule.forRootAsync({
-      global: true,
-      imports: [],
-      inject: [],
-      useFactory: async () => ({
-        serviceName: "my-service", // 로그의 serviceId로 표시됨
-        prettyPrint: process.env.NODE_ENV !== "production", // 개발 환경에서는 보기 좋은 형식으로 출력
-        logLevel: process.env.LOG_LEVEL || "info",
-        sensitiveDataOptions: {
-          enabled: true,
-          maskValue: "***MASKED***",
-          objectPaths: [
-            "req.headers.authorization",
-            "req.headers.cookie",
-            "req.body.password",
-          ],
-        },
-        // Alloy 통합 설정
-        alloyConfig: {
-          enabled: true,
-          messageKey: "msg",
-          levelKey: "level",
-        },
-      }),
-    }),
-  ],
-})
-export class AppModule {}
-```
-
-### LogContextInterceptor를 이용한 요청 ID 주입
-
-`LogContextInterceptor`는 모든 들어오는 HTTP 요청에 자동으로 고유한 requestId를 생성하고 로깅 컨텍스트에 추가합니다. 만약 요청에 이미 `X-Request-Id` 헤더가 있다면 해당 값을 사용합니다.
-
-```typescript
-import { Module } from "@nestjs/common";
-import { APP_INTERCEPTOR } from "@nestjs/core";
-import { LogContextInterceptor, LoggerModule } from "@libs/logger";
-
-@Module({
-  imports: [
-    LoggerModule.forRootAsync({
-      // 로거 설정...
-    }),
-  ],
-  providers: [
-    // 전역 인터셉터로 등록
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: LogContextInterceptor,
-    },
-  ],
-})
-export class AppModule {}
-```
-
-또는 main.ts에서 전역 인터셉터로 등록할 수 있습니다:
-
-```typescript
-import { NestFactory } from "@nestjs/core";
-import { AppModule } from "./app.module";
-import { LogContextInterceptor, PinoLoggerService } from "@libs/logger";
-
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  // 인터셉터 등록
-  app.useGlobalInterceptors(app.get(LogContextInterceptor));
-
-  await app.listen(3000);
-}
-bootstrap();
-```
-
-### 요청 추적 아키텍처
-
-아래 다이어그램은 `LogContextInterceptor`를 사용한 요청 ID 전파 과정을 보여줍니다:
-
-```mermaid
-sequenceDiagram
-    participant Client as 클라이언트
-    participant Gateway as 게이트웨이 서비스
-    participant Auth as 인증 서비스
-    participant Event as 이벤트 서비스
-    participant Loki as Grafana Loki
-
-    Client->>Gateway: HTTP 요청
-
-    Note over Gateway: LogContextInterceptor가<br/>X-Request-Id 생성 또는 추출
-
-    Gateway->>Auth: 인증 요청<br/>(X-Request-Id 포함)
-
-    Note over Auth: LogContextInterceptor가<br/>X-Request-Id 캡처
-    Auth-->>Gateway: 인증 응답
-
-    Gateway->>Event: 이벤트 요청<br/>(X-Request-Id 포함)
-
-    Note over Event: LogContextInterceptor가<br/>X-Request-Id 캡처
-    Event-->>Gateway: 이벤트 응답
-
-    Gateway-->>Client: HTTP 응답
-
-    Gateway->>Loki: 로그(requestId 포함)
-    Auth->>Loki: 로그(동일한 requestId 포함)
-    Event->>Loki: 로그(동일한 requestId 포함)
-
-    Note over Loki: 동일한 requestId로<br/>요청 추적 가능
-```
-
-인터셉터는 다음 기능을 수행합니다:
-
-- HTTP 요청에서 `X-Request-Id` 헤더를 추출하거나 없는 경우 UUID를 생성
-- 클라이언트 IP, 사용자 에이전트, 요청 경로, HTTP 메서드 등 추출
-- 응답 상태 코드와 성공/실패 여부 기록
-- 비동기 작업 간에도 컨텍스트 유지
-- 요청 처리 중 발생한 오류 자동 기록
-
-### 로거 사용 예제
-
-```typescript
-import { Injectable } from "@nestjs/common";
-import { PinoLoggerService } from "@libs/logger";
-
-@Injectable()
-export class AppService {
-  constructor(private readonly logger: PinoLoggerService) {
-    // 모든 로그에 컴포넌트 정보 추가
-    this.logger.setContext({ component: "AppService" });
-  }
-
-  doSomething(data: any): void {
-    // 일반 로그
-    this.logger.info("작업 시작", { dataId: data.id });
-
-    try {
-      // 비즈니스 로직...
-    } catch (error) {
-      // 에러 로깅 (스택 트레이스 포함)
-      this.logger.error("작업 실패", error.stack, { dataId: data.id });
-    }
-  }
-}
-```
-
-### 메서드 실행 로깅
-
-`@LogExecution` 데코레이터를 사용하여 메서드 호출, 결과, 실행 시간 및 오류를 자동으로 로깅할 수 있습니다:
-
-```typescript
-import { Injectable } from "@nestjs/common";
-import { LogExecution } from "@libs/logger";
-
-@Injectable()
-export class UserService {
-  constructor(private readonly logger: PinoLoggerService) {}
-
-  @LogExecution({
-    entryLevel: "debug", // 메서드 진입 시 로그 레벨
-    exitLevel: "debug", // 메서드 종료 시 로그 레벨
-    errorLevel: "error", // 오류 발생 시 로그 레벨
-    logParams: true, // 매개변수 로깅 여부
-    logResult: true, // 결과 로깅 여부
-    logExecutionTime: true, // 실행 시간 로깅 여부
-  })
-  async getUser(userId: string) {
-    // 비즈니스 로직...
-    return { id: userId, name: "John Doe" };
-  }
-}
-```
-
-### 요청 ID 전파
-
-서비스 간 요청을 추적하기 위해 요청 ID를 전파하는 예제:
-
-```typescript
-import { Injectable } from "@nestjs/common";
-import { HttpService } from "@nestjs/axios";
-import { LogContextStore } from "@libs/logger";
-
-@Injectable()
-export class ApiService {
-  constructor(
-    private readonly httpService: HttpService,
-    private readonly logContextStore: LogContextStore,
-  ) {}
-
-  async callAnotherService() {
-    // 현재 요청 ID 가져오기
-    const requestId = this.logContextStore.getRequestId();
-
-    // 다른 서비스로 요청 시 헤더에 요청 ID 추가
-    const headers = { "X-Request-Id": requestId };
-
-    // 요청 ID가 포함된 HTTP 요청
-    return await this.httpService
-      .get("http://another-service/api", { headers })
-      .toPromise();
-  }
-}
-```
-
-### 로그 보기
-
-Grafana는 `http://localhost:3000`에서 기본 자격 증명 `admin/admin`으로 사용할 수 있습니다.
-
-사전 구성된 대시보드에는 다음이 포함됩니다:
-
-- 요청 추적 대시보드: 서비스 간 요청을 추적하기 위해 requestId별로 그룹화된 로그 표시
-- 로그 뷰어: 필터링 기능이 있는 일반 로그 뷰어
-
-### Loki 쿼리 예제
-
-- 모든 로그: `{container=~".+"}`
-- 특정 서비스의 로그: `{service="gateway"}`
-- 특정 요청 추적: `{requestId="specific-request-id"}`
-- 오류 로그: `{level="error"}`
-- 특정 사용자의 로그: `{userId="user123"}`
-- 특정 경로의 요청 로그: `{path="/api/users"}`
-
-## 서비스
-
-### 게이트웨이 서비스
-
-- 마이크로서비스 포트: 3010 (내부 포트 3000에 매핑됨)
-- HTTP 포트: 3333 (REST API 및 Swagger용)
-
-### 인증 서비스
-
-- 마이크로서비스 포트: 3001
-
-### 이벤트 서비스
-
-- 마이크로서비스 포트: 3002
-
-## 데이터베이스
-
-각 서비스에는 자체 MongoDB 인스턴스가 있습니다:
-
-- 인증 서비스: mongodb://mongo-user:27017/user-db
-- 이벤트 서비스: mongodb://mongo-event:27017/event-db
-
-db 인스턴스 자체를 분리한 이유는 아래 입니다.
+db 인스턴스 자체를 분리한 이유는 아래와 같습니다:
 
 1. User 데이터는 사람의 개인정보를 다룬다는 점에서 유의가 필요합니다.
-2. Event 데이터는 중복, 재처리등에서 비교적 자유롭습니다.
+2. Event 데이터는 중복, 재처리 등에서 비교적 자유롭습니다.
 3. 차후 보안과 관련하여 철저한 암호화 처리 등의 필요성이 발생할 경우, 인스턴스 레벨에서 분리가 필요할 수 있습니다.
 4. 현재 개발한 버전은 굳이 비용을 걱정할 필요가 없습니다.
+
+## 보완 및 확장 계획
+
+더 자세한 문서는 `docs/enhance` 디렉토리에서 확인할 수 있습니다:
+
+- [모니터링 개선 계획](docs/enhance/monitoring-improvements.md)
+- [보안 강화 전략](docs/enhance/security-enhancements.md)
+- [확장성 개선 방안](docs/enhance/scalability-plan.md)
