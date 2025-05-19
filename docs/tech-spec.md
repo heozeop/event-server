@@ -269,12 +269,14 @@ export class UserToken implements UserTokenEntity {
 
   @Property()
   refreshToken!: string;
-
-  @Property()
-  accessTokenHash!: string;
-
   @Property()
   expiresAt!: Date;
+
+  @Property({ nullable: true })
+  revokedAt?: Date;
+
+  @Property()
+  status: TokenStatus = TokenStatus.ACTIVE;
 
   @Property()
   createdAt: Date = new Date();
@@ -443,6 +445,14 @@ export class RewardRequest {
 - `POST /auth/refresh`: Refresh Token으로 새 Access Token 발급
 - `POST /auth/logout`: 현재 사용자의 모든 토큰 무효화 (Redis에서 즉시 무효화)
 
+```ts
+export enum TokenStatus {
+  ACTIVE = 'active',
+  REVOKED = 'revoked',
+  EXPIRED = 'expired'
+}
+```
+
 ### 7.3 사용자 토큰 데이터 모델
 
 #### MongoDB (UserToken)
@@ -461,6 +471,12 @@ export class UserToken {
 
   @Property()
   expiresAt!: Date;
+
+  @Property({ nullable: true })
+  revokedAt?: Date;
+
+  @Property()
+  status: TokenStatus = TokenStatus.ACTIVE;
 
   @Property()
   createdAt: Date = new Date();
