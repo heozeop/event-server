@@ -226,8 +226,16 @@ describe("ADMIN Use Cases", () => {
         .set("Authorization", `Bearer ${adminToken}`);
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBeGreaterThan(0);
+      expect(Array.isArray(response.body.items)).toBe(true);
+      expect(response.body.items.length).toBeGreaterThan(0);
+
+      const requestData = response.body.items[0];
+      expect(requestData).toHaveProperty("id");
+      expect(requestData).toHaveProperty("userId");
+      expect(requestData.event).toHaveProperty("id");
+      expect(requestData).toHaveProperty("status");
+      expect(requestData).toHaveProperty("createdAt");
+      expect(requestData).toHaveProperty("updatedAt");
     });
   });
 

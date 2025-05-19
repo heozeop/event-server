@@ -7,11 +7,11 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "rootDir": ".",
-    "baseUrl": "./",
+    "rootDir": "../..",
+    "baseUrl": "../..",
     "paths": {
-      "@libs/enums": ["../../packages/enums/src"],
-      "@libs/enums/*": ["../../packages/enums/src/*"],
+      "@libs/enums": ["packages/enums/src"],
+      "@libs/enums/*": ["packages/enums/src/*"]
     }
   },
   "include": ["./**/*"],
