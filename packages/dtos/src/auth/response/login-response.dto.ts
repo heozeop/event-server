@@ -1,7 +1,7 @@
 import { UserEntity } from "@libs/types";
 import { ApiProperty } from "@nestjs/swagger";
 import { Exclude, Expose } from "class-transformer";
-import { IsNotEmpty, IsObject, IsString } from "class-validator";
+import { IsNotEmpty, IsObject, IsOptional, IsString } from "class-validator";
 import { UserResponseDto } from "./user-response.dto";
 
 @Exclude()
@@ -16,13 +16,14 @@ export class LoginResponseDto {
   accessToken!: string;
 
   @ApiProperty({
-    description: "The JWT refresh token for authentication",
+    description: "The JWT refresh token for authentication (sent via HTTP-only cookie)",
     example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    required: false,
   })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @Expose()
-  refreshToken!: string;
+  refreshToken?: string;
 
   @ApiProperty({
     description: "The user information",

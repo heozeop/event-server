@@ -9,6 +9,8 @@ import {
   LoginDto,
   LoginResponseDto,
   QueryUserByEmailDto,
+  RefreshTokenDto,
+  RefreshTokenResponseDto,
   UpdateRolesDto,
   UserResponseDto,
 } from '@libs/dtos';
@@ -24,6 +26,9 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
@@ -36,6 +41,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Request, Response } from 'express';
 import { lastValueFrom } from 'rxjs';
 
 @ApiTags('Authentication')
@@ -65,7 +71,7 @@ export class AuthController {
   @Public()
   @ApiOperation({
     summary: 'User login',
-    description: 'User login',
+    description: 'User login with refresh token in HTTP-only cookie',
   })
   @ApiResponse({
     status: 200,
@@ -80,9 +86,56 @@ export class AuthController {
     entryMessage: 'User login attempt',
     exitMessage: 'User login successful',
   })
-  async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
-    return await lastValueFrom(
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<Omit<LoginResponseDto, 'refreshToken'>> {
+    const response = await lastValueFrom(
       this.authClient.send({ cmd: AUTH_CMP.LOGIN }, loginDto),
+    );
+
+    // Set refresh token in HTTP-only cookie
+    res.cookie('refreshToken', response.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    });
+
+    // Return response without refresh token
+    const { refreshToken, ...responseWithoutRefreshToken } = response;
+    return responseWithoutRefreshToken;
+  }
+
+  @Post('refresh')
+  @Public()
+  @ApiOperation({
+    summary: 'Refresh access token',
+    description:
+      'Refresh access token using refresh token from HTTP-only cookie',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Token refresh successful',
+    type: RefreshTokenResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Token refresh attempt',
+    exitMessage: 'Token refresh successful',
+  })
+  async refreshToken(@Req() req: Request): Promise<RefreshTokenResponseDto> {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token not found');
+    }
+
+    return await lastValueFrom(
+      this.authClient.send({ cmd: AUTH_CMP.REFRESH_TOKEN }, {
+        refreshToken,
+      } as RefreshTokenDto),
     );
   }
 
