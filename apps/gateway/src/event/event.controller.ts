@@ -6,10 +6,12 @@ import {
   CreateRewardDto,
   CreateRewardRequestDto,
   EventResponseDto,
+  QueryByIdDto,
   QueryEventDto,
   QueryRewardRequestDto,
   RewardRequestResponseDto,
   RewardResponseDto,
+  UpdateEventDto,
   UpdateRewardRequestStatusDto,
 } from '@libs/dtos';
 import { RewardRequestStatus, RewardType, Role } from '@libs/enums';
@@ -18,6 +20,7 @@ import { CurrentUserData } from '@libs/types';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -43,6 +46,26 @@ import { lastValueFrom } from 'rxjs';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+
+// Interface to match the cursor-paginated response from the event service
+interface CursorPaginatedEventResponseDto {
+  items: EventResponseDto[];
+  total: number;
+  hasMore: boolean;
+  nextCursor?: string;
+}
+
+// Interface to match the paginated response from the reward service
+interface PaginatedRewardResponseDto {
+  rewards: RewardResponseDto[];
+  total: number;
+}
+
+// Interface to match the paginated response from the reward request service
+interface PaginatedRewardRequestResponseDto {
+  requests: RewardRequestResponseDto[];
+  total: number;
+}
 
 @ApiTags('Events')
 @ApiBearerAuth()
@@ -90,7 +113,9 @@ export class EventController {
     entryMessage: 'Getting events',
     exitMessage: 'Events retrieved',
   })
-  async getEvents(@Query() query: QueryEventDto): Promise<EventResponseDto[]> {
+  async getEvents(
+    @Query() query: QueryEventDto,
+  ): Promise<CursorPaginatedEventResponseDto> {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_EVENTS }, query),
     );
@@ -119,7 +144,7 @@ export class EventController {
   async getRewardRequests(
     @Query() query: QueryRewardRequestDto,
     @CurrentUser() user: CurrentUserData,
-  ): Promise<RewardRequestResponseDto[]> {
+  ): Promise<PaginatedRewardRequestResponseDto> {
     return await lastValueFrom(
       this.eventClient.send(
         { cmd: EVENT_CMP.GET_REWARD_REQUESTS },
@@ -231,6 +256,40 @@ export class EventController {
     );
   }
 
+  @Delete('events/:eventId/rewards/:rewardId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OPERATOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Remove a reward from an event' })
+  @ApiParam({ name: 'eventId', description: 'ID of the event' })
+  @ApiParam({ name: 'rewardId', description: 'ID of the reward' })
+  @ApiResponse({
+    status: 204,
+    description: 'Reward removed from event successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Removing reward from event',
+    exitMessage: 'Reward removed from event',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeRewardFromEvent(
+    @Param('eventId') eventId: string,
+    @Param('rewardId') rewardId: string,
+  ): Promise<void> {
+    await lastValueFrom(
+      this.eventClient.send(
+        { cmd: EVENT_CMP.REMOVE_REWARD_FROM_EVENT },
+        { eventId, rewardId },
+      ),
+    );
+  }
+
   @Get('events/:eventId')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get an event by ID' })
@@ -251,6 +310,67 @@ export class EventController {
         { cmd: EVENT_CMP.GET_EVENT_BY_ID },
         { id: eventId },
       ),
+    );
+  }
+
+  @Patch('events/:eventId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OPERATOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Update an event' })
+  @ApiParam({ name: 'eventId', description: 'ID of the event' })
+  @ApiBody({ type: UpdateEventDto })
+  @ApiResponse({ status: 200, description: 'Event updated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Updating event',
+    exitMessage: 'Event updated',
+  })
+  async updateEvent(
+    @Param('eventId') eventId: string,
+    @Body() updateEventDto: UpdateEventDto,
+  ): Promise<EventResponseDto> {
+    return await lastValueFrom(
+      this.eventClient.send(
+        { cmd: EVENT_CMP.UPDATE_EVENT },
+        {
+          id: eventId,
+          ...Object.fromEntries(
+            Object.entries(updateEventDto).filter(([key]) => key !== 'id'),
+          ),
+        },
+      ),
+    );
+  }
+
+  @Delete('events/:eventId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Delete an event' })
+  @ApiParam({ name: 'eventId', description: 'ID of the event' })
+  @ApiResponse({ status: 204, description: 'Event deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Deleting event',
+    exitMessage: 'Event deleted',
+  })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteEvent(@Param('eventId') eventId: string): Promise<void> {
+    await lastValueFrom(
+      this.eventClient.send({ cmd: EVENT_CMP.REMOVE_EVENT }, {
+        id: eventId,
+      } satisfies QueryByIdDto),
     );
   }
 
@@ -310,7 +430,7 @@ export class EventController {
   })
   async getRewards(
     @Query() query: QueryRewardRequestDto,
-  ): Promise<RewardResponseDto[]> {
+  ): Promise<PaginatedRewardResponseDto> {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_REWARDS }, query),
     );
