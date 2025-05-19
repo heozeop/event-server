@@ -77,13 +77,29 @@ export class SensitiveDataFilter {
    * @param data The data to mask sensitive information from
    * @returns The masked data
    */
-  public mask(data: any): any {
+  public mask(data: any, processedObjects?: WeakSet<object>): any {
     if (typeof data === "string") {
       return this.maskString(data);
     }
 
+    if (data === null || data === undefined) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return data.map(item => this.mask(item, processedObjects));
+    }
+
     if (isObjectType(data)) {
-      return this.maskObject(data);
+      if (!processedObjects) {
+        processedObjects = new WeakSet();
+      }
+      // Check for circular references
+      if (processedObjects.has(data)) {
+        return this.maskValue;
+      }
+      processedObjects.add(data);
+      return this.maskObject(data, "", processedObjects);
     }
 
     return data;
@@ -113,6 +129,7 @@ export class SensitiveDataFilter {
   private maskObject(
     obj: Record<string, any>,
     path: string = "",
+    processedObjects?: WeakSet<object>,
   ): Record<string, any> {
     const result = { ...obj };
 
@@ -135,7 +152,7 @@ export class SensitiveDataFilter {
 
       // Recursively process nested objects
       if (result[key] !== null && typeof result[key] === "object") {
-        result[key] = this.maskObject(result[key], currentPath);
+        result[key] = this.mask(result[key], processedObjects);
         continue;
       }
 

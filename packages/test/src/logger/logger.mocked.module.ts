@@ -59,14 +59,94 @@ export class MockLogContextInterceptor {
 
 // Mock for the SensitiveDataFilter
 export class MockSensitiveDataFilter {
-  constructor(private options?: any) {}
+  private readonly maskValue: string;
+  private readonly sensitiveKeys: string[];
+  private readonly objectPaths: string[];
+  private processedObjects: WeakSet<object>;
+
+  constructor(options?: any) {
+    this.maskValue = options?.maskValue || '[REDACTED]';
+    this.sensitiveKeys = options?.sensitiveKeys || [
+      'password',
+      'token',
+      'secret',
+      'credential',
+      'apikey',
+      'api_key',
+      'key',
+      'auth',
+      'authorization',
+      'jwt',
+      'access_token',
+      'refresh_token',
+      'accessToken',
+      'refreshToken',
+    ];
+    this.objectPaths = options?.objectPaths || [
+      'req.headers.authorization',
+      'req.headers.cookie',
+      'req.body.password',
+      'req.body.accessToken',
+      'req.body.refreshToken',
+    ];
+    this.processedObjects = new WeakSet();
+  }
 
   mask(data: any): any {
+    if (typeof data === 'string') {
+      return this.maskString(data);
+    }
+
+    if (data === null || data === undefined) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return data.map(item => this.mask(item));
+    }
+
+    if (typeof data === 'object') {
+      // Check for circular references
+      if (this.processedObjects.has(data)) {
+        return this.maskValue;
+      }
+      this.processedObjects.add(data);
+
+      const result = { ...data };
+      for (const key in result) {
+        // Check if the current key is sensitive
+        if (this.sensitiveKeys.some(k => k.toLowerCase() === key.toLowerCase())) {
+          result[key] = this.maskValue;
+          continue;
+        }
+
+        // Recursively process nested objects
+        if (result[key] !== null && typeof result[key] === 'object') {
+          result[key] = this.mask(result[key]);
+          continue;
+        }
+
+        // Mask sensitive patterns in strings
+        if (typeof result[key] === 'string') {
+          result[key] = this.maskString(result[key]);
+        }
+      }
+      return result;
+    }
+
     return data;
   }
 
+  private maskString(str: string): string {
+    // Simple string masking - just return the mask value for sensitive strings
+    if (this.sensitiveKeys.some(key => str.toLowerCase().includes(key.toLowerCase()))) {
+      return this.maskValue;
+    }
+    return str;
+  }
+
   filter(data: any): any {
-    return data;
+    return this.mask(data);
   }
 }
 
