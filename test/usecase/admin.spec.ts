@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { EventStatus, RewardType, Role } from '@libs/enums';
 import request from 'supertest';
-jest.setTimeout(60 *60 * 1_000);
 
 describe('ADMIN Use Cases', () => {
   const baseUrl = 'http://localhost:3333';
