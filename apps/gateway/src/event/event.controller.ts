@@ -10,8 +10,9 @@ import {
   QueryRewardRequestDto,
   RewardRequestResponseDto,
   RewardResponseDto,
+  UpdateRewardRequestStatusDto,
 } from '@libs/dtos';
-import { RewardType, Role } from '@libs/enums';
+import { RewardRequestStatus, RewardType, Role } from '@libs/enums';
 import { LogExecution, PinoLoggerService } from '@libs/logger';
 import { CurrentUserData } from '@libs/types';
 import {
@@ -311,6 +312,39 @@ export class EventController {
   ): Promise<RewardResponseDto[]> {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_REWARDS }, query),
+    );
+  }
+
+  @Post('events/requests/:requestId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.OPERATOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Update the status of a reward request' })
+  @ApiParam({ name: 'eventId', description: 'ID of the event' })
+  @ApiParam({ name: 'requestId', description: 'ID of the reward request' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reward request status updated successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @LogExecution({
+    entryLevel: 'log',
+    exitLevel: 'log',
+    entryMessage: 'Updating reward request status',
+    exitMessage: 'Reward request status updated',
+  })
+  async updateRewardRequestStatus(
+    @Param('requestId') requestId: string,
+    @Body('status') status: string,
+  ): Promise<RewardRequestResponseDto> {
+    return await lastValueFrom(
+      this.eventClient.send({ cmd: EVENT_CMP.UPDATE_REWARD_REQUEST_STATUS }, {
+        rewardRequestid: requestId,
+        status: status as RewardRequestStatus,
+      } satisfies UpdateRewardRequestStatusDto),
     );
   }
 }
