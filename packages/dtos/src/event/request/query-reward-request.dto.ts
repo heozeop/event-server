@@ -3,16 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum, IsMongoId, IsOptional, IsString } from "class-validator";
 import { PagingDto } from "../../common";
 
-export class QueryRewardRequestDto extends PagingDto {
-  @ApiProperty({
-    description: "Filter reward requests by user ID",
-    required: false,
-    example: "user123",
-  })
-  @IsString()
-  @IsOptional()
-  userId?: string;
-
+export class QueryRewardRequestBaseDto extends PagingDto {
   @ApiProperty({
     description: "Filter reward requests by event ID",
     required: false,
@@ -32,3 +23,15 @@ export class QueryRewardRequestDto extends PagingDto {
   @IsOptional()
   status?: RewardRequestStatus;
 }
+
+export class QueryRewardRequestDto extends QueryRewardRequestBaseDto{
+  @ApiProperty({
+    description: "Filter reward requests by user ID",
+    required: false,
+    example: "user123",
+  })
+  @IsString()
+  @IsOptional()
+  userId?: string;
+}
+
