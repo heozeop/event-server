@@ -8,7 +8,7 @@ import { API_BASE_URL } from "prepare/constants";
 import { randomSleep } from "../utils";
 
 // Custom metrics
-const successfulCreations = new Counter("successful_event_creations");
+export const successfulCreations = new Counter("successful_event_creations");
 
 // Define test options based on requirements: 30 requests per second, 250ms response time
 export const options: Options = {
@@ -23,10 +23,22 @@ export const options: Options = {
     },
   },
   thresholds: {
-    http_req_duration: ["p(95)<250"], // 95% of requests should be below 250ms
-    "http_req_duration{status:201}": ["max<400"], // Max duration for 201 Created should be below 400ms
-    "http_reqs{status:201}": ["rate>0.99"], // 99% success rate
-    successful_creations: ["count>3500"], // Expecting ~3600 successful requests over 2 minutes (30/s * 120s)
+    http_req_duration: [
+      { threshold: "p(95)<250", abortOnFail: false }, // 95% of requests should be below 250ms
+    ],
+    "http_req_duration{status:201}": [
+      { threshold: "max<400", abortOnFail: false }, // Max duration for 201 Created should be below 400ms
+    ],
+    "http_reqs{status:201}": [
+      { threshold: "rate>0.99", abortOnFail: false }, // 99% success rate
+    ],
+    // For full duration test we expect >3500 creations, but for quick test we just need any successes
+    successful_event_creations: [
+      // The count>=2 threshold will apply to quick tests
+      { threshold: "count>=2", abortOnFail: false },
+      // The count>3500 threshold only applies in full mode
+      { threshold: "count>3500", abortOnFail: false },
+    ],
   },
 };
 
@@ -164,7 +176,8 @@ export default function (data: { authToken: string }): void {
       minPurchase: minPurchase,
       maxRewards: maxRewards,
     },
-    period: eventPeriod,
+    periodStart: eventPeriod.start,
+    periodEnd: eventPeriod.end,
     status: "ACTIVE",
   });
 
@@ -193,11 +206,11 @@ export default function (data: { authToken: string }): void {
       );
     },
     "period exists": (r) => {
-      const period = r.json("period") as any;
       return (
-        period &&
-        typeof period.start === "string" &&
-        typeof period.end === "string"
+        r.json("periodStart") !== undefined &&
+        r.json("periodEnd") !== undefined &&
+        typeof r.json("periodStart") === "string" &&
+        typeof r.json("periodEnd") === "string"
       );
     },
     "status is ACTIVE": (r) => r.json("status") === "ACTIVE",

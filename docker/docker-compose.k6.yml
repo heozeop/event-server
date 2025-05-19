@@ -12,6 +12,7 @@ services:
       - ../test/k6/prepare/data:/data
     environment:
       - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
+      - K6_NO_CONNECTION_REUSE=true
     networks:
       - event-network
 

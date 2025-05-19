@@ -50,6 +50,17 @@ k6: seed-k6-test
 	docker compose -f ${COMPOSE_K6_FILE} up -d
 	bash scripts/run-k6-tests.sh
 
+# Run a specific k6 test with no threshold validation, useful for quick tests
+# Usage: make k6-test TEST=event/event-creation-test.js
+k6-test: seed-k6-test
+	docker compose -f ${COMPOSE_K6_FILE} up -d
+	docker compose -f ${COMPOSE_K6_FILE} run --rm k6 run /dist/$(TEST) --no-thresholds --duration=10s --vus=2
+
+# Run all k6 tests in quick mode
+k6-all: seed-k6-test
+	docker compose -f ${COMPOSE_K6_FILE} up -d
+	bash scripts/run-k6-tests.sh --all --duration 10s --vus 2
+
 seed-test-users:
 	bash scripts/seed-test-users.sh
 

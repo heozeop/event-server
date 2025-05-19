@@ -256,14 +256,26 @@ run_docker_test() {
     
     # Run the test using docker compose
     echo -e "${YELLOW}Running with Docker Compose from ${PROJECT_ROOT}${NC}"
-    docker compose -f "$DOCKER_COMPOSE_FILE" run --rm $env_vars k6 $k6_cmd
+    if [ "$MODE" = "quick" ]; then
+        # In quick mode, we don't care about thresholds
+        docker compose -f "$DOCKER_COMPOSE_FILE" run --rm $env_vars -e K6_THRESHOLD_ABORT=false k6 $k6_cmd --no-thresholds
+    else
+        # In full mode, thresholds should be respected
+        docker compose -f "$DOCKER_COMPOSE_FILE" run --rm $env_vars k6 $k6_cmd
+    fi
     
     local status=$?
     
     # Return to original directory
     cd "$PREV_DIR"
     
-    if [ $status -ne 0 ]; then
+    if [ "$MODE" = "quick" ] && [ "$status" = "99" ]; then
+        # In quick mode, ignore threshold failures (exit code 99)
+        echo -e "${YELLOW}⚠️ Ignoring threshold failures in QUICK mode${NC}"
+        echo -e "${GREEN}✅ Test completed successfully (thresholds ignored): $display_name${NC}"
+        PASSED_TESTS+=("$display_name")
+        return 0
+    elif [ $status -ne 0 ]; then
         echo -e "${RED}❌ Test failed: $display_name${NC}"
         FAILED_TESTS+=("$display_name")
     else

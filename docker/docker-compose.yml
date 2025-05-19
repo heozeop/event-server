@@ -56,6 +56,7 @@ services:
     build:
       context: ../
       dockerfile: apps/gateway/docker/Dockerfile.dev
+    container_name: gateway
     ports:
       - "3010-3015:3000"
       - "3333:3333"
@@ -88,6 +89,7 @@ services:
     build:
       context: ../
       dockerfile: apps/auth/docker/Dockerfile.dev
+    container_name: auth
     ports:
       - "9223:9229"
     environment:
@@ -114,6 +116,7 @@ services:
     build:
       context: ../
       dockerfile: apps/event/docker/Dockerfile.dev
+    container_name: event
     ports:
       - "9224:9229"
     environment:
@@ -156,6 +159,7 @@ services:
 
   redis:
     image: redis:7.2-alpine
+    container_name: redis
     ports:
       - "6379:6379"
     volumes:
