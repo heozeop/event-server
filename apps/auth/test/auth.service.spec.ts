@@ -1,5 +1,5 @@
 import { LoginDto } from '@libs/dtos';
-import { Role } from '@libs/enums';
+import { Role, TokenStatus } from '@libs/enums';
 import { MongoMemoryOrmModule } from '@libs/test';
 import { MikroORM, ObjectId } from '@mikro-orm/mongodb';
 import { INestApplication, UnauthorizedException } from '@nestjs/common';
@@ -8,13 +8,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from '../src/services/auth.service';
 import { UserService } from '../src/services/user.service';
 import { TestAppModule } from './test.app.module';
-
-// Define TokenStatus enum locally for tests
-enum TokenStatus {
-  ACTIVE = 'active',
-  REVOKED = 'revoked',
-  EXPIRED = 'expired',
-}
 
 describe('AuthService', () => {
   let service: AuthService;
