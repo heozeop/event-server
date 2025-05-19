@@ -1,12 +1,12 @@
 import { RewardService } from '@/services';
 import { EVENT_CMP } from '@libs/cmd';
 import { QueryByIdDto, RewardResponseDto } from '@libs/dtos';
-import { CreateRewardDto } from '@libs/dtos/dist/event/request';
+import { CreateRewardDto, QueryRewardDto } from '@libs/dtos/dist/event/request';
 import { RewardType } from '@libs/enums';
 import { LogExecution, PinoLoggerService } from '@libs/logger';
+import { PaginationResponseDto } from '@libs/pagination';
 import { Controller } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
-
 @Controller('reward')
 export class RewardController {
   constructor(
@@ -39,26 +39,21 @@ export class RewardController {
   })
   async getRewards(
     @Payload()
-    {
-      type,
-      name,
-      limit,
-      offset,
-    }: {
-      type: RewardType;
-      name: string;
-      limit: number;
-      offset: number;
-    },
-  ): Promise<RewardResponseDto[]> {
+    { type, name, limit = 10, page = 1 }: QueryRewardDto,
+  ): Promise<PaginationResponseDto<RewardResponseDto>> {
     const rewards = await this.rewardService.getRewards({
       type,
       name,
       limit,
-      offset,
+      page,
     });
 
-    return rewards.rewards.map(RewardResponseDto.fromEntity);
+    return PaginationResponseDto.create(
+      rewards.rewards.map(RewardResponseDto.fromEntity),
+      rewards.total,
+      page,
+      limit,
+    );
   }
 
   @EventPattern({ cmd: EVENT_CMP.GET_REWARD_BY_ID })

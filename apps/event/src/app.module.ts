@@ -1,10 +1,11 @@
 import { CacheModule } from '@libs/cache';
 import { MicroServiceExceptionModule } from '@libs/filter';
 import { LoggerModule } from '@libs/logger';
-import { BullMQModule } from '@libs/message-broker';
+import { QueueNames } from '@libs/message-broker';
 import { MetricsModule } from '@libs/metrics';
 import { PipeModule } from '@libs/pipe';
 import { MikroORM } from '@mikro-orm/core';
+import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
@@ -57,7 +58,7 @@ import { EventService, RewardRequestService, RewardService } from './services';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         redis: {
-          host: configService.get('REDIS_HOST', 'localhost'),
+          host: configService.get('REDIS_HOST', 'redis'),
           port: configService.get('REDIS_PORT', 6379),
           password: configService.get('REDIS_PASSWORD', undefined),
           db: configService.get('REDIS_DB', 0),
@@ -65,29 +66,33 @@ import { EventService, RewardRequestService, RewardService } from './services';
         enableLogging: configService.get('NODE_ENV') !== 'production',
       }),
     }),
-    BullMQModule.registerAsync({
+    // Register BullMQ queues using the standard NestJS BullModule
+    BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        connection: {
-          host: configService.get('REDIS_HOST', 'localhost'),
+        redis: {
+          host: configService.get('REDIS_HOST', 'redis'),
           port: configService.get('REDIS_PORT', 6379),
           password: configService.get('REDIS_PASSWORD', undefined),
-          defaultQueueOptions: {
-            defaultJobOptions: {
-              attempts: 3,
-              backoff: {
-                type: 'exponential',
-                delay: 1000,
-              },
-              removeOnComplete: true,
-              removeOnFail: false,
-            },
-          },
         },
-        isGlobal: true,
+        defaultJobOptions: {
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 1000,
+          },
+          removeOnComplete: true,
+          removeOnFail: false,
+        },
       }),
     }),
+    // Register the queues
+    BullModule.registerQueue(
+      { name: QueueNames.EVENT },
+      { name: QueueNames.REWARD },
+      { name: QueueNames.NOTIFICATION },
+    ),
     PipeModule,
     MetricsModule.forRoot({
       serviceName: 'event-service',

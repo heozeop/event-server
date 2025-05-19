@@ -2,7 +2,6 @@ import { PinoLoggerService } from '@libs/logger';
 import { BullMQService } from '@libs/message-broker';
 import {
   BULLMQ_MODULE_OPTIONS,
-  QUEUE_DECORATOR,
   QueueNames,
 } from '@libs/message-broker/dist/constants';
 import { MockPinoLoggerService } from '@libs/test';
@@ -62,27 +61,36 @@ function createMockQueue(name: string, logger: PinoLoggerService): Queue {
       },
       inject: [PinoLoggerService],
     },
-    // Provide EVENT queue
+    // Provide EVENT queue - using the @nestjs/bull token format
     {
-      provide: `${QUEUE_DECORATOR}:${QueueNames.EVENT}`,
+      provide: `BullQueue_${QueueNames.EVENT}`,
       useFactory: (logger: PinoLoggerService) => {
         return createMockQueue(QueueNames.EVENT, logger);
       },
       inject: [PinoLoggerService],
     },
-    // Provide REWARD queue
+    // Provide REWARD queue - using the @nestjs/bull token format
     {
-      provide: `${QUEUE_DECORATOR}:${QueueNames.REWARD}`,
+      provide: `BullQueue_${QueueNames.REWARD}`,
       useFactory: (logger: PinoLoggerService) => {
         return createMockQueue(QueueNames.REWARD, logger);
+      },
+      inject: [PinoLoggerService],
+    },
+    // Provide NOTIFICATION queue - using the @nestjs/bull token format
+    {
+      provide: `BullQueue_${QueueNames.NOTIFICATION}`,
+      useFactory: (logger: PinoLoggerService) => {
+        return createMockQueue(QueueNames.NOTIFICATION, logger);
       },
       inject: [PinoLoggerService],
     },
   ],
   exports: [
     BullMQService,
-    `${QUEUE_DECORATOR}:${QueueNames.EVENT}`,
-    `${QUEUE_DECORATOR}:${QueueNames.REWARD}`,
+    `BullQueue_${QueueNames.EVENT}`,
+    `BullQueue_${QueueNames.REWARD}`,
+    `BullQueue_${QueueNames.NOTIFICATION}`,
   ],
 })
 export class MockBullMQModule {

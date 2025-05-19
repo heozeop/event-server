@@ -7,6 +7,7 @@ import {
   UpdateRewardRequestStatusDto,
 } from '@libs/dtos/dist/event/request';
 import { LogExecution, PinoLoggerService } from '@libs/logger';
+import { PaginationResponseDto } from '@libs/pagination';
 import { Controller } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
 
@@ -59,13 +60,21 @@ export class RewardRequestController {
     exitMessage: 'Reward requests retrieved',
   })
   async getRewardRequests(
-    @Payload() getRewardRequestsDto: QueryRewardRequestDto,
-  ): Promise<RewardRequestResponseDto[]> {
-    const rewardRequests =
-      await this.rewardRequestService.getRewardRequests(getRewardRequestsDto);
-    this.logger.log('rewardRequests', rewardRequests);
+    @Payload()
+    { page = 1, limit = 10, ...getRewardRequestsDto }: QueryRewardRequestDto,
+  ): Promise<PaginationResponseDto<RewardRequestResponseDto>> {
+    const rewardRequests = await this.rewardRequestService.getRewardRequests({
+      ...getRewardRequestsDto,
+      page,
+      limit,
+    });
 
-    return rewardRequests.requests.map(RewardRequestResponseDto.fromEntity);
+    return PaginationResponseDto.create(
+      rewardRequests.requests.map(RewardRequestResponseDto.fromEntity),
+      rewardRequests.total,
+      page,
+      limit,
+    );
   }
 
   @EventPattern({ cmd: EVENT_CMP.UPDATE_REWARD_REQUEST_STATUS })

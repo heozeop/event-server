@@ -16,6 +16,10 @@ import {
 } from '@libs/dtos';
 import { RewardRequestStatus, RewardType, Role } from '@libs/enums';
 import { LogExecution, PinoLoggerService } from '@libs/logger';
+import {
+  CursorPaginationResponseDto,
+  PaginationResponseDto,
+} from '@libs/pagination';
 import { CurrentUserData } from '@libs/types';
 import {
   Body,
@@ -46,26 +50,6 @@ import { lastValueFrom } from 'rxjs';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
-
-// Interface to match the cursor-paginated response from the event service
-interface CursorPaginatedEventResponseDto {
-  items: EventResponseDto[];
-  total: number;
-  hasMore: boolean;
-  nextCursor?: string;
-}
-
-// Interface to match the paginated response from the reward service
-interface PaginatedRewardResponseDto {
-  rewards: RewardResponseDto[];
-  total: number;
-}
-
-// Interface to match the paginated response from the reward request service
-interface PaginatedRewardRequestResponseDto {
-  requests: RewardRequestResponseDto[];
-  total: number;
-}
 
 @ApiTags('Events')
 @ApiBearerAuth()
@@ -115,7 +99,7 @@ export class EventController {
   })
   async getEvents(
     @Query() query: QueryEventDto,
-  ): Promise<CursorPaginatedEventResponseDto> {
+  ): Promise<CursorPaginationResponseDto<EventResponseDto>> {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_EVENTS }, query),
     );
@@ -144,7 +128,7 @@ export class EventController {
   async getRewardRequests(
     @Query() query: QueryRewardRequestDto,
     @CurrentUser() user: CurrentUserData,
-  ): Promise<PaginatedRewardRequestResponseDto> {
+  ): Promise<PaginationResponseDto<RewardRequestResponseDto>> {
     return await lastValueFrom(
       this.eventClient.send(
         { cmd: EVENT_CMP.GET_REWARD_REQUESTS },
@@ -430,7 +414,7 @@ export class EventController {
   })
   async getRewards(
     @Query() query: QueryRewardRequestDto,
-  ): Promise<PaginatedRewardResponseDto> {
+  ): Promise<PaginationResponseDto<RewardResponseDto>> {
     return await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.GET_REWARDS }, query),
     );

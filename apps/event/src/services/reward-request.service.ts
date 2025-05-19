@@ -64,14 +64,15 @@ export class RewardRequestService {
     // Create the request
     const rewardRequest = this.rewardRequestRepository.create({
       userId: new ObjectId(userId),
-      event,
+      event: new ObjectId(eventId),
       status: RewardRequestStatus.PENDING,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    await this.rewardRequestRepository.create(rewardRequest);
-    await this.rewardRequestRepository.getEntityManager().flush();
+    await this.rewardRequestRepository
+      .getEntityManager()
+      .persistAndFlush(rewardRequest);
 
     return rewardRequest;
   }
@@ -107,7 +108,7 @@ export class RewardRequestService {
     eventId,
     status,
     limit = 10,
-    offset = 0,
+    page = 1,
   }: QueryRewardRequestDto): Promise<{
     requests: RewardRequest[];
     total: number;
@@ -131,7 +132,7 @@ export class RewardRequestService {
       {
         populate: ['event'],
         limit,
-        offset,
+        offset: (page - 1) * limit,
       },
     );
 

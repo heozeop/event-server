@@ -7,15 +7,9 @@ import {
   UpdateEventDto,
 } from '@libs/dtos/dist/event/request';
 import { LogExecution, PinoLoggerService } from '@libs/logger';
+import { CursorPaginationResponseDto } from '@libs/pagination';
 import { Controller } from '@nestjs/common';
 import { EventPattern, Payload } from '@nestjs/microservices';
-
-interface CursorPaginatedEventResponseDto {
-  items: EventResponseDto[];
-  total: number;
-  hasMore: boolean;
-  nextCursor?: string;
-}
 
 @Controller('event')
 export class EventController {
@@ -63,15 +57,14 @@ export class EventController {
   })
   async getEvents(
     @Payload() getEventsDto: QueryEventDto & { cursor?: string },
-  ): Promise<CursorPaginatedEventResponseDto> {
-    const { events, total, hasMore, nextCursor } =
+  ): Promise<CursorPaginationResponseDto<EventResponseDto>> {
+    const { events, hasMore, nextCursor } =
       await this.eventService.getEvents(getEventsDto);
 
     return {
       items: events.map(EventResponseDto.fromEntity),
-      total,
       hasMore,
-      nextCursor,
+      nextCursor: nextCursor || null,
     };
   }
 

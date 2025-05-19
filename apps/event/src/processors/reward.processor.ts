@@ -1,10 +1,6 @@
 import { PinoLoggerService } from '@libs/logger';
-import {
-  InjectQueue,
-  JobNames,
-  ProcessJob,
-  QueueNames,
-} from '@libs/message-broker';
+import { JobNames, ProcessJob, QueueNames } from '@libs/message-broker';
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Job, Queue } from 'bullmq';
 import { RewardRequestService } from '../services/reward-request.service';

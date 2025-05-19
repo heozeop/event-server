@@ -6,6 +6,7 @@ COPY . .
 
 RUN npm install -g pnpm
 RUN pnpm install
+RUN pnpm build
 
 EXPOSE 3002
 EXPOSE 9229
@@ -13,5 +14,5 @@ EXPOSE 9229
 # Set the working directory to the event app
 WORKDIR /app/apps/event
 
-# Use the shell form of CMD to properly execute the command
-CMD ["pnpm", "start:debug"] 
+# Override with CMD from docker-compose
+CMD ["pnpm", "start:prod"] 

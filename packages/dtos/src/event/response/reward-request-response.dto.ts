@@ -48,6 +48,13 @@ export class RewardRequestResponseDto {
   @Expose()
   createdAt!: Date;
 
+  @ApiProperty({
+    description: "The date when the reward request was updated",
+    example: "2023-01-01T00:00:00.000Z",
+  })
+  @Expose()
+  updatedAt!: Date;
+
   /**
    * Static method to convert a RewardRequest entity to RewardRequestResponseDto
    */
@@ -61,6 +68,7 @@ export class RewardRequestResponseDto {
       event: EventResponseDto.fromEntity(rewardRequest.event),
       status: rewardRequest.status,
       createdAt: rewardRequest.createdAt,
+      updatedAt: rewardRequest.updatedAt,
     });
     return dto;
   }

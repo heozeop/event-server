@@ -13,11 +13,11 @@ export class PagingDto {
   limit?: number;
 
   @ApiProperty({
-    description: "Number of items to skip",
-    example: 0,
+    description: "Page number",
+    example: 1,
     required: false,
   })
-  @IsNumber()
+  @IsPositive()
   @IsOptional()
-  offset?: number;
+  page?: number;
 }

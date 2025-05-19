@@ -320,7 +320,7 @@ describe('RewardRequestService', () => {
       );
     });
 
-    it('should handle pagination with limit and offset', async () => {
+    it('should handle pagination with limit and page', async () => {
       // Arrange
       // 1. Create an event
       const activeEvent = await eventService.createEvent({
@@ -342,20 +342,20 @@ describe('RewardRequestService', () => {
         requests.push(request);
       }
 
-      // Act - First page (limit 10, offset 0)
+      // Act - First page (limit 5, page 1)
       const page1 = await service.getRewardRequests({
-        limit: 10,
-        offset: 0,
+        limit: 5,
+        page: 1,
       });
 
       // Assert - First page
-      expect(page1.requests.length).toBe(10);
+      expect(page1.requests.length).toBe(5);
       expect(page1.total).toBe(15);
 
-      // Act - Second page (limit 10, offset 10)
+      // Act - Second page (limit 5, page 2)
       const page2 = await service.getRewardRequests({
-        limit: 10,
-        offset: 10,
+        limit: 5,
+        page: 2,
       });
 
       // Assert - Second page

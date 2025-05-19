@@ -116,7 +116,7 @@ export class RewardService {
     type,
     name,
     limit = 10,
-    offset = 0,
+    page = 1,
   }: QueryRewardDto): Promise<{ rewards: RewardBase[]; total: number }> {
     const query: FilterQuery<RewardBase> = {};
 
@@ -130,7 +130,7 @@ export class RewardService {
 
     const rewards = await this.em.find(RewardBase, query, {
       limit,
-      offset,
+      offset: (page - 1) * limit,
     });
 
     return { rewards, total: rewards.length };

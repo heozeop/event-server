@@ -1,9 +1,11 @@
 import { PinoLoggerService } from '@libs/logger';
+import { QueueNames } from '@libs/message-broker';
 import {
   MockLoggerModule,
   MockPinoLoggerService,
   MongoMemoryOrmModule,
 } from '@libs/test';
+import { BullModule } from '@nestjs/bull';
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventReward } from '../../src/entities/event-reward.entity';
@@ -51,6 +53,18 @@ export class TestAppModule {
         MockLoggerModule.forRoot(),
         MockBullMQModule.register(),
         MockCacheModule.register(),
+        // Register BullModule and queues for tests
+        BullModule.forRoot({
+          redis: {
+            host: 'localhost',
+            port: 6379,
+          },
+        }),
+        BullModule.registerQueue(
+          { name: QueueNames.EVENT },
+          { name: QueueNames.REWARD },
+          { name: QueueNames.NOTIFICATION },
+        ),
       ],
       providers: [
         {

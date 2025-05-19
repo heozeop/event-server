@@ -428,6 +428,9 @@ importers:
       '@libs/metrics':
         specifier: workspace:*
         version: link:../../packages/metrics
+      '@libs/pagination':
+        specifier: workspace:*
+        version: link:../../packages/pagination
       '@libs/pipe':
         specifier: workspace:*
         version: link:../../packages/pipe

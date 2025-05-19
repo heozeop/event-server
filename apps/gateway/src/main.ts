@@ -5,6 +5,7 @@ import { ValidationPipe } from '@libs/pipe';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
@@ -38,6 +39,13 @@ async function bootstrap() {
   app.useGlobalPipes(app.get(ValidationPipe));
 
   app.useGlobalFilters(app.get(ClientServiceExceptionFilter));
+  // Apply compression for all responses
+  app.use(
+    compression({
+      filter: () => true, // Apply compression to all responses
+      threshold: 0, // Compress all responses regardless of size
+    }),
+  );
 
   // Configure Swagger
   const config = new DocumentBuilder()
