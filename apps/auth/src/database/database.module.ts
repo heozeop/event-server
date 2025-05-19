@@ -1,8 +1,12 @@
+import { UserToken } from '@/entities/user-token.entity';
 import { User } from '@/entities/user.entity';
 import { MongoDriver } from '@mikro-orm/mongodb';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Redis } from 'ioredis';
+
+export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
 
 @Module({
   imports: [
@@ -28,8 +32,24 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         },
       }),
     }),
-    MikroOrmModule.forFeature([User]),
+    MikroOrmModule.forFeature([User, UserToken]),
   ],
-  exports: [MikroOrmModule],
+  providers: [
+    {
+      provide: REDIS_CLIENT,
+      useFactory: (configService: ConfigService) => {
+        const redisHost = configService.get<string>('REDIS_HOST', 'redis');
+        const redisPort = configService.get<number>('REDIS_PORT', 6379);
+
+        return new Redis({
+          host: redisHost,
+          port: redisPort,
+          lazyConnect: true,
+        });
+      },
+      inject: [ConfigService],
+    },
+  ],
+  exports: [MikroOrmModule, REDIS_CLIENT],
 })
 export class DatabaseModule {}

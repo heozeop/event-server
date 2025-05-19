@@ -7,6 +7,9 @@ import {
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import Redis from 'ioredis-mock';
+import { REDIS_CLIENT } from '../src/database/database.module';
+import { UserToken } from '../src/entities/user-token.entity';
 import { User } from '../src/entities/user.entity';
 import { AuthService } from '../src/services/auth.service';
 import { UserService } from '../src/services/user.service';
@@ -23,8 +26,8 @@ export class TestAppModule {
           isGlobal: true,
           envFilePath: '.env',
         }),
-        mongoMemoryOrmModule.getMikroOrmModule([User]),
-        mongoMemoryOrmModule.getMikroOrmFeatureModule([User]),
+        mongoMemoryOrmModule.getMikroOrmModule([User, UserToken]),
+        mongoMemoryOrmModule.getMikroOrmFeatureModule([User, UserToken]),
         JwtModule.registerAsync({
           imports: [ConfigModule],
           inject: [ConfigService],
@@ -43,6 +46,12 @@ export class TestAppModule {
         {
           provide: PinoLoggerService,
           useValue: new MockPinoLoggerService(),
+        },
+        {
+          provide: REDIS_CLIENT,
+          useFactory: () => {
+            return new Redis();
+          },
         },
         UserService,
         AuthService,
