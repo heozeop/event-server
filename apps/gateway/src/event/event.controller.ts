@@ -23,6 +23,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -315,11 +316,10 @@ export class EventController {
     );
   }
 
-  @Post('events/requests/:requestId')
+  @Patch('events/requests/:requestId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.OPERATOR, Role.ADMIN)
   @ApiOperation({ summary: 'Update the status of a reward request' })
-  @ApiParam({ name: 'eventId', description: 'ID of the event' })
   @ApiParam({ name: 'requestId', description: 'ID of the reward request' })
   @ApiResponse({
     status: 200,
