@@ -15,7 +15,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RewardRequest } from '../src/entities/reward-request.entity';
 import { EventService } from '../src/services/event.service';
 import { RewardRequestService } from '../src/services/reward-request.service';
-import { TestAppModule } from './test.app.module';
+import { TestAppModule } from './modules/test.app.module';
 
 // Increase timeout for slow tests
 jest.setTimeout(30000);

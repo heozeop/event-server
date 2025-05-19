@@ -25,8 +25,7 @@ import {
 } from '../src/entities/reward.entity';
 import { EventService } from '../src/services/event.service';
 import { RewardService } from '../src/services/reward.service';
-import { TestAppModule } from './test.app.module';
-
+import { TestAppModule } from './modules/test.app.module';
 // Increase timeout for slow tests
 jest.setTimeout(30000);
 

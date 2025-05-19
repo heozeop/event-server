@@ -7,8 +7,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Event } from '../src/entities/event.entity';
 import { EventService } from '../src/services/event.service';
-import { TestAppModule } from './test.app.module';
-
+import { TestAppModule } from './modules/test.app.module';
 describe('EventService', () => {
   let service: EventService;
   let orm: MikroORM;
@@ -307,11 +306,22 @@ describe('EventService', () => {
       expect(secondPage.events).toHaveLength(5);
       expect(firstPage.total).toBe(15);
       expect(secondPage.total).toBe(15);
+
       // 첫 번째와 두 번째 페이지의 이벤트가 중복되지 않는지 확인
-      const firstPageIds = firstPage.events.map((e) => e._id.toString());
-      const secondPageIds = secondPage.events.map((e) => e._id.toString());
-      const intersection = firstPageIds.filter((id) =>
-        secondPageIds.includes(id),
+      const firstPageIds = firstPage.events.map((e) => e._id?.toString() || '');
+
+      // Safely extract IDs from the second page
+      const secondPageIds: string[] = [];
+      if (secondPage && secondPage.events) {
+        for (const event of secondPage.events) {
+          if (event && event._id) {
+            secondPageIds.push(event._id.toString());
+          }
+        }
+      }
+
+      const intersection = firstPageIds.filter(
+        (id) => id && secondPageIds.includes(id),
       );
       expect(intersection).toHaveLength(0);
     });
