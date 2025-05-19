@@ -87,7 +87,7 @@ export function singleRoleAdditionScenario(data: {
   console.log(user._id);
 
   // Add OPERATOR role to the user (keeping existing USER role)
-  const response = http.put(
+  const response = http.patch(
     `${API_BASE_URL}/auth/users/${user._id.toString()}/roles`,
     JSON.stringify({
       roles: [Role.USER, Role.OPERATOR],
@@ -137,7 +137,7 @@ export function multiRoleChangeScenario(data: {
   console.log(user._id);
 
   // Change roles to OPERATOR and ANALYST (replacing USER role)
-  const response = http.put(
+  const response = http.patch(
     `${API_BASE_URL}/auth/users/${user._id}/roles`,
     JSON.stringify({
       roles: [Role.OPERATOR, Role.ADMIN],

@@ -236,7 +236,7 @@ describe("AUDITOR Use Cases", () => {
     it("should forbid role updates by auditor", async () => {
       // Try to update a user's roles (which should be forbidden for AUDITOR)
       const response = await request(baseUrl)
-        .put(`/auth/users/${auditorId}/roles`)
+        .patch(`/auth/users/${auditorId}/roles`)
         .set("Authorization", `Bearer ${auditorToken}`)
         .send({
           roles: [Role.USER, Role.OPERATOR],

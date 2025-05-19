@@ -122,7 +122,7 @@ describe("ADMIN Use Cases", () => {
 
     it("should update user roles", async () => {
       const response = await request(baseUrl)
-        .put(`/auth/users/${userId}/roles`)
+        .patch(`/auth/users/${userId}/roles`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send({
           roles: [Role.USER, Role.OPERATOR],
@@ -261,7 +261,7 @@ describe("ADMIN Use Cases", () => {
 
       // Try to update roles as regular user
       const response = await request(baseUrl)
-        .put(`/auth/users/${userId}/roles`)
+        .patch(`/auth/users/${userId}/roles`)
         .set("Authorization", `Bearer ${regularUserToken}`)
         .send({
           roles: [Role.USER, Role.OPERATOR],
@@ -292,7 +292,7 @@ describe("ADMIN Use Cases", () => {
 
     it("should reject invalid role updates", async () => {
       const response = await request(baseUrl)
-        .put(`/auth/users/${userId}/roles`)
+        .patch(`/auth/users/${userId}/roles`)
         .set("Authorization", `Bearer ${adminToken}`)
         .send({
           roles: [Role.USER, "INVALID_ROLE"],
