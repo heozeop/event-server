@@ -49,10 +49,10 @@ describe('EventService', () => {
       // Arrange
       const createEventDto: CreateEventDto = {
         name: 'Test Event',
-        condition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
+        rewardCondition: { type: 'login' },
       };
 
       // Act
@@ -61,7 +61,6 @@ describe('EventService', () => {
       // Assert
       expect(result).toBeDefined();
       expect(result.name).toBe(createEventDto.name);
-      expect(result.condition).toEqual(createEventDto.condition);
       expect(result.status).toBe(createEventDto.status);
     });
   });
@@ -72,23 +71,24 @@ describe('EventService', () => {
       const eventRepository = orm.em.getRepository(Event);
       const event = eventRepository.create({
         name: 'Test Event',
-        condition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),
+        rewardCondition: { type: 'login' },
       });
 
-      await eventRepository.create(event);
-      await eventRepository.getEntityManager().flush();
+      await eventRepository.getEntityManager().persistAndFlush(event);
 
       // Act
       const result = await service.getEventById({ id: event._id.toString() });
 
       // Assert
       expect(result).toBeDefined();
-      expect(result.name).toBe(event.name);
+      expect(result.event).toBeDefined();
+      expect(result.event.name).toBe(event.name);
+      expect(result.eventRewards).toBeDefined();
     });
 
     it('should throw NotFoundException if event not found', async () => {
@@ -102,6 +102,41 @@ describe('EventService', () => {
     });
   });
 
+  describe('isEventExist', () => {
+    it('should return true if event exists', async () => {
+      // Arrange
+      const eventRepository = orm.em.getRepository(Event);
+      const event = eventRepository.create({
+        name: 'Test Event',
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000),
+        status: EventStatus.ACTIVE,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        rewardCondition: { type: 'login' },
+      });
+
+      await eventRepository.getEntityManager().persistAndFlush(event);
+
+      // Act
+      const result = await service.isEventExist({ id: event._id.toString() });
+
+      // Assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false if event does not exist', async () => {
+      // Arrange
+      const id = new ObjectId().toString();
+
+      // Act
+      const result = await service.isEventExist({ id });
+
+      // Assert
+      expect(result).toBe(false);
+    });
+  });
+
   describe('getEvents', () => {
     // 기본 이벤트 목록 조회 테스트
     it('이벤트 목록을 기본 설정으로 조회할 수 있어야 함', async () => {
@@ -110,21 +145,21 @@ describe('EventService', () => {
       const events = [
         eventRepository.create({
           name: '이벤트 1',
-          condition: { type: 'login' },
           periodStart: new Date(),
           periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rewardCondition: { type: 'login' },
         }),
         eventRepository.create({
           name: '이벤트 2',
-          condition: { type: 'signup' },
           periodStart: new Date(),
           periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.INACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rewardCondition: { type: 'signup' },
         }),
       ];
 
@@ -145,21 +180,21 @@ describe('EventService', () => {
       const events = [
         eventRepository.create({
           name: '활성 이벤트',
-          condition: { type: 'login' },
           periodStart: new Date(),
           periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rewardCondition: { type: 'login' },
         }),
         eventRepository.create({
           name: '비활성 이벤트',
-          condition: { type: 'signup' },
           periodStart: new Date(),
           periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.INACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rewardCondition: { type: 'signup' },
         }),
       ];
 
@@ -188,32 +223,32 @@ describe('EventService', () => {
         // 현재 진행 중인 이벤트
         eventRepository.create({
           name: '진행 중 이벤트',
-          condition: { type: 'login' },
           periodStart: yesterday,
           periodEnd: tomorrow,
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rewardCondition: { type: 'login' },
         }),
         // 미래 이벤트
         eventRepository.create({
           name: '미래 이벤트',
-          condition: { type: 'signup' },
           periodStart: tomorrow,
           periodEnd: nextWeek,
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rewardCondition: { type: 'signup' },
         }),
         // 지난 이벤트
         eventRepository.create({
           name: '지난 이벤트',
-          condition: { type: 'signup' },
           periodStart: lastWeek,
           periodEnd: yesterday,
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rewardCondition: { type: 'signup' },
         }),
       ];
 
@@ -235,30 +270,30 @@ describe('EventService', () => {
       const events = [
         eventRepository.create({
           name: '여름 방학 특별 이벤트',
-          condition: { type: 'login' },
           periodStart: new Date(),
           periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rewardCondition: { type: 'login' },
         }),
         eventRepository.create({
           name: '겨울 방학 특별 이벤트',
-          condition: { type: 'signup' },
           periodStart: new Date(),
           periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rewardCondition: { type: 'signup' },
         }),
         eventRepository.create({
           name: '신규 가입 이벤트',
-          condition: { type: 'signup' },
           periodStart: new Date(),
           periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rewardCondition: { type: 'signup' },
         }),
       ];
 
@@ -285,12 +320,12 @@ describe('EventService', () => {
       const events = Array.from({ length: 15 }, (_, i) =>
         eventRepository.create({
           name: `이벤트 ${i + 1}`,
-          condition: { type: 'login' },
           periodStart: new Date(),
           periodEnd: new Date(Date.now() + 86400000),
           status: EventStatus.ACTIVE,
           createdAt: new Date(),
           updatedAt: new Date(),
+          rewardCondition: { type: 'login' },
         }),
       );
 
@@ -337,12 +372,12 @@ describe('EventService', () => {
       const eventRepository = orm.em.getRepository(Event);
       const event = eventRepository.create({
         name: '원래 이벤트 이름',
-        condition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),
+        rewardCondition: { type: 'login' },
       });
 
       await eventRepository.getEntityManager().persistAndFlush(event);
@@ -363,12 +398,12 @@ describe('EventService', () => {
       const eventRepository = orm.em.getRepository(Event);
       const event = eventRepository.create({
         name: '테스트 이벤트',
-        condition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),
+        rewardCondition: { type: 'login' },
       });
 
       await eventRepository.getEntityManager().persistAndFlush(event);
@@ -389,12 +424,12 @@ describe('EventService', () => {
       const eventRepository = orm.em.getRepository(Event);
       const event = eventRepository.create({
         name: '테스트 이벤트',
-        condition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),
+        rewardCondition: { type: 'login' },
       });
 
       await eventRepository.getEntityManager().persistAndFlush(event);
@@ -415,34 +450,6 @@ describe('EventService', () => {
         newStart.toISOString(),
       );
       expect(updatedEvent.periodEnd?.toISOString()).toBe(newEnd.toISOString());
-    });
-
-    // 이벤트 조건 업데이트 테스트
-    it('이벤트 조건을 성공적으로 업데이트할 수 있어야 함', async () => {
-      // Arrange
-      const eventRepository = orm.em.getRepository(Event);
-      const event = eventRepository.create({
-        name: '테스트 이벤트',
-        condition: { type: 'login' },
-        periodStart: new Date(),
-        periodEnd: new Date(Date.now() + 86400000),
-        status: EventStatus.ACTIVE,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-
-      await eventRepository.getEntityManager().persistAndFlush(event);
-
-      const newCondition = { type: 'purchase', minAmount: 10000 };
-
-      // Act
-      const updatedEvent = await service.updateEvent({
-        id: event._id.toString(),
-        condition: newCondition,
-      });
-
-      // Assert
-      expect(updatedEvent.condition).toEqual(newCondition);
     });
 
     // 존재하지 않는 이벤트 업데이트 시도 테스트
@@ -467,12 +474,12 @@ describe('EventService', () => {
       const eventRepository = orm.em.getRepository(Event);
       const event = eventRepository.create({
         name: '삭제할 이벤트',
-        condition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
         createdAt: new Date(),
         updatedAt: new Date(),
+        rewardCondition: { type: 'login' },
       });
 
       await eventRepository.getEntityManager().persistAndFlush(event);

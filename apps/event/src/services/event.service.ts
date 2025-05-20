@@ -30,12 +30,14 @@ export class EventService {
     periodStart,
     periodEnd,
     status,
+    rewardCondition,
   }: CreateEventDto): Promise<Event> {
     const event = this.eventRepository.create({
       name,
       periodStart,
       periodEnd: periodEnd ?? null,
       status,
+      rewardCondition,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
