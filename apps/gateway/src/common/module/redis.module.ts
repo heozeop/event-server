@@ -11,7 +11,7 @@ export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
       provide: REDIS_CLIENT,
       useFactory: (configService: ConfigService) => {
         return new Redis({
-          host: configService.get('REDIS_HOST') || 'redis-secure',
+          host: configService.get('REDIS_HOST') || 'redis-data',
           port: configService.get('REDIS_PORT') || 6379,
           lazyConnect: true,
         });

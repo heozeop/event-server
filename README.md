@@ -30,11 +30,15 @@ graph TD
         GW -->|TCP/IP| Event[이벤트 서비스\n:3002]
     end
 
-    subgraph "데이터베이스"
-        Auth -->|MongoDB| AuthDB[(인증 DB\nmongo-user:27017)]
+    subgraph "데이터베이스 1"
         Event -->|MongoDB| EventDB[(이벤트 DB\nmongo-event:27017)]
-        Auth -->|Redis-Security| Redis-Security[(Redis\n:6379)]
-        Event -->|Redis| Redis[Redis\n:6379]
+        Event -->|Data| Redis-Data[(Redis\n:6379)]
+        GW -->|Throttler| Redis-Data[(Redis\n:6379)]
+    end
+
+    subgraph "데이터베이스 2"
+        Auth -->|MongoDB| AuthDB[(인증 DB\nmongo-user:27017)]
+        Auth -->|AccessToken| Redis-Security[(Redis\n:6379)]
     end
 
     subgraph "모니터링 인프라"
@@ -50,49 +54,49 @@ graph TD
 
 ```
 event-server/
-├── apps/                    # 마이크로서비스
-│   ├── gateway/             # API 게이트웨이 서비스
-│   ├── auth/                # 인증 서비스
-│   └── event/               # 이벤트 서비스
+├── apps/                            # 마이크로서비스
+│   ├── gateway/                     # API 게이트웨이 서비스
+│   ├── auth/                        # 인증 서비스
+│   └── event/                       # 이벤트 서비스
 │       ├── src/
-│           ├── controllers/ # API 컨트롤러
-│           ├── services/    # 비즈니스 로직
-│           ├── entities/    # 데이터 모델
-│           ├── processors/  # 데이터 처리기
-│           ├── events/      # 이벤트 핸들러
-│           ├── database/    # 데이터베이스 설정
-│           ├── interceptors/# 요청/응답 인터셉터
-│           ├── common/      # 공통 유틸리티
-│           ├── app.module.ts# 모듈 설정
-│           └── main.ts      # 애플리케이션 진입점
-├── packages/                # 공유 라이브러리
-│   ├── cache/               # 캐싱 관련 패키지
-│   ├── cmd/                 # 커맨드 라인 유틸리티
-│   ├── decorator/           # 커스텀 데코레이터
-│   ├── dtos/                # 데이터 전송 객체
-│   ├── enums/               # 열거형
-│   ├── eslint-config/       # ESLint 설정
-│   ├── filter/              # 예외 필터
-│   ├── logger/              # 로깅 유틸리티
-│   ├── message-broker/      # 메시지 브로커 관련 패키지
-│   ├── metrics/             # 메트릭스 관련 패키지
-│   ├── pagination/          # 페이지네이션 유틸리티
-│   ├── pipe/                # 커스텀 파이프
-│   ├── test/                # 테스트 유틸리티
-│   ├── tsconfig/            # TypeScript 구성
-│   └── types/               # 타입 정의
-├── docker/                  # Docker 구성 파일
+│           ├── controllers/         # API 컨트롤러
+│           ├── services/            # 비즈니스 로직
+│           ├── entities/            # 데이터 모델
+│           ├── processors/          # 데이터 처리기
+│           ├── events/              # 이벤트 핸들러
+│           ├── database/            # 데이터베이스 설정
+│           ├── interceptors/        # 요청/응답 인터셉터
+│           ├── common/              # 공통 유틸리티
+│           ├── app.module.ts        # 모듈 설정
+│           └── main.ts              # 애플리케이션 진입점
+├── packages/                        # 공유 라이브러리
+│   ├── cache/                       # 캐싱 관련 패키지
+│   ├── cmd/                         # 커맨드 라인 유틸리티
+│   ├── decorator/                   # 커스텀 데코레이터
+│   ├── dtos/                        # 데이터 전송 객체
+│   ├── enums/                       # 열거형
+│   ├── eslint-config/               # ESLint 설정
+│   ├── filter/                      # 예외 필터
+│   ├── logger/                      # 로깅 유틸리티
+│   ├── message-broker/              # 메시지 브로커 관련 패키지
+│   ├── metrics/                     # 메트릭스 관련 패키지
+│   ├── pagination/                  # 페이지네이션 유틸리티
+│   ├── pipe/                        # 커스텀 파이프
+│   ├── test/                        # 테스트 유틸리티
+│   ├── tsconfig/                    # TypeScript 구성
+│   └── types/                       # 타입 정의
+├── docker/                          # Docker 구성 파일
 │   ├── docker-compose.yml           # 기본 서비스 구성
 │   ├── docker-compose.k6.yml        # k6 테스트 구성
 │   └── docker-compose.log.yml       # 로깅 인프라 구성
-├── infrastructure/          # 인프라 설정 파일
-│   ├── grafana/             # Grafana 구성
-│   ├── loki/                # Loki 로그 집계 구성
-│   ├── prometheus/          # Prometheus 모니터링 구성
-│   └── alloy/               # 추가 인프라 구성
-├── scripts/                 # 유틸리티 스크립트
-├── keys/                    # 암호화 키
-└── test/                    # 테스트 파일
+├── infrastructure/                  # 인프라 설정 파일
+│   ├── grafana/                     # Grafana 구성
+│   ├── loki/                        # Loki 로그 집계 구성
+│   ├── prometheus/                  # Prometheus 모니터링 구성
+│   └── alloy/                       # 추가 인프라 구성
+├── scripts/                         # 유틸리티 스크립트
+├── keys/                            # 암호화 키
+└── test/                            # 테스트 파일
 ```
 
 ## 핵심 기술 스택
@@ -101,6 +105,7 @@ event-server/
 - **데이터베이스**: MongoDB, Redis
 - **통신 프로토콜**: TCP/IP (마이크로서비스 간)
 - **인증**: JWT (Access Token + HTTP-only Cookie Refresh Token)
+- **요청 제한**: Throttler (Redis-secure 기반 스토리지)
 - **문서화**: Swagger/OpenAPI
 - **모니터링**: Prometheus, Grafana, cAdvisor, Loki
 - **테스트**: Jest (단위 테스트, 통합 테스트), k6 (성능 테스트)
@@ -311,6 +316,8 @@ http://localhost:3333/docs
 - 주소:
   1. 데이터: `redis://redis-data:6379`
   2. 토큰 등 중요 데이터: `redis://redis-secure:6379`
+     - 인증 토큰 저장
+     - Throttler 스토리지 (요청 제한 설정 및 카운트 저장)
 
 db 인스턴스 자체를 분리한 이유는 아래와 같습니다:
 
