@@ -220,7 +220,7 @@ export class EventService {
     periodEnd,
     status,
   }: UpdateEventDto): Promise<Event> {
-    const event = await this.getEventById({ id });
+    const event = await this.getEntityById({ id });
 
     if (name) {
       event.name = name;
@@ -255,11 +255,23 @@ export class EventService {
    * Delete an event
    */
   async deleteEvent({ id }: QueryByIdDto): Promise<void> {
-    const event = await this.getEventById({ id });
+    const event = await this.getEntityById({ id });
     await this.eventRepository.getEntityManager().removeAndFlush(event);
 
     // Invalidate caches
     await this.cacheService.del(`events:${id}`);
     await this.cacheService.delByPattern('events:list:*');
+  }
+
+  private async getEntityById({ id }: QueryByIdDto): Promise<Event> {
+    const event = await this.eventRepository.findOne({
+      _id: toObjectId(id),
+    });
+
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${id} not found`);
+    }
+
+    return event;
   }
 }
