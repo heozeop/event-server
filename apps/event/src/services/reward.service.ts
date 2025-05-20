@@ -9,6 +9,7 @@ import {
   QueryByIdDto,
   QueryRewardDto,
   RemoveRewardDto,
+  UpdateEventRewardDto,
 } from '@libs/dtos';
 import { RewardType } from '@libs/enums';
 import { PinoLoggerService } from '@libs/logger';
@@ -157,6 +158,8 @@ export class RewardService {
   async addRewardToEvent({
     eventId,
     rewardId,
+    autoResolve,
+    condition,
   }: CreateEventRewardDto): Promise<EventReward> {
     const event = await this.eventRepository.findByIdOrFail(
       toObjectId(eventId),
@@ -178,6 +181,8 @@ export class RewardService {
     const eventReward = this.eventRewardRepository.create({
       event,
       reward,
+      autoResolve,
+      condition,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -188,10 +193,37 @@ export class RewardService {
     return eventReward;
   }
 
+  async updateEventReward({
+    eventId,
+    rewardId,
+    autoResolve,
+    condition,
+  }: UpdateEventRewardDto): Promise<EventReward> {
+    const eventReward = await this.eventRewardRepository.findOne({
+      event: { _id: toObjectId(eventId) },
+      reward: { _id: toObjectId(rewardId) },
+    });
+
+    if (!eventReward) {
+      throw new NotFoundException(
+        `Reward with ID ${rewardId} not found for event with ID ${eventId}`,
+      );
+    }
+
+    eventReward.autoResolve = autoResolve ?? eventReward.autoResolve;
+    eventReward.condition = condition ?? eventReward.condition;
+
+    await this.eventRewardRepository
+      .getEntityManager()
+      .persistAndFlush(eventReward);
+
+    return eventReward;
+  }
+
   /**
    * Get rewards for an event
    */
-  async getRewardsByEventId({ id }: QueryByIdDto): Promise<RewardBase[]> {
+  async getRewardsByEventId({ id }: QueryByIdDto): Promise<EventReward[]> {
     const isEventExist = await this.eventRepository.isEventExist(
       toObjectId(id),
     );
@@ -201,14 +233,14 @@ export class RewardService {
 
     const eventRewards = await this.eventRewardRepository.find(
       { event: { _id: toObjectId(id) } },
-      { populate: ['reward'], fields: ['reward'] },
+      { populate: ['reward'] },
     );
 
     if (eventRewards.length < 1) {
       return [];
     }
 
-    return eventRewards.map((er) => er.reward);
+    return eventRewards;
   }
 
   /**
