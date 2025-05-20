@@ -1,11 +1,17 @@
-import { DynamicModule, InjectionToken, Module, Provider, Type } from '@nestjs/common';
-import { CacheService } from './cache.service';
-import { CACHE_MODULE_OPTIONS } from './constants';
+import {
+  DynamicModule,
+  InjectionToken,
+  Module,
+  Provider,
+  Type,
+} from "@nestjs/common";
+import { CacheService } from "./cache.service";
+import { CACHE_MODULE_OPTIONS } from "./constants";
 import {
   CacheModuleAsyncOptions,
   CacheModuleOptions,
   CacheOptionsFactory,
-} from './interfaces';
+} from "./interfaces";
 
 @Module({
   providers: [CacheService],
@@ -38,7 +44,7 @@ export class CacheModule {
     if (options.useExisting || options.useFactory) {
       return [this.createAsyncOptionsProvider(options)];
     }
-    
+
     return [
       this.createAsyncOptionsProvider(options),
       {
@@ -58,12 +64,15 @@ export class CacheModule {
         inject: options.inject || [],
       };
     }
-    
+
     return {
       provide: CACHE_MODULE_OPTIONS,
       useFactory: async (optionsFactory: CacheOptionsFactory) =>
         await optionsFactory.createCacheOptions(),
-      inject: [options.useClass as InjectionToken || options.useExisting as InjectionToken],
+      inject: [
+        (options.useClass as InjectionToken) ||
+          (options.useExisting as InjectionToken),
+      ],
     };
   }
-} 
+}

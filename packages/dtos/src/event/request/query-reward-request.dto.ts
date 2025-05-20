@@ -24,7 +24,7 @@ export class QueryRewardRequestBaseDto extends PagingDto {
   status?: RewardRequestStatus;
 }
 
-export class QueryRewardRequestDto extends QueryRewardRequestBaseDto{
+export class QueryRewardRequestDto extends QueryRewardRequestBaseDto {
   @ApiProperty({
     description: "Filter reward requests by user ID",
     required: false,
@@ -34,4 +34,3 @@ export class QueryRewardRequestDto extends QueryRewardRequestBaseDto{
   @IsOptional()
   userId?: string;
 }
-

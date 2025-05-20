@@ -44,20 +44,21 @@
 #### 저장 데이터 암호화
 
 - **민감 필드 암호화**: 개인식별정보(PII)에 필드 레벨 암호화 적용
+
   ```typescript
   // 암호화 데코레이터 예시
   @Entity()
   class User {
     @PrimaryGeneratedColumn()
     id: number;
-    
+
     @Column()
     username: string;
-    
+
     @Column()
     @Encrypted() // 필드 레벨 암호화
     email: string;
-    
+
     @Column()
     @Encrypted()
     phoneNumber: string;
@@ -71,11 +72,12 @@
 #### 보안 이벤트 로깅
 
 - **중요 보안 이벤트 로깅**: 로그인 시도, 역할 변경, 토큰 발급 등 보안 관련 이벤트 로깅
+
   ```typescript
   @Injectable()
   class SecurityAuditService {
     constructor(private readonly logger: PinoLoggerService) {}
-    
+
     logSecurityEvent(eventType: SecurityEventType, data: any) {
       this.logger.info(`Security event: ${eventType}`, {
         securityEvent: true,
@@ -110,13 +112,14 @@ graph TD
 #### 다중 인증(MFA) 구현
 
 - **OTP 구현**: Google Authenticator 또는 유사 서비스 통합
+
   ```typescript
   @Injectable()
   class MfaService {
     async generateSecret(userId: string): Promise<string> {
       // 사용자별 OTP 비밀 생성
     }
-    
+
     async validateToken(userId: string, token: string): Promise<boolean> {
       // 제공된 토큰 검증
     }
@@ -138,15 +141,16 @@ graph TD
 #### 요청 제한 및 방어
 
 - **속도 제한(Rate Limiting)**: 사용자별, IP별 API 호출 제한
+
   ```typescript
-  import { Injectable } from '@nestjs/common';
-  import { ThrottlerGuard } from '@nestjs/throttler';
-  
+  import { Injectable } from "@nestjs/common";
+  import { ThrottlerGuard } from "@nestjs/throttler";
+
   @Injectable()
   export class CustomThrottlerGuard extends ThrottlerGuard {
     protected getTracker(req: Record<string, any>): string {
       // IP와 사용자 ID 조합으로 트래커 생성
-      const userId = req.user?.id || 'anonymous';
+      const userId = req.user?.id || "anonymous";
       return `${req.ip}-${userId}`;
     }
   }
@@ -164,9 +168,10 @@ graph TD
 #### API 보안 헤더
 
 - **보안 헤더 추가**: Helmet을 통한 보안 HTTP 헤더 설정
+
   ```typescript
-  import helmet from 'helmet';
-  
+  import helmet from "helmet";
+
   // main.ts
   app.use(
     helmet({
@@ -175,12 +180,12 @@ graph TD
           defaultSrc: ["'self'"],
           scriptSrc: ["'self'", "'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
-          imgSrc: ["'self'", 'data:'],
+          imgSrc: ["'self'", "data:"],
         },
       },
       xssFilter: true,
       noSniff: true,
-      referrerPolicy: { policy: 'same-origin' },
+      referrerPolicy: { policy: "same-origin" },
     }),
   );
   ```
@@ -221,14 +226,14 @@ graph TD
 
 ## 구현 로드맵
 
-### 1단계: 즉시 개선 사항 
+### 1단계: 즉시 개선 사항
 
 - 보안 헤더 구현 (Helmet) (완)
 - 입력 검증 강화 (완)
 - npm 종속성 감사 및 업데이트 (완)
 - 기본 속도 제한 구현 (완)
 
-### 2단계: 핵심 보안 강화 
+### 2단계: 핵심 보안 강화
 
 - HTTPS/TLS 구성
 - 민감 필드 암호화 구현
@@ -246,4 +251,4 @@ graph TD
 
 제안된 보안 강화 전략은 이벤트 리워드 플랫폼의 전반적인 보안 태세를 강화하고, 사용자 데이터를 보호하며, 규제 준수를 지원할 것입니다. 각 단계는 현재 시스템에 점진적으로 통합될 수 있도록 설계되었으며, 단계적 구현을 통해 서비스 중단을 최소화하면서 보안을 지속적으로 향상시킬 수 있습니다.
 
-보안은 지속적인 프로세스이며, 이 전략은 정기적인 검토와 업데이트를 통해 발전해야 합니다. 새로운 위협과 취약점에 대응하기 위해 보안 모니터링과 평가를 지속적으로 수행해야 합니다. 
+보안은 지속적인 프로세스이며, 이 전략은 정기적인 검토와 업데이트를 통해 발전해야 합니다. 새로운 위협과 취약점에 대응하기 위해 보안 모니터링과 평가를 지속적으로 수행해야 합니다.

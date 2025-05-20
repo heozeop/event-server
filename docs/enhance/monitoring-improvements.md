@@ -38,7 +38,7 @@ graph TD
         GW -->|메트릭| Prometheus[Prometheus]
         Auth -->|메트릭| Prometheus
         Event -->|메트릭| Prometheus
-        
+
         Prometheus -->|데이터 시각화| Grafana[Grafana]
         Loki[Grafana Loki] -->|로그 시각화| Grafana
     end
@@ -111,17 +111,17 @@ graph TD
 ```mermaid
 graph TD
     Client[클라이언트] -->|HTTP 요청| Gateway[게이트웨이 서비스]
-    
+
     subgraph "마이크로서비스"
         Gateway -->|요청| Auth[인증 서비스]
         Gateway -->|요청| Event[이벤트 서비스]
     end
-    
+
     subgraph "분산 추적"
         Gateway -->|추적 데이터| Collector[OpenTelemetry Collector]
         Auth -->|추적 데이터| Collector
         Event -->|추적 데이터| Collector
-        
+
         Collector -->|저장| Jaeger[Jaeger]
         Jaeger -->|시각화| JaegerUI[Jaeger UI]
     end
@@ -166,4 +166,4 @@ graph TD
 
 ## 결론
 
-제안된 모니터링 시스템 개선은 이벤트 리워드 플랫폼의 운영 안정성과 가시성을 크게 향상시킬 것입니다. 이러한 개선을 통해 문제를 사전에 감지하고, 신속하게 대응하며, 비즈니스 성과를 더 잘 이해할 수 있게 될 것입니다. 개선 작업은 단계적으로 진행하여 각 단계가 완료될 때마다 즉각적인 가치를 제공할 수 있도록 계획되었습니다. 
+제안된 모니터링 시스템 개선은 이벤트 리워드 플랫폼의 운영 안정성과 가시성을 크게 향상시킬 것입니다. 이러한 개선을 통해 문제를 사전에 감지하고, 신속하게 대응하며, 비즈니스 성과를 더 잘 이해할 수 있게 될 것입니다. 개선 작업은 단계적으로 진행하여 각 단계가 완료될 때마다 즉각적인 가치를 제공할 수 있도록 계획되었습니다.

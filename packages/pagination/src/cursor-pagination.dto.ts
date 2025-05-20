@@ -1,23 +1,23 @@
-import { Type } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
+import { Type } from "@nestjs/common";
+import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
+import { IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
 
 /**
  * Base request DTO for cursor-based pagination
  */
 export class CursorPaginationRequestDto {
   @ApiProperty({
-    description: 'Cursor for pagination (optional, leave empty for first page)',
+    description: "Cursor for pagination (optional, leave empty for first page)",
     required: false,
-    example: 'eyJpZCI6IjYxZTU4ZjIyZDQ5YWIyMWUyYzM0YjU3In0=',
+    example: "eyJpZCI6IjYxZTU4ZjIyZDQ5YWIyMWUyYzM0YjU3In0=",
   })
   @IsString()
   @IsOptional()
   cursor?: string;
 
   @ApiProperty({
-    description: 'Number of items per page',
+    description: "Number of items per page",
     default: 10,
     minimum: 1,
     maximum: 100,
@@ -34,17 +34,17 @@ export class CursorPaginationRequestDto {
  * Base response DTO for cursor-based pagination
  */
 export class CursorPaginationResponseDto<T> {
-  @ApiProperty({ description: 'The items for the current page' })
+  @ApiProperty({ description: "The items for the current page" })
   items: T[] = [];
 
   @ApiProperty({
-    description: 'Cursor to get the next page',
+    description: "Cursor to get the next page",
     required: false,
-    example: 'eyJpZCI6IjYxZTU4ZjIyZDQ5YWIyMWUyYzM0YjU3In0=',
+    example: "eyJpZCI6IjYxZTU4ZjIyZDQ5YWIyMWUyYzM0YjU3In0=",
   })
   nextCursor: string | null = null;
 
-  @ApiProperty({ description: 'Indicates if there are more items available' })
+  @ApiProperty({ description: "Indicates if there are more items available" })
   hasMore: boolean = false;
 
   /**
@@ -61,12 +61,14 @@ export class CursorPaginationResponseDto<T> {
   ): CursorPaginationResponseDto<T> {
     const hasMore = items.length > limit;
     const result = hasMore ? items.slice(0, limit) : items;
-    
+
     let nextCursor = null;
     if (hasMore && result.length > 0) {
       const lastItem = result[result.length - 1];
       const cursorValue = getIdFn(lastItem);
-      nextCursor = Buffer.from(JSON.stringify({ id: cursorValue })).toString('base64');
+      nextCursor = Buffer.from(JSON.stringify({ id: cursorValue })).toString(
+        "base64",
+      );
     }
 
     return {
@@ -81,7 +83,9 @@ export class CursorPaginationResponseDto<T> {
    * @param itemType The type of the paginated items
    * @returns A class representing the paginated response
    */
-  static createResponseType<T>(itemType: Type<T>): Type<CursorPaginationResponseDto<T>> {
+  static createResponseType<T>(
+    itemType: Type<T>,
+  ): Type<CursorPaginationResponseDto<T>> {
     class PaginatedResponseType implements CursorPaginationResponseDto<T> {
       @ApiProperty({ type: [itemType] })
       items: T[] = [];
@@ -94,7 +98,7 @@ export class CursorPaginationResponseDto<T> {
     }
 
     // Set the class name dynamically based on the item type
-    Object.defineProperty(PaginatedResponseType, 'name', {
+    Object.defineProperty(PaginatedResponseType, "name", {
       value: `Paginated${itemType.name}Response`,
     });
 
@@ -108,11 +112,11 @@ export class CursorPaginationResponseDto<T> {
    */
   static decodeCursor(cursor: string): string | null {
     try {
-      const decoded = Buffer.from(cursor, 'base64').toString('utf-8');
+      const decoded = Buffer.from(cursor, "base64").toString("utf-8");
       const parsed = JSON.parse(decoded);
       return parsed.id || null;
     } catch (error) {
       return null;
     }
   }
-} 
+}

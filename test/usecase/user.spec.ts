@@ -119,16 +119,15 @@ describe("USER Use Cases", () => {
         .set("Authorization", `Bearer ${userToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
-      expect(response.body).toHaveProperty('nextCursor');
-      expect(response.body).toHaveProperty('hasMore');
-      
+      expect(response.body).toHaveProperty("nextCursor");
+      expect(response.body).toHaveProperty("hasMore");
+
       if (response.body.items.length > 0) {
         const activeEvent = response.body.items.find(
           (event: any) =>
-            event.status === "ACTIVE" && 
-            new Date(event.periodEnd) > new Date(),
+            event.status === "ACTIVE" && new Date(event.periodEnd) > new Date(),
         );
 
         if (activeEvent) {
@@ -147,7 +146,6 @@ describe("USER Use Cases", () => {
     });
 
     it("should get event rewards", async () => {
-
       const response = await request(baseUrl)
         .get(`/events/${eventId}/rewards`)
         .set("Authorization", `Bearer ${userToken}`);
@@ -178,9 +176,9 @@ describe("USER Use Cases", () => {
         .set("Authorization", `Bearer ${userToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
-      expect(response.body).toHaveProperty('totalItems');
+      expect(response.body).toHaveProperty("totalItems");
 
       // All requests should belong to the current user
       if (response.body.items.length > 0) {
@@ -196,9 +194,9 @@ describe("USER Use Cases", () => {
         .set("Authorization", `Bearer ${userToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
-      expect(response.body).toHaveProperty('totalItems');
+      expect(response.body).toHaveProperty("totalItems");
 
       // All requests should have PENDING status and belong to current user
       if (response.body.items.length > 0) {
@@ -210,15 +208,14 @@ describe("USER Use Cases", () => {
     });
 
     it("should filter reward requests by event ID", async () => {
-
       const response = await request(baseUrl)
         .get(`/events/requests/mine?eventId=${eventId}`)
         .set("Authorization", `Bearer ${userToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
-      expect(response.body).toHaveProperty('totalItems');
+      expect(response.body).toHaveProperty("totalItems");
 
       // All requests should be for the specified event and belong to current user
       if (response.body.items.length > 0) {

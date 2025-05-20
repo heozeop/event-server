@@ -1,8 +1,8 @@
-import { PinoLoggerService } from '@libs/logger';
-import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
-import Redis from 'ioredis';
-import { CACHE_MODULE_OPTIONS } from './constants';
-import { CacheModuleOptions } from './interfaces';
+import { PinoLoggerService } from "@libs/logger";
+import { Inject, Injectable, OnModuleDestroy } from "@nestjs/common";
+import Redis from "ioredis";
+import { CACHE_MODULE_OPTIONS } from "./constants";
+import { CacheModuleOptions } from "./interfaces";
 
 @Injectable()
 export class CacheService implements OnModuleDestroy {
@@ -45,12 +45,7 @@ export class CacheService implements OnModuleDestroy {
    */
   async set(key: string, value: any, ttl: number = 3600): Promise<void> {
     try {
-      await this.client.set(
-        key,
-        JSON.stringify(value),
-        'EX',
-        ttl,
-      );
+      await this.client.set(key, JSON.stringify(value), "EX", ttl);
     } catch (error) {
       // Log error and fail gracefully
       if (this.options.enableLogging && error instanceof Error) {
@@ -80,24 +75,27 @@ export class CacheService implements OnModuleDestroy {
   async delByPattern(pattern: string): Promise<void> {
     try {
       // SCAN implementation for large datasets
-      let cursor = '0';
+      let cursor = "0";
       do {
         const [nextCursor, keys] = await this.client.scan(
           cursor,
-          'MATCH',
+          "MATCH",
           pattern,
-          'COUNT',
+          "COUNT",
           100,
         );
         cursor = nextCursor;
-        
+
         if (keys.length) {
           await this.client.del(...keys);
         }
-      } while (cursor !== '0');
+      } while (cursor !== "0");
     } catch (error) {
       if (this.options.enableLogging && error instanceof Error) {
-        this.logger.error(`Cache delete by pattern error: ${error.message}`, error.stack);
+        this.logger.error(
+          `Cache delete by pattern error: ${error.message}`,
+          error.stack,
+        );
       }
     }
   }
@@ -124,4 +122,4 @@ export class CacheService implements OnModuleDestroy {
   onModuleDestroy() {
     this.client.disconnect();
   }
-} 
+}

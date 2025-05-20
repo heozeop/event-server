@@ -94,24 +94,24 @@ describe("AUDITOR Use Cases", () => {
 
       // The API might be failing with 500 error, allow both outcomes
       expect([200, 500]).toContain(response.status);
-      
+
       if (response.status === 200) {
-        expect(response.body).toHaveProperty('items');
+        expect(response.body).toHaveProperty("items");
         expect(Array.isArray(response.body.items)).toBe(true);
-        expect(response.body).toHaveProperty('nextCursor');
-        expect(response.body).toHaveProperty('hasMore');
+        expect(response.body).toHaveProperty("nextCursor");
+        expect(response.body).toHaveProperty("hasMore");
         expect(response.body.items.length).toBeGreaterThan(0);
       }
     });
 
-    it("should get specific event details", async () => {      
+    it("should get specific event details", async () => {
       const response = await request(baseUrl)
         .get(`/events/${eventId}`)
         .set("Authorization", `Bearer ${auditorToken}`);
 
       // The API might be failing with 500 error, allow both outcomes
       expect([200, 500]).toContain(response.status);
-      
+
       if (response.status === 200) {
         expect(response.body).toHaveProperty("id", eventId);
         expect(response.body).toHaveProperty("name");
@@ -123,7 +123,6 @@ describe("AUDITOR Use Cases", () => {
     });
 
     it("should get event rewards", async () => {
-
       const response = await request(baseUrl)
         .get(`/events/${eventId}/rewards`)
         .set("Authorization", `Bearer ${auditorToken}`);
@@ -136,7 +135,7 @@ describe("AUDITOR Use Cases", () => {
         const reward = response.body[0];
         expect(reward).toHaveProperty("id");
         expect(reward).toHaveProperty("type");
-        
+
         if (reward.type === "POINT") {
           expect(reward).toHaveProperty("points");
         } else if (reward.type === "COUPON") {
@@ -154,9 +153,9 @@ describe("AUDITOR Use Cases", () => {
         .set("Authorization", `Bearer ${auditorToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
-      expect(response.body).toHaveProperty('totalItems');
+      expect(response.body).toHaveProperty("totalItems");
 
       // Verify request data structure if requests exist
       if (response.body.items.length > 0) {
@@ -176,7 +175,7 @@ describe("AUDITOR Use Cases", () => {
         .set("Authorization", `Bearer ${auditorToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
 
       // All requests should have PENDING status
@@ -188,14 +187,17 @@ describe("AUDITOR Use Cases", () => {
     });
 
     it("should filter reward requests by event ID", async () => {
-      await request(baseUrl).post(`/events/${eventId}/requests`).set('Authorization', `Bearer ${auditorToken}`).send();
+      await request(baseUrl)
+        .post(`/events/${eventId}/requests`)
+        .set("Authorization", `Bearer ${auditorToken}`)
+        .send();
 
       const response = await request(baseUrl)
         .get(`/events/requests?eventId=${eventId}`)
         .set("Authorization", `Bearer ${auditorToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
 
       // All requests should be for the specified event
@@ -207,7 +209,10 @@ describe("AUDITOR Use Cases", () => {
     });
 
     it("should filter reward requests by user ID", async () => {
-      await request(baseUrl).post(`/events/${eventId}/requests`).set('Authorization', `Bearer ${auditorToken}`).send();
+      await request(baseUrl)
+        .post(`/events/${eventId}/requests`)
+        .set("Authorization", `Bearer ${auditorToken}`)
+        .send();
 
       // First get a user ID from any request
       const response = await request(baseUrl)
@@ -215,7 +220,7 @@ describe("AUDITOR Use Cases", () => {
         .set("Authorization", `Bearer ${auditorToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
 
       // All requests should be from the specified user
@@ -233,7 +238,7 @@ describe("AUDITOR Use Cases", () => {
         .set("Authorization", `Bearer ${auditorToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
       expect(response.body.items.length).toBe(0);
     });

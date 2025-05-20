@@ -1,6 +1,6 @@
-import { ModuleMetadata, Type } from '@nestjs/common';
-import { QueueOptions, WorkerOptions } from 'bullmq';
-import { RedisOptions } from 'ioredis';
+import { ModuleMetadata, Type } from "@nestjs/common";
+import { QueueOptions, WorkerOptions } from "bullmq";
+import { RedisOptions } from "ioredis";
 
 export interface BullMQOptions {
   connection: RedisOptions;
@@ -9,7 +9,8 @@ export interface BullMQOptions {
   isGlobal?: boolean;
 }
 
-export interface BullMQModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
+export interface BullMQModuleAsyncOptions
+  extends Pick<ModuleMetadata, "imports"> {
   useFactory?: (...args: any[]) => Promise<BullMQOptions> | BullMQOptions;
   inject?: any[];
   useClass?: Type<BullMQOptionsFactory>;
@@ -31,4 +32,4 @@ export interface QueueConfig {
   name: string;
   options?: QueueOptions;
   workerOptions?: WorkerOptions;
-} 
+}

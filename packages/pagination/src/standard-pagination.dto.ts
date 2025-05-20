@@ -1,14 +1,14 @@
-import { Type } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional, Max, Min } from 'class-validator';
+import { Type } from "@nestjs/common";
+import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
+import { IsNumber, IsOptional, Max, Min } from "class-validator";
 
 /**
  * Base request DTO for standard offset-based pagination
  */
 export class PaginationRequestDto {
   @ApiProperty({
-    description: 'Page number (starts from 0)',
+    description: "Page number (starts from 0)",
     default: 0,
     minimum: 0,
   })
@@ -19,7 +19,7 @@ export class PaginationRequestDto {
   page?: number = 0;
 
   @ApiProperty({
-    description: 'Number of items per page',
+    description: "Number of items per page",
     default: 10,
     minimum: 1,
     maximum: 100,
@@ -43,25 +43,25 @@ export class PaginationRequestDto {
  * Base response DTO for standard pagination
  */
 export class PaginationResponseDto<T> {
-  @ApiProperty({ description: 'The items for the current page' })
+  @ApiProperty({ description: "The items for the current page" })
   items: T[] = [];
 
-  @ApiProperty({ description: 'Total number of available items' })
+  @ApiProperty({ description: "Total number of available items" })
   totalItems: number = 0;
 
-  @ApiProperty({ description: 'Current page (0-indexed)' })
+  @ApiProperty({ description: "Current page (0-indexed)" })
   page: number = 0;
 
-  @ApiProperty({ description: 'Number of items per page' })
+  @ApiProperty({ description: "Number of items per page" })
   limit: number = 10;
 
-  @ApiProperty({ description: 'Total number of pages' })
+  @ApiProperty({ description: "Total number of pages" })
   totalPages: number = 0;
 
-  @ApiProperty({ description: 'Indicates if there is a next page' })
+  @ApiProperty({ description: "Indicates if there is a next page" })
   hasNextPage: boolean = false;
 
-  @ApiProperty({ description: 'Indicates if there is a previous page' })
+  @ApiProperty({ description: "Indicates if there is a previous page" })
   hasPreviousPage: boolean = false;
 
   /**
@@ -79,7 +79,7 @@ export class PaginationResponseDto<T> {
     limit: number,
   ): PaginationResponseDto<T> {
     const totalPages = Math.ceil(totalItems / limit);
-    
+
     return {
       items,
       totalItems,
@@ -96,7 +96,9 @@ export class PaginationResponseDto<T> {
    * @param itemType The type of the paginated items
    * @returns A class representing the paginated response
    */
-  static createResponseType<T>(itemType: Type<T>): Type<PaginationResponseDto<T>> {
+  static createResponseType<T>(
+    itemType: Type<T>,
+  ): Type<PaginationResponseDto<T>> {
     class PaginatedResponseType implements PaginationResponseDto<T> {
       @ApiProperty({ type: [itemType] })
       items: T[] = [];
@@ -121,10 +123,10 @@ export class PaginationResponseDto<T> {
     }
 
     // Set the class name dynamically based on the item type
-    Object.defineProperty(PaginatedResponseType, 'name', {
+    Object.defineProperty(PaginatedResponseType, "name", {
       value: `Paginated${itemType.name}Response`,
     });
 
     return PaginatedResponseType;
   }
-} 
+}

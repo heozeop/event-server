@@ -1,9 +1,9 @@
-import { PinoLoggerService } from '@libs/logger';
-import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
-import { Job, Queue, QueueOptions, Worker, WorkerOptions } from 'bullmq';
-import Redis from 'ioredis';
-import { BULLMQ_MODULE_OPTIONS } from './constants';
-import { BullMQOptions, MessagePayload, QueueConfig } from './interfaces';
+import { PinoLoggerService } from "@libs/logger";
+import { Inject, Injectable, OnModuleDestroy } from "@nestjs/common";
+import { Job, Queue, QueueOptions, Worker, WorkerOptions } from "bullmq";
+import Redis from "ioredis";
+import { BULLMQ_MODULE_OPTIONS } from "./constants";
+import { BullMQOptions, MessagePayload, QueueConfig } from "./interfaces";
 
 @Injectable()
 export class BullMQService implements OnModuleDestroy {
@@ -78,7 +78,7 @@ export class BullMQService implements OnModuleDestroy {
     const job = await queue.add(jobName, payload, {
       attempts: opts?.attempts ?? 3,
       backoff: opts?.backoff ?? {
-        type: 'exponential',
+        type: "exponential",
         delay: 1000,
       },
       removeOnComplete: opts?.removeOnComplete ?? true,
@@ -87,7 +87,9 @@ export class BullMQService implements OnModuleDestroy {
       jobId: opts?.jobId,
     });
 
-    this.logger.debug(`Job added: ${jobName} to queue ${queueName} with ID ${job.id}`);
+    this.logger.debug(
+      `Job added: ${jobName} to queue ${queueName} with ID ${job.id}`,
+    );
     return job;
   }
 
@@ -110,7 +112,7 @@ export class BullMQService implements OnModuleDestroy {
       ...options,
     };
 
-    const workerId = `${queueName}:${jobName || '*'}`;
+    const workerId = `${queueName}:${jobName || "*"}`;
 
     // Don't create duplicate workers
     if (this.workers.has(workerId)) {
@@ -125,7 +127,9 @@ export class BullMQService implements OnModuleDestroy {
         }
 
         try {
-          this.logger.debug(`Processing job ${job.id} of type ${job.name} from queue ${queueName}`);
+          this.logger.debug(
+            `Processing job ${job.id} of type ${job.name} from queue ${queueName}`,
+          );
           return await handler(job);
         } catch (error) {
           this.logger.error(
@@ -138,16 +142,21 @@ export class BullMQService implements OnModuleDestroy {
       workerOptions,
     );
 
-    worker.on('completed', (job) => {
+    worker.on("completed", (job) => {
       this.logger.debug(`Job ${job.id} of type ${job.name} completed`);
     });
 
-    worker.on('failed', (job, error) => {
-      this.logger.error(`Job ${job?.id} of type ${job?.name} failed: ${error.message}`, error.stack);
+    worker.on("failed", (job, error) => {
+      this.logger.error(
+        `Job ${job?.id} of type ${job?.name} failed: ${error.message}`,
+        error.stack,
+      );
     });
 
     this.workers.set(workerId, worker);
-    this.logger.log(`Worker created for queue: ${queueName}, job: ${jobName || '*'}`);
+    this.logger.log(
+      `Worker created for queue: ${queueName}, job: ${jobName || "*"}`,
+    );
 
     return worker;
   }
@@ -166,7 +175,7 @@ export class BullMQService implements OnModuleDestroy {
       await queue.close();
     }
 
-    this.logger.log('Closing Redis connection');
+    this.logger.log("Closing Redis connection");
     await this.connection.quit();
   }
-} 
+}

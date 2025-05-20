@@ -1,13 +1,16 @@
-import { ModuleMetadata, Type } from '@nestjs/common';
-import { RedisOptions } from 'ioredis';
+import { ModuleMetadata, Type } from "@nestjs/common";
+import { RedisOptions } from "ioredis";
 
 export interface CacheModuleOptions {
   redis: RedisOptions;
   enableLogging?: boolean;
 }
 
-export interface CacheModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
-  useFactory?: (...args: any[]) => Promise<CacheModuleOptions> | CacheModuleOptions;
+export interface CacheModuleAsyncOptions
+  extends Pick<ModuleMetadata, "imports"> {
+  useFactory?: (
+    ...args: any[]
+  ) => Promise<CacheModuleOptions> | CacheModuleOptions;
   inject?: any[];
   useClass?: Type<CacheOptionsFactory>;
   useExisting?: Type<CacheOptionsFactory>;
@@ -15,4 +18,4 @@ export interface CacheModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'>
 
 export interface CacheOptionsFactory {
   createCacheOptions(): Promise<CacheModuleOptions> | CacheModuleOptions;
-} 
+}

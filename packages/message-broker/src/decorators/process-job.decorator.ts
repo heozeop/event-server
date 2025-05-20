@@ -1,5 +1,5 @@
-import { SetMetadata } from '@nestjs/common';
-import { PROCESSOR_DECORATOR } from '../constants';
+import { SetMetadata } from "@nestjs/common";
+import { PROCESSOR_DECORATOR } from "../constants";
 
 export interface ProcessorOptions {
   queueName: string;
@@ -12,4 +12,4 @@ export interface ProcessorOptions {
  * @param options Processor options
  */
 export const ProcessJob = (options: ProcessorOptions) =>
-  SetMetadata(PROCESSOR_DECORATOR, options); 
+  SetMetadata(PROCESSOR_DECORATOR, options);

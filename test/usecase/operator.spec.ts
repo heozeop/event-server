@@ -93,9 +93,9 @@ describe("OPERATOR Use Cases", () => {
         .set("Authorization", `Bearer ${operatorToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
-      expect(response.body).toHaveProperty('hasMore');
+      expect(response.body).toHaveProperty("hasMore");
       expect(response.body.items.length).toBeGreaterThan(0);
 
       // Verify event data structure
@@ -109,7 +109,7 @@ describe("OPERATOR Use Cases", () => {
     });
 
     it("should get specific event details", async () => {
-           const response = await request(baseUrl)
+      const response = await request(baseUrl)
         .get(`/events/${eventId}`)
         .set("Authorization", `Bearer ${operatorToken}`);
 
@@ -158,9 +158,9 @@ describe("OPERATOR Use Cases", () => {
         .set("Authorization", `Bearer ${operatorToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
-      expect(response.body).toHaveProperty('totalItems');
+      expect(response.body).toHaveProperty("totalItems");
     });
 
     it("should add reward to event", async () => {
@@ -176,13 +176,14 @@ describe("OPERATOR Use Cases", () => {
       expect([201, 500]).toContain(response.status);
     });
 
-    it("should get rewards for a specific event", async () => {      const response = await request(baseUrl)
+    it("should get rewards for a specific event", async () => {
+      const response = await request(baseUrl)
         .get(`/events/${eventId}/rewards`)
         .set("Authorization", `Bearer ${operatorToken}`);
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
-      
+
       // Don't check the length if test data might not be present
       if (response.body.length > 0) {
         const addedReward = response.body.find(
@@ -203,9 +204,9 @@ describe("OPERATOR Use Cases", () => {
         .set("Authorization", `Bearer ${operatorToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
-      expect(response.body).toHaveProperty('totalItems');
+      expect(response.body).toHaveProperty("totalItems");
     });
 
     it("should filter reward requests by status", async () => {
@@ -214,7 +215,7 @@ describe("OPERATOR Use Cases", () => {
         .set("Authorization", `Bearer ${operatorToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('items');
+      expect(response.body).toHaveProperty("items");
       expect(Array.isArray(response.body.items)).toBe(true);
 
       // All requests should have PENDING status

@@ -1,6 +1,6 @@
-import { SetMetadata } from '@nestjs/common';
+import { SetMetadata } from "@nestjs/common";
 
-export const SUBSCRIBER_KEY = 'SUBSCRIBER_METADATA';
+export const SUBSCRIBER_KEY = "SUBSCRIBER_METADATA";
 
 export interface SubscriberMetadata {
   pattern: string;
@@ -11,4 +11,4 @@ export interface SubscriberMetadata {
  * @param pattern Message pattern to subscribe to
  */
 export const SubscribeTo = (pattern: string) =>
-  SetMetadata<string, SubscriberMetadata>(SUBSCRIBER_KEY, { pattern }); 
+  SetMetadata<string, SubscriberMetadata>(SUBSCRIBER_KEY, { pattern });

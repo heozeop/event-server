@@ -36,6 +36,7 @@ graph TD
 ```
 
 - **샤딩 키 선택**: 효율적인 데이터 분산을 위한 최적의 샤딩 키 선정
+
   - 사용자 데이터: 사용자 ID 또는 지역 기반
   - 이벤트 데이터: 이벤트 ID 또는 날짜 기반
   - 리워드 요청: 요청 ID 또는 사용자 ID 기반
@@ -51,18 +52,18 @@ graph TD
 @Injectable()
 export class DatabaseService {
   constructor(
-    @InjectConnection('writeConnection') private writeConnection: Connection,
-    @InjectConnection('readConnection') private readConnection: Connection,
+    @InjectConnection("writeConnection") private writeConnection: Connection,
+    @InjectConnection("readConnection") private readConnection: Connection,
   ) {}
 
   async find(query: any): Promise<any[]> {
     // 읽기 연결 사용
-    return this.readConnection.collection('items').find(query).toArray();
+    return this.readConnection.collection("items").find(query).toArray();
   }
 
   async create(data: any): Promise<any> {
     // 쓰기 연결 사용
-    return this.writeConnection.collection('items').insertOne(data);
+    return this.writeConnection.collection("items").insertOne(data);
   }
 }
 ```
@@ -91,17 +92,17 @@ spec:
         app: event-service
     spec:
       containers:
-      - name: event-service
-        image: event-reward-platform/event-service:latest
-        resources:
-          limits:
-            cpu: "1"
-            memory: "1Gi"
-          requests:
-            cpu: "0.5"
-            memory: "512Mi"
-        ports:
-        - containerPort: 3002
+        - name: event-service
+          image: event-reward-platform/event-service:latest
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "0.5"
+              memory: "512Mi"
+          ports:
+            - containerPort: 3002
 ```
 
 #### 자동 스케일링 정책
@@ -123,18 +124,18 @@ spec:
   minReplicas: 2
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
 ```
 
 ### 3. 분산 캐싱 전략
@@ -178,12 +179,7 @@ export class CacheService {
 
   async set(key: string, value: any, ttl: number = 3600): Promise<void> {
     try {
-      await this.redisService.set(
-        key,
-        JSON.stringify(value),
-        'EX',
-        ttl,
-      );
+      await this.redisService.set(key, JSON.stringify(value), "EX", ttl);
     } catch (error) {
       this.logger.error(`Cache set error: ${error.message}`, error.stack);
     }
@@ -218,7 +214,7 @@ graph LR
 @Injectable()
 export class EventPublisher {
   constructor(
-    @InjectQueue('events') private eventsQueue: Queue,
+    @InjectQueue("events") private eventsQueue: Queue,
     private readonly logger: PinoLoggerService,
   ) {}
 
@@ -233,36 +229,42 @@ export class EventPublisher {
         {
           attempts: 3,
           backoff: {
-            type: 'exponential',
+            type: "exponential",
             delay: 1000,
           },
         },
       );
       this.logger.info(`Event published: ${eventType}`);
     } catch (error) {
-      this.logger.error(`Event publishing failed: ${error.message}`, error.stack);
+      this.logger.error(
+        `Event publishing failed: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
 }
 
 // 메시지 소비자 예시
-@Processor('events')
+@Processor("events")
 export class EventConsumer {
   constructor(private readonly logger: PinoLoggerService) {}
 
-  @Process('reward.requested')
+  @Process("reward.requested")
   async handleRewardRequest(job: Job<any>): Promise<void> {
     const { payload } = job.data;
     this.logger.info(`Processing reward request: ${payload.requestId}`);
-    
+
     try {
       // 비동기 리워드 처리 로직
       // ...
-      
+
       this.logger.info(`Reward request processed: ${payload.requestId}`);
     } catch (error) {
-      this.logger.error(`Reward processing failed: ${error.message}`, error.stack);
+      this.logger.error(
+        `Reward processing failed: ${error.message}`,
+        error.stack,
+      );
       throw error; // 자동 재시도를 위해 오류 발생
     }
   }
@@ -284,23 +286,23 @@ export class EventConsumer {
 - **페이지네이션 최적화**: 커서 기반 페이지네이션 구현
 
 ```typescript
-@Controller('events')
+@Controller("events")
 export class EventController {
   @Get()
   async getEvents(
-    @Query('cursor') cursor: string,
-    @Query('limit') limit: number = 20,
+    @Query("cursor") cursor: string,
+    @Query("limit") limit: number = 20,
   ): Promise<PaginatedResponse<EventResponseDto>> {
     // 커서 기반 페이지네이션 구현
     const events = await this.eventService.findEvents(cursor, limit + 1);
-    
+
     let nextCursor = null;
     if (events.length > limit) {
       // 마지막 항목은 다음 페이지의 첫 항목
       const nextItem = events.pop();
       nextCursor = nextItem.id;
     }
-    
+
     return {
       items: events,
       nextCursor,
@@ -331,7 +333,7 @@ export class EventController {
 
 ## 구현 로드맵
 
-### 1단계: 기본 확장성 개선 
+### 1단계: 기본 확장성 개선
 
 - Redis 캐싱 레이어 도입 (완)
 - API 최적화 (압축, 페이지네이션) (완)
@@ -371,4 +373,4 @@ export class EventController {
 
 제안된 확장성 개선 방안은 이벤트 리워드 플랫폼이 규모에 관계없이 효율적으로 운영될 수 있도록 합니다. 현재 마이크로서비스 아키텍처의 장점을 최대한 활용하면서, 데이터베이스 확장, 캐싱, 비동기 처리, 컨테이너 오케스트레이션 등의 기술을 도입하여 확장성과 성능을 향상시킬 수 있습니다.
 
-단계적 접근 방식을 통해 가장 시급한 확장성 문제부터 해결하고, 점진적으로 고급 기능을 추가함으로써 서비스 중단 없이 플랫폼을 발전시킬 수 있습니다. 지속적인 성능 모니터링과 벤치마킹을 통해 확장성 개선의 효과를 측정하고 필요에 따라 전략을 조정해야 합니다. 
+단계적 접근 방식을 통해 가장 시급한 확장성 문제부터 해결하고, 점진적으로 고급 기능을 추가함으로써 서비스 중단 없이 플랫폼을 발전시킬 수 있습니다. 지속적인 성능 모니터링과 벤치마킹을 통해 확장성 개선의 효과를 측정하고 필요에 따라 전략을 조정해야 합니다.
