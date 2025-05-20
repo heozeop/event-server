@@ -70,7 +70,7 @@ export class EventResponseDto extends EventRewardBaseDto {
 }
 
 @Exclude()
-export class EventWithRewardsResponseDto extends EventRewardBaseDto {
+export class EventDetailResponseDto extends EventRewardBaseDto {
   @ApiProperty({
     type: [EventRewardResponseDto],
   })
@@ -80,8 +80,8 @@ export class EventWithRewardsResponseDto extends EventRewardBaseDto {
   static fromEntity(
     event: EventEntity,
     eventRewards: EventRewardEntity[],
-  ): EventWithRewardsResponseDto {
-    const dto = new EventWithRewardsResponseDto();
+  ): EventDetailResponseDto {
+    const dto = new EventDetailResponseDto();
 
     Object.assign(dto, {
       id: event._id.toString(),
