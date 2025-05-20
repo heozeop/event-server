@@ -1,3 +1,4 @@
+import { EventReward } from '@/entities';
 import { CachedEntity, CacheService } from '@libs/cache';
 import {
   CreateEventDto,
@@ -5,8 +6,10 @@ import {
   QueryEventDto,
   UpdateEventDto,
 } from '@libs/dtos';
+import { EventRewardEntity } from '@libs/types';
 import { cachedToEntity, toObjectId } from '@libs/utils';
-import { FilterQuery } from '@mikro-orm/core';
+import { EntityRepository, FilterQuery } from '@mikro-orm/core';
+import { InjectRepository } from '@mikro-orm/nestjs';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Event } from '../entities/event.entity';
 import { EventRepository } from '../repositories';
@@ -14,6 +17,8 @@ import { EventRepository } from '../repositories';
 export class EventService {
   constructor(
     private readonly eventRepository: EventRepository,
+    @InjectRepository(EventReward)
+    private readonly eventRewardRepository: EntityRepository<EventReward>,
     private readonly cacheService: CacheService,
   ) {}
 
@@ -22,14 +27,12 @@ export class EventService {
    */
   async createEvent({
     name,
-    condition,
     periodStart,
     periodEnd,
     status,
   }: CreateEventDto): Promise<Event> {
     const event = this.eventRepository.create({
       name,
-      condition,
       periodStart,
       periodEnd: periodEnd ?? null,
       status,
@@ -48,28 +51,49 @@ export class EventService {
   /**
    * Get a single event by ID
    */
-  async getEventById({ id }: QueryByIdDto): Promise<Event> {
+  async getEventById({ id }: QueryByIdDto): Promise<{
+    event: Event;
+    eventRewards: EventRewardEntity[];
+  }> {
     // Try to get from cache first
     const cacheKey = `events:${id}`;
-    const cachedEvent =
-      await this.cacheService.get<CachedEntity<Event>>(cacheKey);
+    const cachedEvent = await this.cacheService.get<{
+      event: CachedEntity<Event>;
+      eventRewards: CachedEntity<EventRewardEntity>[];
+    }>(cacheKey);
 
     if (cachedEvent) {
-      return cachedToEntity(Event, cachedEvent);
+      return {
+        event: cachedToEntity(Event, cachedEvent.event),
+        eventRewards: cachedEvent.eventRewards.map((eventReward) =>
+          cachedToEntity(EventReward, eventReward),
+        ),
+      };
     }
 
     const event = await this.eventRepository.findOne({
       _id: toObjectId(id),
     });
+    const eventRewards = await this.eventRewardRepository.find(
+      {
+        event: event,
+      },
+      { populate: ['reward'] },
+    );
 
     if (!event) {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
 
-    // Cache the event for 5 minutes
-    await this.cacheService.set(cacheKey, event, 300);
+    const result = {
+      event,
+      eventRewards,
+    };
 
-    return event;
+    // Cache the event for 5 minutes
+    await this.cacheService.set(cacheKey, result, 300);
+
+    return result;
   }
 
   async isEventExist({ id }: QueryByIdDto): Promise<boolean> {
@@ -207,7 +231,6 @@ export class EventService {
   async updateEvent({
     id,
     name,
-    condition,
     periodStart,
     periodEnd,
     status,
@@ -216,10 +239,6 @@ export class EventService {
 
     if (name) {
       event.name = name;
-    }
-
-    if (condition) {
-      event.condition = condition;
     }
 
     if (periodStart) {
