@@ -130,22 +130,22 @@ event-server/
 
 ### 이벤트 및 리워드 API
 
-| 엔드포인트                        | 메서드 | 설명                      | 권한            |
-| --------------------------------- | ------ | ------------------------- | --------------- |
-| `/dashboard`                      | GET    | 대시보드 요약 데이터 조회 | ADMIN, OPERATOR |
-| `/dashboard/event-analytics`      | GET    | 이벤트 분석 데이터 조회   | ADMIN, OPERATOR |
-| `/dashboard/reward-analytics`     | GET    | 리워드 분석 데이터 조회   | ADMIN, OPERATOR |
-| `/dashboard/user-analytics`       | GET    | 사용자 분석 데이터 조회   | ADMIN, OPERATOR |
-| `/events`                         | POST   | 새 이벤트 생성            | ADMIN, OPERATOR |
-| `/events`                         | GET    | 이벤트 목록 조회          | 인증 필요       |
-| `/reward-requests`                | GET    | 리워드 요청 목록 조회     | 인증 필요       |
-| `/events/:eventId/request-reward` | POST   | 이벤트 리워드 요청        | 인증 필요       |
-| `/events/:eventId/rewards`        | GET    | 이벤트의 리워드 목록 조회 | 인증 필요       |
-| `/events/:eventId/rewards`        | POST   | 이벤트에 리워드 추가      | ADMIN, OPERATOR |
-| `/events/:eventId`                | GET    | 이벤트 상세 정보 조회     | 인증 필요       |
-| `/rewards/:type`                  | POST   | 새 리워드 생성            | ADMIN, OPERATOR |
-| `/rewards`                        | GET    | 리워드 목록 조회          | 인증 필요       |
-| `/reward-requests/:requestId`     | PATCH  | 리워드 요청 상태 업데이트 | ADMIN, OPERATOR |
+| 엔드포인트                        | 메서드 | 설명                      | 권한                       |
+| --------------------------------- | ------ | ------------------------- | -------------------------- |
+| `/dashboard`                      | GET    | 대시보드 요약 데이터 조회 | ADMIN, OPERATOR, AUDITOR   |
+| `/dashboard/event-analytics`      | GET    | 이벤트 분석 데이터 조회   | ADMIN, OPERATOR, AUDITOR   |
+| `/dashboard/reward-analytics`     | GET    | 리워드 분석 데이터 조회   | ADMIN, OPERATOR, AUDITOR   |
+| `/dashboard/user-analytics`       | GET    | 사용자 분석 데이터 조회   | ADMIN, OPERATOR, AUDITOR   |
+| `/events`                         | POST   | 새 이벤트 생성            | ADMIN, OPERATOR            |
+| `/events`                         | GET    | 이벤트 목록 조회          | 인증 필요                  |
+| `/reward-requests`                | GET    | 리워드 요청 목록 조회     | 인증 필요                  |
+| `/events/:eventId/request-reward` | POST   | 이벤트 리워드 요청        | 인증 필요                  |
+| `/events/:eventId/rewards`        | GET    | 이벤트의 리워드 목록 조회 | 인증 필요                  |
+| `/events/:eventId/rewards`        | POST   | 이벤트에 리워드 추가      | ADMIN, OPERATOR            |
+| `/events/:eventId`                | GET    | 이벤트 상세 정보 조회     | 인증 필요                  |
+| `/rewards/:type`                  | POST   | 새 리워드 생성            | ADMIN, OPERATOR            |
+| `/rewards`                        | GET    | 리워드 목록 조회          | 인증 필요                  |
+| `/reward-requests/:requestId`     | PATCH  | 리워드 요청 상태 업데이트 | ADMIN, OPERATOR            |
 
 ## 인증 및 권한 제어 시스템
 
@@ -161,6 +161,7 @@ event-server/
 
 - **ADMIN**: 모든 기능에 접근 가능, 사용자 관리 및 시스템 설정 권한
 - **OPERATOR**: 이벤트 및 리워드 관리, 분석 대시보드 접근 권한
+- **AUDITOR**: 이벤트 및 리워드 데이터 조회, 분석 대시보드 열람 권한 (변경 권한 없음)
 - **USER**: 이벤트 참여 및 리워드 요청 권한
 
 권한은 `JwtAuthGuard`와 `RolesGuard`를 통해 구현되며, 엔드포인트에 접근 제어를 적용하기 위해 `@Roles()` 데코레이터를 사용합니다.
