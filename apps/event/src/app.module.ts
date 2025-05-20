@@ -13,6 +13,7 @@ import {
 } from './controllers';
 import { DatabaseModule } from './database/database.module';
 import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
+import { EventRepository } from './repositories';
 import { EventService, RewardRequestService, RewardService } from './services';
 
 @Module({
@@ -68,6 +69,7 @@ import { EventService, RewardRequestService, RewardService } from './services';
     }),
   ],
   providers: [
+    EventRepository,
     EventService,
     RewardRequestService,
     RewardService,

@@ -15,11 +15,11 @@ import {
   ItemReward,
   PointReward,
 } from '../../src/entities/reward.entity';
+import { EventRepository } from '../../src/repositories';
 import { EventService } from '../../src/services/event.service';
 import { RewardRequestService } from '../../src/services/reward-request.service';
 import { RewardService } from '../../src/services/reward.service';
 import { MockCacheModule } from './test.cache.module';
-
 @Module({})
 export class TestAppModule {
   static async forTest(
@@ -55,6 +55,7 @@ export class TestAppModule {
         EventService,
         RewardRequestService,
         RewardService,
+        EventRepository,
       ],
     };
   }

@@ -6,16 +6,14 @@ import {
   UpdateEventDto,
 } from '@libs/dtos';
 import { cachedToEntity, toObjectId } from '@libs/utils';
-import { EntityRepository, FilterQuery } from '@mikro-orm/core';
-import { InjectRepository } from '@mikro-orm/nestjs';
+import { FilterQuery } from '@mikro-orm/core';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Event } from '../entities/event.entity';
-
+import { EventRepository } from '../repositories';
 @Injectable()
 export class EventService {
   constructor(
-    @InjectRepository(Event)
-    private readonly eventRepository: EntityRepository<Event>,
+    private readonly eventRepository: EventRepository,
     private readonly cacheService: CacheService,
   ) {}
 
@@ -214,7 +212,7 @@ export class EventService {
     periodEnd,
     status,
   }: UpdateEventDto): Promise<Event> {
-    const event = await this.getEntityById({ id });
+    const event = await this.eventRepository.findByIdOrFail(toObjectId(id));
 
     if (name) {
       event.name = name;
@@ -249,23 +247,11 @@ export class EventService {
    * Delete an event
    */
   async deleteEvent({ id }: QueryByIdDto): Promise<void> {
-    const event = await this.getEntityById({ id });
+    const event = await this.eventRepository.findByIdOrFail(toObjectId(id));
     await this.eventRepository.getEntityManager().removeAndFlush(event);
 
     // Invalidate caches
     await this.cacheService.del(`events:${id}`);
     await this.cacheService.delByPattern('events:list:*');
-  }
-
-  private async getEntityById({ id }: QueryByIdDto): Promise<Event> {
-    const event = await this.eventRepository.findOne({
-      _id: toObjectId(id),
-    });
-
-    if (!event) {
-      throw new NotFoundException(`Event with ID ${id} not found`);
-    }
-
-    return event;
   }
 }

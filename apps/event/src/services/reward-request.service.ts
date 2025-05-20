@@ -1,3 +1,4 @@
+import { EventRepository } from '@/repositories';
 import {
   CreateRewardRequestDto,
   QueryByIdDto,
@@ -15,15 +16,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Event } from '../entities/event.entity';
 import { RewardRequest } from '../entities/reward-request.entity';
 @Injectable()
 export class RewardRequestService {
   constructor(
     @InjectRepository(RewardRequest)
     private readonly rewardRequestRepository: EntityRepository<RewardRequest>,
-    @InjectRepository(Event)
-    private readonly eventRepository: EntityRepository<Event>,
+    private readonly eventRepository: EventRepository,
   ) {}
 
   /**
@@ -34,7 +33,9 @@ export class RewardRequestService {
     eventId,
   }: CreateRewardRequestDto): Promise<RewardRequest> {
     // First verify the event exists
-    const event = await this.getEventById({ id: eventId });
+    const event = await this.eventRepository.findByIdOrFail(
+      toObjectId(eventId),
+    );
 
     // Check event is active
     const now = new Date();
@@ -163,17 +164,5 @@ export class RewardRequestService {
     await this.rewardRequestRepository.getEntityManager().flush();
 
     return rewardRequest;
-  }
-
-  private async getEventById({ id }: QueryByIdDto): Promise<Event> {
-    const event = await this.eventRepository.findOne({
-      _id: toObjectId(id),
-    });
-
-    if (!event) {
-      throw new NotFoundException(`Event with ID ${id} not found`);
-    }
-
-    return event;
   }
 }
