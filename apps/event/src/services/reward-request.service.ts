@@ -1,4 +1,4 @@
-import { EventRepository } from '@/repositories';
+import { EventReward } from '@/entities';
 import {
   CreateRewardRequestDto,
   QueryByIdDto,
@@ -22,7 +22,8 @@ export class RewardRequestService {
   constructor(
     @InjectRepository(RewardRequest)
     private readonly rewardRequestRepository: EntityRepository<RewardRequest>,
-    private readonly eventRepository: EventRepository,
+    @InjectRepository(EventReward)
+    private readonly eventRewardRepository: EntityRepository<EventReward>,
   ) {}
 
   /**
@@ -31,11 +32,26 @@ export class RewardRequestService {
   async createRewardRequest({
     userId,
     eventId,
+    rewardId,
   }: CreateRewardRequestDto): Promise<RewardRequest> {
     // First verify the event exists
-    const event = await this.eventRepository.findByIdOrFail(
-      toObjectId(eventId),
+    const eventReward = await this.eventRewardRepository.findOne(
+      {
+        event: { _id: toObjectId(eventId) },
+        reward: { _id: toObjectId(rewardId) },
+      },
+      {
+        populate: ['event', 'reward'],
+      },
     );
+
+    if (!eventReward) {
+      throw new NotFoundException(
+        `Reward with ID ${rewardId} not found for event with ID ${eventId}`,
+      );
+    }
+
+    const event = eventReward.event;
 
     // Check event is active
     const now = new Date();
@@ -51,7 +67,7 @@ export class RewardRequestService {
     const existingRequest = await this.rewardRequestRepository.findOne(
       {
         userId: toObjectId(userId),
-        event: toObjectId(eventId),
+        eventReward: eventReward,
       },
       {
         fields: ['_id'],
@@ -67,7 +83,7 @@ export class RewardRequestService {
     // Create the request
     const rewardRequest = this.rewardRequestRepository.create({
       userId: toObjectId(userId),
-      event: toObjectId(eventId),
+      eventReward,
       status: RewardRequestStatus.PENDING,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -87,7 +103,9 @@ export class RewardRequestService {
     try {
       const rewardRequest = await this.rewardRequestRepository.findOne(
         { _id: new ObjectId(id) },
-        { populate: ['event'] },
+        {
+          populate: ['eventReward', 'eventReward.reward', 'eventReward.event'],
+        },
       );
 
       if (!rewardRequest) {
@@ -123,7 +141,9 @@ export class RewardRequestService {
     }
 
     if (eventId) {
-      query.event = toObjectId(eventId);
+      query.eventReward = {
+        event: { _id: toObjectId(eventId) },
+      };
     }
 
     if (status) {
@@ -133,7 +153,7 @@ export class RewardRequestService {
     const [requests, total] = await this.rewardRequestRepository.findAndCount(
       query,
       {
-        populate: ['event'],
+        populate: ['eventReward', 'eventReward.reward', 'eventReward.event'],
         limit,
         offset: (page - 1) * limit,
       },
