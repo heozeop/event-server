@@ -9,10 +9,10 @@ import {
   Unique,
 } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
-import { Event } from './event.entity';
+import { EventReward } from './event-reward.entity';
 
 @Entity()
-@Unique({ properties: ['userId', 'event'] })
+@Unique({ properties: ['userId', 'eventReward'] })
 @Index({ properties: ['userId'] })
 @Index({ properties: ['status'] })
 @Index({ properties: ['createdAt'] })
@@ -24,16 +24,12 @@ export class RewardRequest implements RewardRequestEntity {
   @Index()
   userId!: ObjectId;
 
-  @ManyToOne(() => Event)
-  @Index()
-  event!: Event;
+  @ManyToOne(() => EventReward)
+  eventReward!: EventReward;
 
   @Property()
   @Index()
   status!: RewardRequestStatus;
-
-  @Property()
-  condition!: Record<string, any>;
 
   @Property()
   @Index()
