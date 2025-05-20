@@ -21,6 +21,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EventReward } from '../entities/event-reward.entity';
+import { Event } from '../entities/event.entity';
 import {
   BadgeReward,
   CouponReward,
@@ -28,7 +29,6 @@ import {
   PointReward,
   RewardBase,
 } from '../entities/reward.entity';
-import { EventService } from './event.service';
 @Injectable()
 export class RewardService {
   constructor(
@@ -43,7 +43,8 @@ export class RewardService {
     @InjectRepository(EventReward)
     private readonly eventRewardRepository: EntityRepository<EventReward>,
     private readonly em: EntityManager,
-    private readonly eventService: EventService,
+    @InjectRepository(Event)
+    private readonly eventRepository: EntityRepository<Event>,
     private readonly logger: PinoLoggerService,
   ) {}
 
@@ -158,7 +159,9 @@ export class RewardService {
     eventId,
     rewardId,
   }: CreateEventRewardDto): Promise<EventReward> {
-    const event = await this.eventService.getEventById({ id: eventId });
+    const event = await this.getEventById({
+      id: eventId,
+    });
     const reward = await this.getRewardById({ id: rewardId });
 
     // Check if this reward is already assigned to this event
@@ -190,7 +193,7 @@ export class RewardService {
    * Get rewards for an event
    */
   async getRewardsByEventId({ id }: QueryByIdDto): Promise<RewardBase[]> {
-    const isEventExist = await this.eventService.isEventExist({ id });
+    const isEventExist = await this.isEventExist({ id });
     if (!isEventExist) {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
@@ -228,5 +231,30 @@ export class RewardService {
     await this.eventRewardRepository
       .getEntityManager()
       .removeAndFlush(eventReward);
+  }
+
+  private async getEventById({ id }: QueryByIdDto): Promise<Event> {
+    const event = await this.eventRepository.findOne({
+      _id: toObjectId(id),
+    });
+
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${id} not found`);
+    }
+
+    return event;
+  }
+
+  private async isEventExist({ id }: QueryByIdDto): Promise<boolean> {
+    const event = await this.eventRepository.findOne(
+      {
+        _id: toObjectId(id),
+      },
+      {
+        fields: ['_id'],
+      },
+    );
+
+    return event !== null;
   }
 }
