@@ -1,11 +1,9 @@
 import { CacheModule } from '@libs/cache';
 import { MicroServiceExceptionModule } from '@libs/filter';
 import { LoggerModule } from '@libs/logger';
-import { QueueNames } from '@libs/message-broker';
 import { MetricsModule } from '@libs/metrics';
 import { PipeModule } from '@libs/pipe';
 import { MikroORM } from '@mikro-orm/core';
-import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
@@ -14,10 +12,7 @@ import {
   RewardRequestController,
 } from './controllers';
 import { DatabaseModule } from './database/database.module';
-import { EventPublisherService } from './events/event-publisher.service';
 import { RequestContextInterceptor } from './interceptors/request-context.interceptor';
-import { EventProcessor } from './processors/event.processor';
-import { RewardProcessor } from './processors/reward.processor';
 import { EventService, RewardRequestService, RewardService } from './services';
 
 @Module({
@@ -66,33 +61,6 @@ import { EventService, RewardRequestService, RewardService } from './services';
         enableLogging: configService.get('NODE_ENV') !== 'production',
       }),
     }),
-    // Register BullMQ queues using the standard NestJS BullModule
-    BullModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.get('REDIS_HOST', 'redis-data'),
-          port: configService.get('REDIS_PORT', 6379),
-          password: configService.get('REDIS_PASSWORD', undefined),
-        },
-        defaultJobOptions: {
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 1000,
-          },
-          removeOnComplete: true,
-          removeOnFail: false,
-        },
-      }),
-    }),
-    // Register the queues
-    BullModule.registerQueue(
-      { name: QueueNames.EVENT },
-      { name: QueueNames.REWARD },
-      { name: QueueNames.NOTIFICATION },
-    ),
     PipeModule,
     MetricsModule.forRoot({
       serviceName: 'event-service',
@@ -103,9 +71,6 @@ import { EventService, RewardRequestService, RewardService } from './services';
     EventService,
     RewardRequestService,
     RewardService,
-    EventProcessor,
-    RewardProcessor,
-    EventPublisherService,
     {
       provide: RequestContextInterceptor,
       useFactory: (orm: MikroORM) => {
