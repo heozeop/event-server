@@ -1,6 +1,10 @@
 import { EventService } from '@/services/event.service';
 import { EVENT_CMP } from '@libs/cmd';
-import { EventResponseDto, QueryByIdDto } from '@libs/dtos';
+import {
+  EventDetailResponseDto,
+  EventResponseDto,
+  QueryByIdDto,
+} from '@libs/dtos';
 import {
   CreateEventDto,
   QueryEventDto,
@@ -42,10 +46,11 @@ export class EventController {
   })
   async getEventById(
     @Payload() getEventByIdDto: QueryByIdDto,
-  ): Promise<EventResponseDto> {
-    const event = await this.eventService.getEventById(getEventByIdDto);
+  ): Promise<EventDetailResponseDto> {
+    const { event, eventRewards } =
+      await this.eventService.getEventById(getEventByIdDto);
 
-    return EventResponseDto.fromEntity(event);
+    return EventDetailResponseDto.fromEntity(event, eventRewards);
   }
 
   @EventPattern({ cmd: EVENT_CMP.GET_EVENTS })
