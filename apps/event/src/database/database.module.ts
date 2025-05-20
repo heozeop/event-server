@@ -7,6 +7,7 @@ import {
   PointReward,
   RewardRequest,
 } from '@/entities';
+import { CacheModule } from '@libs/cache';
 import { MongoDriver } from '@mikro-orm/mongodb';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
@@ -46,6 +47,19 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         BadgeReward,
         RewardRequest,
       ],
+    }),
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        redis: {
+          host: configService.get('REDIS_HOST', 'redis-data'),
+          port: configService.get('REDIS_PORT', 6379),
+          password: configService.get('REDIS_PASSWORD', undefined),
+          db: configService.get('REDIS_DB', 0),
+        },
+        enableLogging: configService.get('NODE_ENV') !== 'production',
+      }),
     }),
   ],
   exports: [MikroOrmModule],
