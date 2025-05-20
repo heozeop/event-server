@@ -17,7 +17,7 @@ export class Event implements EventEntity {
   name!: string;
 
   @Property()
-  condition!: Record<string, any>;
+  rewardCondition!: Record<string, any>;
 
   @Property()
   @Index()

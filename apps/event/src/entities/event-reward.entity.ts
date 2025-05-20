@@ -23,6 +23,12 @@ export class EventReward implements EventRewardEntity {
   reward!: RewardBase;
 
   @Property()
+  condition!: Record<string, any>;
+
+  @Property()
+  autoResolve!: boolean;
+
+  @Property()
   createdAt: Date = new Date();
 
   @Property({ onUpdate: () => new Date() })

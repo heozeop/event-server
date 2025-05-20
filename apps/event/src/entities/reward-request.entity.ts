@@ -33,6 +33,9 @@ export class RewardRequest implements RewardRequestEntity {
   status!: RewardRequestStatus;
 
   @Property()
+  condition!: Record<string, any>;
+
+  @Property()
   @Index()
   createdAt: Date = new Date();
 
