@@ -105,7 +105,7 @@ event-server/
 - **데이터베이스**: MongoDB, Redis
 - **통신 프로토콜**: TCP/IP (마이크로서비스 간)
 - **인증**: JWT (Access Token + HTTP-only Cookie Refresh Token)
-- **요청 제한**: Throttler (Redis-secure 기반 스토리지)
+- **요청 제한**: Throttler (Redis-data 기반 스토리지)
 - **문서화**: Swagger/OpenAPI
 - **모니터링**: Prometheus, Grafana, cAdvisor, Loki
 - **테스트**: Jest (단위 테스트, 통합 테스트), k6 (성능 테스트)
@@ -315,9 +315,10 @@ http://localhost:3333/docs
 
 - 주소:
   1. 데이터: `redis://redis-data:6379`
+     - Throttler 스토리지 (요청 제한 설정 및 카운트 저장)
+     - Event 캐싱 데이터 저장
   2. 토큰 등 중요 데이터: `redis://redis-secure:6379`
      - 인증 토큰 저장
-     - Throttler 스토리지 (요청 제한 설정 및 카운트 저장)
 
 db 인스턴스 자체를 분리한 이유는 아래와 같습니다:
 
