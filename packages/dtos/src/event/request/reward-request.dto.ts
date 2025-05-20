@@ -21,6 +21,14 @@ export class CreateRewardRequestDto {
   @IsMongoId()
   @IsNotEmpty()
   eventId!: string;
+
+  @ApiProperty({
+    description: "The ID of the reward for which the reward is requested",
+    example: "507f1f77bcf86cd799439013",
+  })
+  @IsMongoId()
+  @IsNotEmpty()
+  rewardId!: string;
 }
 
 /**

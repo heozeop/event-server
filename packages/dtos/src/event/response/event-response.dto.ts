@@ -24,13 +24,6 @@ export class EventResponseDto {
   name!: string;
 
   @ApiProperty({
-    description: "The conditions for the event",
-    example: { minPurchase: 1000, maxRewards: 1 },
-  })
-  @Expose()
-  condition!: Record<string, any>;
-
-  @ApiProperty({
     description: "The period of the event",
     example: {
       start: "2023-10-01T00:00:00Z",
@@ -64,7 +57,6 @@ export class EventResponseDto {
     Object.assign(dto, {
       id: event._id.toString(),
       name: event.name,
-      condition: event.condition,
       periodStart: event.periodStart,
       periodEnd: event.periodEnd ?? undefined,
       status: event.status,

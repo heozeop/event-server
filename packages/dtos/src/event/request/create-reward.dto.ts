@@ -2,11 +2,10 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   IsDate,
-  IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsPositive,
-  IsString,
+  IsString
 } from "class-validator";
 
 export class CreateRewardDto {
@@ -85,23 +84,4 @@ export class CreateBadgeRewardDto extends CreateRewardDto {
   @IsString()
   @IsNotEmpty()
   badgeId!: string;
-}
-
-/**
- * DTO for creating event rewards
- */
-export class CreateEventRewardDto {
-  @ApiProperty({
-    description: "The ID of the event for the reward",
-    example: "507f1f77bcf86cd799439011",
-  })
-  @IsMongoId()
-  eventId!: string;
-
-  @ApiProperty({
-    description: "The ID of the reward to add to the event",
-    example: "507f1f77bcf86cd799439012",
-  })
-  @IsMongoId()
-  rewardId!: string;
 }
