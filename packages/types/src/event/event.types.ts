@@ -6,7 +6,7 @@ import { CustomBaseEntity } from "../base.types";
  */
 export interface EventEntity extends CustomBaseEntity {
   name: string;
-  condition: Record<string, any>;
+  rewardCondition: Record<string, any>;
   periodStart: Date;
   periodEnd: Date | null;
   status: EventStatus;
