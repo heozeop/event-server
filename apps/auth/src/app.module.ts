@@ -54,7 +54,7 @@ import { UserService } from './services/user.service';
         privateKey: configService.get<string>('JWT_PRIVATE_KEY'),
         publicKey: configService.get<string>('JWT_PUBLIC_KEY'),
         signOptions: {
-          expiresIn: configService.get<number>('JWT_EXPIRES_IN_SECONDS', 3600),
+          expiresIn: configService.get<number>('JWT_EXPIRES_IN_SECONDS', 600),
           algorithm: 'RS256',
         },
       }),
