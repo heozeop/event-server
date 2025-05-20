@@ -1,11 +1,11 @@
-import { toObjectId } from '@/common/to-object-id';
-import { CacheService } from '@libs/cache';
+import { CachedEntity, CacheService } from '@libs/cache';
 import {
   CreateEventDto,
   QueryByIdDto,
   QueryEventDto,
   UpdateEventDto,
 } from '@libs/dtos';
+import { toEntity, toObjectId } from '@libs/utils';
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -53,15 +53,11 @@ export class EventService {
   async getEventById({ id }: QueryByIdDto): Promise<Event> {
     // Try to get from cache first
     const cacheKey = `events:${id}`;
-    const cachedEvent = await this.cacheService.get<
-      Omit<Event, '_id'> & { _id?: string; id?: string }
-    >(cacheKey);
+    const cachedEvent =
+      await this.cacheService.get<CachedEntity<Event>>(cacheKey);
 
     if (cachedEvent) {
-      return {
-        ...cachedEvent,
-        _id: toObjectId(cachedEvent._id ?? cachedEvent.id),
-      };
+      return toEntity(cachedEvent);
     }
 
     const event = await this.eventRepository.findOne({
@@ -81,9 +77,8 @@ export class EventService {
   async isEventExist({ id }: QueryByIdDto): Promise<boolean> {
     // Check cache first
     const cacheKey = `events:${id}`;
-    const cachedEvent = await this.cacheService.get<
-      Omit<Event, '_id'> & { _id?: string; id?: string }
-    >(cacheKey);
+    const cachedEvent =
+      await this.cacheService.get<CachedEntity<Event>>(cacheKey);
 
     if (cachedEvent) {
       return true;
@@ -121,7 +116,7 @@ export class EventService {
 
     // Try to get from cache first
     const cachedResult = await this.cacheService.get<{
-      events: (Omit<Event, '_id'> & { _id?: string; id?: string })[];
+      events: CachedEntity<Event>[];
       total: number;
       hasMore: boolean;
       nextCursor?: string;
@@ -129,10 +124,7 @@ export class EventService {
 
     if (cachedResult) {
       return {
-        events: cachedResult.events.map(({ id, _id, ...event }) => ({
-          ...event,
-          _id: toObjectId(_id ?? id),
-        })),
+        events: cachedResult.events.map(toEntity),
         total: cachedResult.total,
         hasMore: cachedResult.hasMore,
         nextCursor: cachedResult.nextCursor,

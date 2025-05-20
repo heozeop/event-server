@@ -1,4 +1,3 @@
-import { toObjectId } from '@/common/to-object-id';
 import {
   CreateBadgeRewardDto,
   CreateCouponRewardDto,
@@ -12,6 +11,7 @@ import {
 } from '@libs/dtos';
 import { RewardType } from '@libs/enums';
 import { PinoLoggerService } from '@libs/logger';
+import { toObjectId } from '@libs/utils';
 import { EntityManager, EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {

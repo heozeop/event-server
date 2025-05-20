@@ -1,0 +1,24 @@
+{
+  "name": "@libs/utils",
+  "version": "1.0.0",
+  "description": "Common utilities for NestJS applications",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "nestjs",
+    "utils"
+  ],
+  "author": "heozeop",
+  "license": "ISC",
+  "peerDependencies": {
+    "@nestjs/common": "^11.1.1",
+    "@nestjs/core": "^11.1.1"
+  },
+  "dependencies": {
+    "@libs/cache": "workspace:*",
+    "@libs/types": "workspace:*"
+  }
+}

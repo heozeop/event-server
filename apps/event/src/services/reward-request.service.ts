@@ -1,4 +1,3 @@
-import { toObjectId } from '@/common/to-object-id';
 import {
   CreateRewardRequestDto,
   QueryByIdDto,
@@ -6,6 +5,7 @@ import {
   UpdateRewardRequestStatusDto,
 } from '@libs/dtos';
 import { EventStatus, RewardRequestStatus } from '@libs/enums';
+import { toObjectId } from '@libs/utils';
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 import { InjectRepository } from '@mikro-orm/nestjs';

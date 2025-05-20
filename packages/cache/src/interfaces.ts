@@ -19,3 +19,5 @@ export interface CacheModuleAsyncOptions
 export interface CacheOptionsFactory {
   createCacheOptions(): Promise<CacheModuleOptions> | CacheModuleOptions;
 }
+
+export type CachedEntity<T> = Omit<T, "_id"> & { _id?: string; id?: string };
