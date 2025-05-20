@@ -5,7 +5,7 @@ import {
   QueryEventDto,
   UpdateEventDto,
 } from '@libs/dtos';
-import { toEntity, toObjectId } from '@libs/utils';
+import { cachedToEntity, toObjectId } from '@libs/utils';
 import { EntityRepository, FilterQuery } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -57,7 +57,7 @@ export class EventService {
       await this.cacheService.get<CachedEntity<Event>>(cacheKey);
 
     if (cachedEvent) {
-      return toEntity(cachedEvent);
+      return cachedToEntity(Event, cachedEvent);
     }
 
     const event = await this.eventRepository.findOne({
@@ -124,7 +124,9 @@ export class EventService {
 
     if (cachedResult) {
       return {
-        events: cachedResult.events.map(toEntity),
+        events: cachedResult.events.map((event) =>
+          cachedToEntity(Event, event),
+        ),
         total: cachedResult.total,
         hasMore: cachedResult.hasMore,
         nextCursor: cachedResult.nextCursor,
