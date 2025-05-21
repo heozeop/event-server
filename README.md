@@ -138,14 +138,18 @@ event-server/
 | `/dashboard/user-analytics`       | GET    | 사용자 분석 데이터 조회   | ADMIN, OPERATOR, AUDITOR   |
 | `/events`                         | POST   | 새 이벤트 생성            | ADMIN, OPERATOR            |
 | `/events`                         | GET    | 이벤트 목록 조회          | 인증 필요                  |
-| `/reward-requests`                | GET    | 리워드 요청 목록 조회     | 인증 필요                  |
-| `/events/:eventId/request-reward` | POST   | 이벤트 리워드 요청        | 인증 필요                  |
+| `/events/requests/mine`           | GET    | 내 리워드 요청 목록 조회   | 인증 필요                  |
+| `/events/requests`                | GET    | 리워드 요청 목록 조회     | ADMIN, OPERATOR, AUDITOR   |
+| `/events/:eventId/requests`       | POST   | 이벤트 리워드 요청        | 인증 필요                  |
 | `/events/:eventId/rewards`        | GET    | 이벤트의 리워드 목록 조회 | 인증 필요                  |
 | `/events/:eventId/rewards`        | POST   | 이벤트에 리워드 추가      | ADMIN, OPERATOR            |
+| `/events/:eventId/rewards/:rewardId` | DELETE | 이벤트에서 리워드 제거  | ADMIN, OPERATOR            |
 | `/events/:eventId`                | GET    | 이벤트 상세 정보 조회     | 인증 필요                  |
+| `/events/:eventId`                | PATCH  | 이벤트 업데이트           | ADMIN, OPERATOR            |
+| `/events/:eventId`                | DELETE | 이벤트 삭제               | ADMIN                      |
 | `/rewards/:type`                  | POST   | 새 리워드 생성            | ADMIN, OPERATOR            |
-| `/rewards`                        | GET    | 리워드 목록 조회          | 인증 필요                  |
-| `/reward-requests/:requestId`     | PATCH  | 리워드 요청 상태 업데이트 | ADMIN, OPERATOR            |
+| `/rewards`                        | GET    | 리워드 목록 조회          | ADMIN, OPERATOR            |
+| `/events/requests/:requestId`     | PATCH  | 리워드 요청 상태 업데이트 | ADMIN, OPERATOR            |
 
 ## 인증 및 권한 제어 시스템
 
