@@ -70,6 +70,14 @@ export class RewardService {
    * Create a coupon reward
    */
   async createCouponReward(dto: CreateCouponRewardDto): Promise<CouponReward> {
+    if (dto.expiry) {
+      const expiryDate = new Date(dto.expiry);
+
+      if (expiryDate < new Date()) {
+        throw new BadRequestException('Expiry date must be in the future');
+      }
+    }
+
     const reward = new CouponReward(dto.name, dto.couponCode, dto.expiry);
     await this.couponRewardRepository
       .getEntityManager()

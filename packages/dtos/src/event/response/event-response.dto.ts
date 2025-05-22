@@ -21,6 +21,16 @@ export class EventRewardBaseDto {
   name!: string;
 
   @ApiProperty({
+    description: "The condition of the event reward",
+    example: {
+      minUserAge: 13,
+      maxUserAge: 19,
+    },
+  })
+  @Expose()
+  rewardCondition!: Record<string, unknown>;
+
+  @ApiProperty({
     description: "The period of the event",
     example: {
       start: "2023-10-01T00:00:00Z",
@@ -63,6 +73,7 @@ export class EventResponseDto extends EventRewardBaseDto {
       periodStart: event.periodStart,
       periodEnd: event.periodEnd ?? undefined,
       status: event.status,
+      rewardCondition: event.rewardCondition,
     });
 
     return dto;
@@ -89,6 +100,7 @@ export class EventDetailResponseDto extends EventRewardBaseDto {
       periodStart: event.periodStart,
       periodEnd: event.periodEnd ?? undefined,
       status: event.status,
+      rewardCondition: event.rewardCondition,
       eventRewards: eventRewards.map((eventReward) =>
         EventRewardResponseDto.fromEntity(eventReward),
       ),

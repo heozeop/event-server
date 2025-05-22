@@ -266,7 +266,7 @@ export class EventController {
   })
   @ApiParam({ name: 'eventId', description: 'ID of the event' })
   @ApiResponse({
-    status: 204,
+    status: 201,
     description: 'Reward added to event successfully',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
