@@ -3,6 +3,7 @@ import { EVENT_CMP } from '@libs/cmd';
 import { CurrentUser } from '@libs/decorator';
 import {
   CreateEventDto,
+  CreateEventRewardDto,
   CreateRewardDto,
   CreateRewardRequestDto,
   EventResponseDto,
@@ -94,6 +95,7 @@ export class EventController {
   @ApiQuery({ type: QueryEventDto })
   @ApiResponse({ status: 200, description: 'Events retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @HttpCode(200)
   @LogExecution({
     entryLevel: 'log',
     exitLevel: 'log',
@@ -121,6 +123,7 @@ export class EventController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
+  @HttpCode(200)
   @LogExecution({
     entryLevel: 'log',
     exitLevel: 'log',
@@ -200,6 +203,7 @@ export class EventController {
     status: 201,
     description: 'Reward request successfully created',
   })
+  @HttpCode(HttpStatus.CREATED)
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @LogExecution({
     entryLevel: 'log',
@@ -227,6 +231,7 @@ export class EventController {
   @ApiParam({ name: 'eventId', description: 'ID of the event' })
   @ApiResponse({ status: 200, description: 'Rewards retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @HttpCode(200)
   @LogExecution({
     entryLevel: 'log',
     exitLevel: 'log',
@@ -275,16 +280,15 @@ export class EventController {
     entryMessage: 'Adding reward to event',
     exitMessage: 'Reward added to event',
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   async addRewardToEvent(
     @Param('eventId') eventId: string,
-    @Body('rewardId') rewardId: string,
+    @Body() body: Omit<CreateEventRewardDto, 'eventId'>,
   ): Promise<void> {
     await lastValueFrom(
-      this.eventClient.send(
-        { cmd: EVENT_CMP.ADD_REWARD_TO_EVENT },
-        { eventId, rewardId },
-      ),
+      this.eventClient.send({ cmd: EVENT_CMP.ADD_REWARD_TO_EVENT }, {
+        eventId,
+        ...body,
+      } satisfies CreateEventRewardDto),
     );
   }
 
@@ -304,6 +308,7 @@ export class EventController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
+  @HttpCode(HttpStatus.OK)
   @LogExecution({
     entryLevel: 'log',
     exitLevel: 'log',
@@ -339,13 +344,13 @@ export class EventController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
+  @HttpCode(HttpStatus.NO_CONTENT)
   @LogExecution({
     entryLevel: 'log',
     exitLevel: 'log',
     entryMessage: 'Removing reward from event',
     exitMessage: 'Reward removed from event',
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   async removeRewardFromEvent(
     @Param('eventId') eventId: string,
     @Param('rewardId') rewardId: string,
@@ -421,13 +426,13 @@ export class EventController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
+  @HttpCode(HttpStatus.NO_CONTENT)
   @LogExecution({
     entryLevel: 'log',
     exitLevel: 'log',
     entryMessage: 'Deleting event',
     exitMessage: 'Event deleted',
   })
-  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteEvent(@Param('eventId') eventId: string): Promise<void> {
     await lastValueFrom(
       this.eventClient.send({ cmd: EVENT_CMP.REMOVE_EVENT }, {

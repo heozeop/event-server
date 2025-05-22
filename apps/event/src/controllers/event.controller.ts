@@ -95,7 +95,9 @@ export class EventController {
     entryMessage: 'Removing event',
     exitMessage: 'Event removed',
   })
-  async removeEvent(@Payload() removeEventDto: QueryByIdDto): Promise<void> {
+  async removeEvent(@Payload() removeEventDto: QueryByIdDto): Promise<boolean> {
     await this.eventService.deleteEvent(removeEventDto);
+
+    return true;
   }
 }

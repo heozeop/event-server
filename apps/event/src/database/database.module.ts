@@ -8,6 +8,7 @@ import {
   RewardRequest,
 } from '@/entities';
 import { CacheModule } from '@libs/cache';
+import { LoggerModule } from '@libs/logger';
 import { MongoDriver } from '@mikro-orm/mongodb';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { Module } from '@nestjs/common';
@@ -49,7 +50,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       ],
     }),
     CacheModule.registerAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule, LoggerModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         redis: {
@@ -62,6 +63,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
   ],
-  exports: [MikroOrmModule],
+  exports: [MikroOrmModule, CacheModule],
 })
 export class DatabaseModule {}

@@ -119,8 +119,10 @@ export class RewardController {
   })
   async removeRewardFromEvent(
     @Payload() { eventId, rewardId }: { eventId: string; rewardId: string },
-  ): Promise<void> {
+  ): Promise<boolean> {
     await this.rewardService.removeRewardFromEvent({ eventId, rewardId });
+
+    return true;
   }
 
   @EventPattern({ cmd: EVENT_CMP.GET_REWARDS_BY_EVENT_ID })
