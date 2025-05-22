@@ -13,9 +13,6 @@ import { EventReward } from './event-reward.entity';
 
 @Entity()
 @Unique({ properties: ['userId', 'eventReward'] })
-@Index({ properties: ['userId'] })
-@Index({ properties: ['status'] })
-@Index({ properties: ['createdAt'] })
 export class RewardRequest implements RewardRequestEntity {
   @PrimaryKey()
   _id!: ObjectId;
