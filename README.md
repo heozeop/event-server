@@ -119,37 +119,35 @@ event-server/
 
 | 엔드포인트              | 메서드 | 설명                                                        | 권한      |
 | ----------------------- | ------ | ----------------------------------------------------------- | --------- |
-| `/auth/test`            | GET    | 서비스 상태 확인                                            | 모두      |
 | `/auth/login`           | POST   | 사용자 로그인 (refresh token을 HTTP-only 쿠키로 반환)       | 모두      |
 | `/auth/refresh`         | POST   | HTTP-only 쿠키의 refresh token을 사용하여 access token 갱신 | 모두      |
 | `/auth/me`              | GET    | 현재 로그인한 사용자 정보 조회                              | 인증 필요 |
 | `/auth/users`           | POST   | 새 사용자 생성                                              | 모두      |
 | `/auth/users/email`     | GET    | 이메일로 사용자 조회                                        | ADMIN     |
 | `/auth/users/:id`       | GET    | ID로 사용자 조회                                            | ADMIN     |
-| `/auth/users/:id/roles` | PATCH  | 사용자 역할 업데이트                                        | ADMIN     |
+| `/auth/users/:id/roles` | PUT    | 사용자 역할 업데이트                                        | ADMIN     |
 
 ### 이벤트 및 리워드 API
 
-| 엔드포인트                        | 메서드 | 설명                      | 권한                       |
-| --------------------------------- | ------ | ------------------------- | -------------------------- |
-| `/dashboard`                      | GET    | 대시보드 요약 데이터 조회 | ADMIN, OPERATOR, AUDITOR   |
-| `/dashboard/event-analytics`      | GET    | 이벤트 분석 데이터 조회   | ADMIN, OPERATOR, AUDITOR   |
-| `/dashboard/reward-analytics`     | GET    | 리워드 분석 데이터 조회   | ADMIN, OPERATOR, AUDITOR   |
-| `/dashboard/user-analytics`       | GET    | 사용자 분석 데이터 조회   | ADMIN, OPERATOR, AUDITOR   |
-| `/events`                         | POST   | 새 이벤트 생성            | ADMIN, OPERATOR            |
-| `/events`                         | GET    | 이벤트 목록 조회          | 인증 필요                  |
-| `/events/requests/mine`           | GET    | 내 리워드 요청 목록 조회   | 인증 필요                  |
-| `/events/requests`                | GET    | 리워드 요청 목록 조회     | ADMIN, OPERATOR, AUDITOR   |
-| `/events/:eventId/requests`       | POST   | 이벤트 리워드 요청        | 인증 필요                  |
-| `/events/:eventId/rewards`        | GET    | 이벤트의 리워드 목록 조회 | 인증 필요                  |
-| `/events/:eventId/rewards`        | POST   | 이벤트에 리워드 추가      | ADMIN, OPERATOR            |
-| `/events/:eventId/rewards/:rewardId` | DELETE | 이벤트에서 리워드 제거  | ADMIN, OPERATOR            |
-| `/events/:eventId`                | GET    | 이벤트 상세 정보 조회     | 인증 필요                  |
-| `/events/:eventId`                | PATCH  | 이벤트 업데이트           | ADMIN, OPERATOR            |
-| `/events/:eventId`                | DELETE | 이벤트 삭제               | ADMIN                      |
-| `/rewards/:type`                  | POST   | 새 리워드 생성            | ADMIN, OPERATOR            |
-| `/rewards`                        | GET    | 리워드 목록 조회          | ADMIN, OPERATOR            |
-| `/events/requests/:requestId`     | PATCH  | 리워드 요청 상태 업데이트 | ADMIN, OPERATOR            |
+| 엔드포인트                             | 메서드 | 설명                                | 권한                       |
+| -------------------------------------- | ------ | ----------------------------------- | -------------------------- |
+| `/events`                              | POST   | 새 이벤트 생성                       | ADMIN, OPERATOR            |
+| `/events`                              | GET    | 이벤트 목록 조회                     | 인증 필요                  |
+| `/events/requests/mine`                | GET    | 내 리워드 요청 목록 조회             | 인증 필요                  |
+| `/events/requests`                     | GET    | 리워드 요청 목록 조회                | ADMIN, OPERATOR, AUDITOR   |
+| `/events/requests/:requestId`          | GET    | 리워드 요청 상세 정보 조회           | 인증 필요                  |
+| `/events/requests/:requestId`          | PATCH  | 리워드 요청 상태 업데이트            | ADMIN, OPERATOR            |
+| `/events/:eventId/requests/:rewardId`  | POST   | 이벤트 리워드 요청                  | 인증 필요                  |
+| `/events/:eventId/rewards`             | GET    | 이벤트의 리워드 목록 조회           | 인증 필요                  |
+| `/events/:eventId/rewards`             | POST   | 이벤트에 리워드 추가                | ADMIN, OPERATOR            |
+| `/events/:eventId/rewards/:rewardId`   | PATCH  | 이벤트의 리워드 업데이트            | ADMIN, OPERATOR            |
+| `/events/:eventId/rewards/:rewardId`   | DELETE | 이벤트에서 리워드 제거              | ADMIN, OPERATOR            |
+| `/events/:eventId`                     | GET    | 이벤트 상세 정보 조회               | 인증 필요                  |
+| `/events/:eventId`                     | PATCH  | 이벤트 업데이트                     | ADMIN, OPERATOR            |
+| `/events/:eventId`                     | DELETE | 이벤트 삭제                         | ADMIN                      |
+| `/rewards/:type`                       | POST   | 새 리워드 생성                      | ADMIN, OPERATOR            |
+| `/rewards`                             | GET    | 리워드 목록 조회                    | ADMIN, OPERATOR            |
+| `/rewards/:rewardId`                   | GET    | 리워드 상세 정보 조회               | ADMIN, OPERATOR            |
 
 ## 인증 및 권한 제어 시스템
 
