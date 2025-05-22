@@ -1,4 +1,5 @@
-import { EventStatus, RewardType, Role } from "@libs/enums";
+import { CreateEventDto, UpdateEventDto } from '@libs/dtos';
+import { EventStatus, RewardRequestStatus, RewardType, Role } from "@libs/enums";
 import request from "supertest";
 
 describe("OPERATOR Use Cases", () => {
@@ -7,6 +8,7 @@ describe("OPERATOR Use Cases", () => {
   let operatorId: string;
   let eventId: string;
   let rewardId: string;
+  let requestId: string;
 
   // Operator credentials
   const operatorCredentials = {
@@ -21,7 +23,7 @@ describe("OPERATOR Use Cases", () => {
       .post("/auth/login")
       .send(operatorCredentials);
 
-    expect(loginResponse.status).toBe(201);
+    expect(loginResponse.status).toBe(200);
     expect(loginResponse.body).toHaveProperty("accessToken");
     expect(loginResponse.body).toHaveProperty("user.roles");
     expect(loginResponse.body.user.roles).toContain(Role.OPERATOR);
@@ -37,7 +39,7 @@ describe("OPERATOR Use Cases", () => {
         .post("/auth/login")
         .send(operatorCredentials);
 
-      expect(response.status).toBe(201);
+      expect(response.status).toBe(200);
       expect(response.body).toHaveProperty("accessToken");
       expect(response.body.user.roles).toContain(Role.OPERATOR);
 
@@ -66,14 +68,14 @@ describe("OPERATOR Use Cases", () => {
 
       const newEvent = {
         name: "여름 방학 특별 이벤트",
-        condition: {
+        rewardCondition: {
           minUserAge: 13,
           maxUserAge: 19,
         },
-        periodStart: today.toISOString(),
-        periodEnd: nextMonth.toISOString(),
+        periodStart: today,
+        periodEnd: nextMonth,
         status: EventStatus.ACTIVE,
-      };
+      } satisfies CreateEventDto;
 
       const response = await request(baseUrl)
         .post("/events")
@@ -102,7 +104,6 @@ describe("OPERATOR Use Cases", () => {
       const event = response.body.items[0];
       expect(event).toHaveProperty("id");
       expect(event).toHaveProperty("name");
-      expect(event).toHaveProperty("condition");
       expect(event).toHaveProperty("periodStart");
       expect(event).toHaveProperty("periodEnd");
       expect(event).toHaveProperty("status");
@@ -116,15 +117,60 @@ describe("OPERATOR Use Cases", () => {
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty("id", eventId);
       expect(response.body).toHaveProperty("name");
-      expect(response.body).toHaveProperty("condition");
       expect(response.body).toHaveProperty("periodStart");
       expect(response.body).toHaveProperty("periodEnd");
       expect(response.body).toHaveProperty("status");
+    });
+
+    it("should update an event", async () => {
+      const updateData = {
+        name: "Updated Event Name",
+        rewardCondition: {
+          minUserAge: 13,
+          maxUserAge: 19,
+        },
+        periodStart: new Date(),
+        periodEnd: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 30),
+        status: EventStatus.ACTIVE,
+      } satisfies Omit<UpdateEventDto, 'id'>;
+
+      const response = await request(baseUrl)
+        .patch(`/events/${eventId}`)
+        .set("Authorization", `Bearer ${operatorToken}`)
+        .send(updateData);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("id", eventId);
+      expect(response.body).toHaveProperty("name", updateData.name);
+      expect(response.body).toHaveProperty("rewardCondition", updateData.rewardCondition);
+      expect(response.body).toHaveProperty("periodStart", updateData.periodStart.toISOString());
+      expect(response.body).toHaveProperty("periodEnd", updateData.periodEnd.toISOString());
+      expect(response.body).toHaveProperty("status", updateData.status);
     });
   });
 
   // Test reward management
   describe("Reward Management", () => {
+    it("should create a point reward", async () => {
+      const pointReward = {
+        name: "Point Reward",
+        description: "Test point reward",
+        points: 1000
+      };
+
+      const response = await request(baseUrl)
+        .post("/rewards/POINT")
+        .set("Authorization", `Bearer ${operatorToken}`)
+        .send(pointReward);
+
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty("id");
+      expect(response.body).toHaveProperty("type", RewardType.POINT);
+      expect(response.body).toHaveProperty("points", pointReward.points);
+
+      rewardId = response.body.id;
+    });
+
     it("should create a coupon reward", async () => {
       const today = new Date();
       const nextMonth = new Date(today);
@@ -132,6 +178,7 @@ describe("OPERATOR Use Cases", () => {
 
       const couponReward = {
         name: "SUMMER2023",
+        description: "Summer coupon",
         couponCode: "SUMMER2023",
         expiry: nextMonth.toISOString(),
       };
@@ -144,12 +191,7 @@ describe("OPERATOR Use Cases", () => {
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty("id");
       expect(response.body).toHaveProperty("type", RewardType.COUPON);
-      expect(response.body).toHaveProperty(
-        "couponCode",
-        couponReward.couponCode,
-      );
-
-      rewardId = response.body.id;
+      expect(response.body).toHaveProperty("couponCode", couponReward.couponCode);
     });
 
     it("should get list of rewards", async () => {
@@ -163,17 +205,29 @@ describe("OPERATOR Use Cases", () => {
       expect(response.body).toHaveProperty("totalItems");
     });
 
+    it("should get a specific reward", async () => {
+      const response = await request(baseUrl)
+        .get(`/rewards/${rewardId}`)
+        .set("Authorization", `Bearer ${operatorToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("id", rewardId);
+      expect(response.body).toHaveProperty("type");
+    });
+
     it("should add reward to event", async () => {
       const response = await request(baseUrl)
         .post(`/events/${eventId}/rewards`)
         .set("Authorization", `Bearer ${operatorToken}`)
         .send({
           rewardId: rewardId,
+          condition: {
+            minPurchase: 10000,
+          },
+          autoResolve: true,
         });
 
-      // The API appears to have an internal error with this endpoint
-      // It could be a 201 on success or 500 on error
-      expect([201, 500]).toContain(response.status);
+      expect(response.status).toBe(201);
     });
 
     it("should get rewards for a specific event", async () => {
@@ -184,20 +238,108 @@ describe("OPERATOR Use Cases", () => {
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body)).toBe(true);
 
-      // Don't check the length if test data might not be present
-      if (response.body.length > 0) {
-        const addedReward = response.body.find(
-          (reward: any) => reward.id === rewardId,
-        );
-        if (addedReward) {
-          expect(addedReward.type).toBe(RewardType.COUPON);
+      // Now we should have at least one reward
+      expect(response.body.length).toBeGreaterThan(0);
+      const addedReward = response.body.find(
+        (eventReward: any) => eventReward.reward.id === rewardId,
+      );
+      expect(addedReward).toBeDefined();
+      expect(addedReward.reward.type).toBe(RewardType.POINT);
+    });
+
+    it("should update a reward in an event", async () => {
+      const updateData = {
+        condition: {
+          minPurchase: 5000
         }
-      }
+      };
+
+      const response = await request(baseUrl)
+        .patch(`/events/${eventId}/rewards/${rewardId}`)
+        .set("Authorization", `Bearer ${operatorToken}`)
+        .send(updateData);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("event.id", eventId);
+      expect(response.body).toHaveProperty("reward.id", rewardId);
+      expect(response.body).toHaveProperty("condition", updateData.condition);
+      expect(response.body).toHaveProperty("condition", updateData.condition);
+    });
+
+    it("should remove a reward from an event", async () => {
+      // First, we need a second reward to add and then remove
+      // Create another reward
+      const anotherReward = {
+        name: "Temporary Reward",
+        description: "To be removed",
+        points: 500
+      };
+
+      const createResponse = await request(baseUrl)
+        .post("/rewards/POINT")
+        .set("Authorization", `Bearer ${operatorToken}`)
+        .send(anotherReward)
+        .expect(201);
+
+      const tempRewardId = createResponse.body.id;
+
+      // Add it to the event
+      await request(baseUrl)
+        .post(`/events/${eventId}/rewards`)
+        .set("Authorization", `Bearer ${operatorToken}`)
+        .send({
+          rewardId: tempRewardId,
+          condition: {
+            minPurchase: 10000,
+          },
+          autoResolve: true,
+        })
+        .expect(201);
+
+      // Now remove it
+      const response = await request(baseUrl)
+        .delete(`/events/${eventId}/rewards/${tempRewardId}`)
+        .set("Authorization", `Bearer ${operatorToken}`);
+
+      expect(response.status).toBe(204);
     });
   });
 
   // Test reward request management
   describe("Reward Request Management", () => {
+    // Create a test user and have them request a reward
+    let testUserToken: string;
+    
+    beforeAll(async () => {
+      // Create a test user
+      const email = `testuser${Date.now()}@example.com`;
+      const password = "testuser1234";
+      
+      await request(baseUrl)
+        .post("/auth/users")
+        .send({
+          email,
+          password
+        });
+        
+      // Login as the test user
+      const loginResponse = await request(baseUrl)
+        .post("/auth/login")
+        .send({
+          email,
+          password
+        });
+        
+      testUserToken = loginResponse.body.accessToken;
+      
+      // Have the test user request a reward
+      const requestResponse = await request(baseUrl)
+        .post(`/events/${eventId}/requests/${rewardId}`)
+        .set("Authorization", `Bearer ${testUserToken}`);
+        
+      requestId = requestResponse.body.id;
+    });
+
     it("should get all reward requests", async () => {
       const response = await request(baseUrl)
         .get("/events/requests")
@@ -224,6 +366,29 @@ describe("OPERATOR Use Cases", () => {
           expect(request.status).toBe("PENDING");
         });
       }
+    });
+
+    it("should get a specific reward request", async () => {
+      const response = await request(baseUrl)
+        .get(`/events/requests/${requestId}`)
+        .set("Authorization", `Bearer ${operatorToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("id", requestId);
+      expect(response.body).toHaveProperty("status");
+    });
+
+    it("should update a reward request status", async () => {
+      const response = await request(baseUrl)
+        .patch(`/events/requests/${requestId}`)
+        .set("Authorization", `Bearer ${operatorToken}`)
+        .send({
+          status: RewardRequestStatus.APPROVED
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("id", requestId);
+      expect(response.body).toHaveProperty("status", RewardRequestStatus.APPROVED);
     });
   });
 
@@ -270,7 +435,7 @@ describe("OPERATOR Use Cases", () => {
         password: "regular1234",
       });
 
-      expect(loginResponse.status).toBe(201);
+      expect(loginResponse.status).toBe(200);
       const regularUserToken = loginResponse.body.accessToken;
 
       // Try to create event as regular user
@@ -326,8 +491,7 @@ describe("OPERATOR Use Cases", () => {
         .set("Authorization", `Bearer ${operatorToken}`)
         .send(invalidEvent);
 
-      // The API might be permissive and accept this, so allow both outcomes
-      expect([400, 201]).toContain(response.status);
+      expect(response.status).toBe(400);
     });
 
     it("should reject event with missing required fields", async () => {
@@ -373,6 +537,25 @@ describe("OPERATOR Use Cases", () => {
       expect(response.status).toBe(400);
     });
 
+    it("should reject adding already expired coupon reward", async () => {
+      const pastDate = new Date();
+      pastDate.setFullYear(pastDate.getFullYear() - 1); // Set to 1 year ago
+      
+      const expiredCoupon = {
+        name: "Expired Coupon",
+        description: "This coupon has already expired",
+        couponCode: "EXPIRED2023",
+        expiry: pastDate.toISOString(),
+      };
+
+      const response = await request(baseUrl)
+        .post("/rewards/COUPON")
+        .set("Authorization", `Bearer ${operatorToken}`)
+        .send(expiredCoupon);
+
+      expect(response.status).toBe(400);
+    });
+
     it("should prevent adding the same reward to an event twice", async () => {
       // Try to add the same reward again
       const response = await request(baseUrl)
@@ -380,11 +563,13 @@ describe("OPERATOR Use Cases", () => {
         .set("Authorization", `Bearer ${operatorToken}`)
         .send({
           rewardId: rewardId,
+          condition: {
+            minPurchase: 10000,
+          },
+          autoResolve: true,
         });
 
-      // This could be either 409 (if the API properly handles the case)
-      // or 500 (if there's an internal error)
-      expect([409, 500]).toContain(response.status);
+      expect(response.status).toBe(409);
     });
   });
 });
