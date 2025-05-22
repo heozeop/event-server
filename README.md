@@ -331,6 +331,134 @@ db 인스턴스 자체를 분리한 이유는 아래와 같습니다:
 4. 현재 개발한 버전은 굳이 비용을 걱정할 필요가 없습니다.
 5. 인스턴스 사양이 달라야 할 수 있습니다.
 
+### 엔티티 관계도 (ERD)
+
+시스템의 주요 엔티티와 그들 간의 관계는 다음과 같습니다:
+
+```mermaid
+erDiagram
+    User {
+        ObjectId _id PK
+        string email UK
+        string passwordHash
+        Role[] roles
+        Date createdAt
+        Date updatedAt
+    }
+
+    UserToken {
+        ObjectId _id PK
+        ObjectId userId FK
+        string refreshToken
+        TokenStatus status
+        Date revokedAt
+        Date expiresAt
+        Date createdAt
+    }
+
+    Event {
+        ObjectId _id PK
+        string name
+        Object rewardCondition
+        Date periodStart
+        Date periodEnd
+        EventStatus status
+        Date createdAt
+        Date updatedAt
+    }
+
+    RewardBase {
+        ObjectId _id PK
+        RewardType type
+        string name
+        Date createdAt
+        Date updatedAt
+    }
+
+    PointReward {
+        ObjectId _id PK
+        number points
+        RewardType type
+        string name
+        Date createdAt
+        Date updatedAt
+    }
+
+    ItemReward {
+        ObjectId _id PK
+        string itemId
+        number quantity
+        RewardType type
+        string name
+        Date createdAt
+        Date updatedAt
+    }
+
+    CouponReward {
+        ObjectId _id PK
+        string couponCode
+        Date expiry
+        RewardType type
+        string name
+        Date createdAt
+        Date updatedAt
+    }
+
+    BadgeReward {
+        ObjectId _id PK
+        string badgeId
+        RewardType type
+        string name
+        Date createdAt
+        Date updatedAt
+    }
+
+    EventReward {
+        ObjectId _id PK
+        ObjectId event_id FK
+        ObjectId reward_id FK
+        Object condition
+        boolean autoResolve
+        Date createdAt
+        Date updatedAt
+    }
+
+    RewardRequest {
+        ObjectId _id PK
+        ObjectId userId FK
+        ObjectId eventReward_id FK
+        RewardRequestStatus status
+        Date createdAt
+        Date updatedAt
+    }
+
+    User ||--o{ UserToken : "has"
+    Event ||--o{ EventReward : "offers"
+    RewardBase ||--o{ EventReward : "assigned to"
+    EventReward ||--o{ RewardRequest : "requested by user"
+    User ||--o{ RewardRequest : "requests"
+```
+
+#### 주요 엔티티 설명
+
+1. **User**: 시스템 사용자 정보를 저장합니다.
+   - 역할(roles)에 따라 다른 권한을 가집니다(USER, ADMIN, OPERATOR, AUDITOR).
+
+2. **UserToken**: 사용자 인증 토큰 정보를 저장합니다.
+   - 리프레시 토큰 관리에 사용됩니다.
+
+3. **Event**: 이벤트 정보를 저장합니다.
+   - 이벤트 기간, 상태 및 보상 조건을 포함합니다.
+
+4. **RewardBase**: 모든 리워드의 기본 클래스입니다.
+   - 포인트, 아이템, 쿠폰, 배지 등 다양한 리워드 유형이 있습니다.
+
+5. **EventReward**: 이벤트와 리워드 간의 연결을 저장합니다.
+   - 특정 이벤트에서 얻을 수 있는 리워드와 조건을 정의합니다.
+
+6. **RewardRequest**: 사용자의 리워드 요청 정보를 저장합니다.
+   - 요청 상태(대기중, 승인됨, 거부됨)를 관리합니다.
+
 ## 보완 및 확장 계획
 
 더 자세한 문서는 `docs/enhance` 디렉토리에서 확인할 수 있습니다:
