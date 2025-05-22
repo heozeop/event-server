@@ -58,7 +58,7 @@ export function setup() {
       },
     );
 
-    if (loginResponse.status === 201) {
+    if (loginResponse.status === 200) {
       const token = loginResponse.json("accessToken");
       if (token) {
         userTokens[user._id.toString()] = token as string;

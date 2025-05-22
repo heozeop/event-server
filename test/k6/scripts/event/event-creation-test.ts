@@ -176,8 +176,10 @@ export default function (data: { authToken: string }): void {
       minPurchase: minPurchase,
       maxRewards: maxRewards,
     },
-    periodStart: eventPeriod.start,
-    periodEnd: eventPeriod.end,
+    period: {
+      start: eventPeriod.start,
+      end: eventPeriod.end,
+    },
     status: "ACTIVE",
   });
 

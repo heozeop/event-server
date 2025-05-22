@@ -32,6 +32,14 @@ type User = {
   updatedAt?: string;
 };
 
+type Reward = {
+  id: string;
+  type: string;
+  data: any;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 // Custom metrics
 const successfulRequests = new Counter("successful_reward_requests");
 
@@ -72,21 +80,22 @@ export function setup() {
 // Default function executed for each virtual user
 export default function (data: {
   authToken: string;
-  testData: { events: Event[]; users: User[] };
+  testData: { events: Event[]; users: User[]; rewards: Reward[] };
 }): void {
   // Small random delay to prevent perfect sync of requests
   randomSleep(1, 5);
 
   const { authToken, testData } = data;
-  const { events } = testData;
+  const { events, rewards } = testData;
 
-  // Select a random event and user
+  // Select a random event and reward
   const event = events[Math.floor(Math.random() * events.length)];
+  const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
   // Make reward request
   const requestResponse = http.post(
-    `${API_BASE_URL}/events/${event.id}/request`,
-    undefined, // No payload needed for this endpoint
+    `${API_BASE_URL}/events/${event.id}/requests/${reward.id}`,
+    null, // No body needed
     {
       headers: {
         Authorization: `Bearer ${authToken}`,
@@ -101,6 +110,7 @@ export default function (data: {
     "response time < 150ms": (r) => r.timings.duration < 150,
     "request id exists": (r) => r.json("id") !== undefined,
     "event id matches": (r) => r.json("eventId") === event.id,
+    "reward id matches": (r) => r.json("rewardId") === reward.id,
     "user id exists": (r) => r.json("userId") !== undefined,
     "status is PENDING": (r) => r.json("status") === "PENDING",
     "createdAt exists": (r) => r.json("createdAt") !== undefined,
