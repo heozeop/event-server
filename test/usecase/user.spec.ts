@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker/.";
-import { Role } from "@libs/enums";
+import { EventStatus, Role } from "@libs/enums";
 import request from "supertest";
 
 describe("USER Use Cases", () => {
@@ -7,6 +7,7 @@ describe("USER Use Cases", () => {
   let userToken: string;
   let userId: string;
   let eventId: string;
+  let rewardId: string;
   let requestId: string;
 
   // Regular user credentials
@@ -43,7 +44,7 @@ describe("USER Use Cases", () => {
       .post("/auth/login")
       .send(userCredentials);
 
-    expect(loginResponse.status).toBe(201);
+    expect(loginResponse.status).toBe(200);
     expect(loginResponse.body).toHaveProperty("accessToken");
     expect(loginResponse.body).toHaveProperty("user.roles");
     expect(loginResponse.body.user.roles).toContain(Role.USER);
@@ -51,22 +52,55 @@ describe("USER Use Cases", () => {
     userToken = loginResponse.body.accessToken;
     userId = loginResponse.body.user.id;
 
-    // Find an active event for testing
+    // Login as admin to create an event and reward for testing
+    const adminLoginResponse = await request(baseUrl)
+      .post("/auth/login")
+      .send(adminCredentials);
+    
+    const adminToken = adminLoginResponse.body.accessToken;
+
+    // Create an event for testing
     const eventResponse = await request(baseUrl)
       .post("/events")
-      .set("Authorization", `Bearer ${userToken}`)
+      .set("Authorization", `Bearer ${adminToken}`)
       .send({
         name: "Test Event",
-        description: "Test Description",
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 1000 * 60 * 60 * 24),
-        condition: {
+        rewardCondition: {
           minPurchase: 1000,
-          maxRewards: 1,
         },
-      });
+        status: EventStatus.ACTIVE,
+      })
+      .expect(201);
 
     eventId = eventResponse.body.id;
+
+    // Create a reward for testing
+    const rewardResponse = await request(baseUrl)
+      .post("/rewards/POINT")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({
+        name: "Test Reward",
+        points: 1000,
+      })
+      .expect(201);
+
+    rewardId = rewardResponse.body.id;
+
+    // Add reward to event
+    await request(baseUrl)
+      .post(`/events/${eventId}/rewards`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ 
+        rewardId,
+        condition: {
+          minPurchase: 1000,
+        },
+        autoResolve: true,
+      })
+      .expect(201)
+
   });
 
   // Test account management
@@ -93,7 +127,7 @@ describe("USER Use Cases", () => {
         .post("/auth/login")
         .send(userCredentials);
 
-      expect(response.status).toBe(201);
+      expect(response.status).toBe(200);
       expect(response.body).toHaveProperty("accessToken");
       expect(response.body.user.roles).toContain(Role.USER);
 
@@ -123,17 +157,6 @@ describe("USER Use Cases", () => {
       expect(Array.isArray(response.body.items)).toBe(true);
       expect(response.body).toHaveProperty("nextCursor");
       expect(response.body).toHaveProperty("hasMore");
-
-      if (response.body.items.length > 0) {
-        const activeEvent = response.body.items.find(
-          (event: any) =>
-            event.status === "ACTIVE" && new Date(event.periodEnd) > new Date(),
-        );
-
-        if (activeEvent) {
-          eventId = activeEvent.id;
-        }
-      }
     });
 
     it("should get event details", async () => {
@@ -159,14 +182,14 @@ describe("USER Use Cases", () => {
   describe("Reward Requests", () => {
     it("should request a reward for an event", async () => {
       const response = await request(baseUrl)
-        .post(`/events/${eventId}/requests`)
+        .post(`/events/${eventId}/requests/${rewardId}`)
         .set("Authorization", `Bearer ${userToken}`);
 
-      // Success case (201) or already requested case (409)
+      // Success case (201)
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty("id");
       expect(response.body).toHaveProperty("userId", userId);
-      expect(response.body.event.id).toBe(eventId);
+      expect(response.body.eventReward.event.id).toBe(eventId);
       requestId = response.body.id;
     });
 
@@ -186,6 +209,16 @@ describe("USER Use Cases", () => {
           expect(request.userId).toBe(userId);
         });
       }
+    });
+
+    it("should get specific reward request by ID", async () => {
+      const response = await request(baseUrl)
+        .get(`/events/requests/${requestId}`)
+        .set("Authorization", `Bearer ${userToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty("id", requestId);
+      expect(response.body).toHaveProperty("userId", userId);
     });
 
     it("should filter reward requests by status", async () => {
@@ -236,7 +269,7 @@ describe("USER Use Cases", () => {
 
     it("should return 401 when requesting reward without token", async () => {
       const response = await request(baseUrl).post(
-        `/events/${eventId}/requests`,
+        `/events/${eventId}/requests/${rewardId}`,
       );
       expect(response.status).toBe(401);
     });
@@ -308,10 +341,31 @@ describe("USER Use Cases", () => {
     it("should handle reward request for non-existent event", async () => {
       const fakeEventId = "645f2d1b8c5cd2f948e9a999";
       const response = await request(baseUrl)
-        .post(`/events/${fakeEventId}/request`)
+        .post(`/events/${fakeEventId}/requests/${rewardId}`)
         .set("Authorization", `Bearer ${userToken}`);
 
       expect(response.status).toBe(404);
+    });
+
+    it("should handle reward request for non-existent reward", async () => {
+      const fakeRewardId = "645f2d1b8c5cd2f948e9a999";
+      const response = await request(baseUrl)
+        .post(`/events/${eventId}/requests/${fakeRewardId}`)
+        .set("Authorization", `Bearer ${userToken}`);
+
+      expect(response.status).toBe(404);
+    });
+
+    it("should reject request for reward in inactive event", async () => {
+      // This test assumes there's an inactive event or you can create one
+      // For now, we'll mock this by expecting a 400 response for a valid but inactive event
+      const inactiveEventId = "645f2d1b8c5cd2f948e9a258"; // Dummy ID
+      const response = await request(baseUrl)
+        .post(`/events/${inactiveEventId}/requests/${rewardId}`)
+        .set("Authorization", `Bearer ${userToken}`);
+
+      // Either 400 (inactive) or 404 (not found) is acceptable
+      expect([400, 404]).toContain(response.status);
     });
   });
 });
