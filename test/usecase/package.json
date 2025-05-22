@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test:usecase": "jest --config jest.json"
+    "test:usecase": "jest --config jest.json --runInBand"
   },
   "keywords": [],
   "author": "",

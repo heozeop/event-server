@@ -4,10 +4,7 @@ import { Entity, Index, PrimaryKey, Property } from '@mikro-orm/core';
 import { ObjectId } from '@mikro-orm/mongodb';
 
 @Entity()
-@Index({ properties: ['status'] })
-@Index({ properties: ['name'] })
 @Index({ properties: ['periodStart', 'periodEnd'] })
-@Index({ properties: ['createdAt'] })
 export class Event implements EventEntity {
   @PrimaryKey()
   _id!: ObjectId;
@@ -17,7 +14,7 @@ export class Event implements EventEntity {
   name!: string;
 
   @Property()
-  condition!: Record<string, any>;
+  rewardCondition!: Record<string, any>;
 
   @Property()
   @Index()

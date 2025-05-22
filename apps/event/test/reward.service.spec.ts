@@ -266,7 +266,7 @@ describe('RewardService', () => {
       // 1. Create an event
       const event = await eventService.createEvent({
         name: 'Test Event',
-        condition: { type: 'login' },
+        rewardCondition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
@@ -282,6 +282,8 @@ describe('RewardService', () => {
       const dto: CreateEventRewardDto = {
         eventId: event._id.toString(),
         rewardId: reward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       };
 
       // Act
@@ -314,6 +316,8 @@ describe('RewardService', () => {
       const dto: CreateEventRewardDto = {
         eventId: new ObjectId().toString(),
         rewardId: reward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       };
 
       // Act & Assert
@@ -326,7 +330,7 @@ describe('RewardService', () => {
       // Arrange
       const event = await eventService.createEvent({
         name: 'Test Event',
-        condition: { type: 'login' },
+        rewardCondition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
@@ -334,6 +338,8 @@ describe('RewardService', () => {
       const dto: CreateEventRewardDto = {
         eventId: event._id.toString(),
         rewardId: new ObjectId().toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       };
 
       // Act & Assert
@@ -349,7 +355,7 @@ describe('RewardService', () => {
       // 1. Create an event
       const event = await eventService.createEvent({
         name: 'Test Event',
-        condition: { type: 'login' },
+        rewardCondition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
@@ -374,14 +380,20 @@ describe('RewardService', () => {
       await service.addRewardToEvent({
         eventId: event._id.toString(),
         rewardId: pointReward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
       await service.addRewardToEvent({
         eventId: event._id.toString(),
         rewardId: itemReward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
       await service.addRewardToEvent({
         eventId: event._id.toString(),
         rewardId: badgeReward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
 
       // Act
@@ -394,7 +406,7 @@ describe('RewardService', () => {
       expect(rewards.length).toBe(3);
 
       // Check that each reward is in the result
-      const rewardIds = rewards.map((r) => r._id.toString());
+      const rewardIds = rewards.map((r) => r.reward._id.toString());
       expect(rewardIds).toContain(pointReward._id.toString());
       expect(rewardIds).toContain(itemReward._id.toString());
       expect(rewardIds).toContain(badgeReward._id.toString());
@@ -404,7 +416,7 @@ describe('RewardService', () => {
       // Arrange
       const event = await eventService.createEvent({
         name: 'Test Event',
-        condition: { type: 'login' },
+        rewardCondition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
@@ -434,7 +446,7 @@ describe('RewardService', () => {
       // 1. Create an event
       const event = await eventService.createEvent({
         name: 'Test Event',
-        condition: { type: 'login' },
+        rewardCondition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
@@ -450,6 +462,8 @@ describe('RewardService', () => {
       await service.addRewardToEvent({
         eventId: event._id.toString(),
         rewardId: reward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
 
       // Act
@@ -471,7 +485,7 @@ describe('RewardService', () => {
       // Arrange
       const event = await eventService.createEvent({
         name: 'Test Event',
-        condition: { type: 'login' },
+        rewardCondition: { type: 'login' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 86400000),
         status: EventStatus.ACTIVE,
@@ -637,7 +651,7 @@ describe('RewardService', () => {
       // Arrange
       const event = await eventService.createEvent({
         name: '신규 사용자 가입 이벤트',
-        condition: { newUser: true },
+        rewardCondition: { newUser: true },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 30 * 86400000),
         status: EventStatus.ACTIVE,
@@ -664,16 +678,22 @@ describe('RewardService', () => {
       await service.addRewardToEvent({
         eventId: event._id.toString(),
         rewardId: pointReward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
 
       await service.addRewardToEvent({
         eventId: event._id.toString(),
         rewardId: couponReward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
 
       await service.addRewardToEvent({
         eventId: event._id.toString(),
         rewardId: badgeReward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
 
       // 이벤트의 리워드 조회
@@ -686,7 +706,7 @@ describe('RewardService', () => {
       expect(eventRewards.length).toBe(3);
 
       // 각 타입의 리워드가 존재하는지 확인
-      const rewardTypes = eventRewards.map((r) => r.type);
+      const rewardTypes = eventRewards.map((r) => r.reward.type);
       expect(rewardTypes).toContain(RewardType.POINT);
       expect(rewardTypes).toContain(RewardType.COUPON);
       expect(rewardTypes).toContain(RewardType.BADGE);
@@ -703,7 +723,7 @@ describe('RewardService', () => {
       // 여러 이벤트 생성
       const event1 = await eventService.createEvent({
         name: '여름 방학 이벤트',
-        condition: { type: 'season', season: 'summer' },
+        rewardCondition: { type: 'season', season: 'summer' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 30 * 86400000),
         status: EventStatus.ACTIVE,
@@ -711,7 +731,7 @@ describe('RewardService', () => {
 
       const event2 = await eventService.createEvent({
         name: '가을 시즌 이벤트',
-        condition: { type: 'season', season: 'autumn' },
+        rewardCondition: { type: 'season', season: 'autumn' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 60 * 86400000),
         status: EventStatus.ACTIVE,
@@ -721,11 +741,15 @@ describe('RewardService', () => {
       await service.addRewardToEvent({
         eventId: event1._id.toString(),
         rewardId: reward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
 
       await service.addRewardToEvent({
         eventId: event2._id.toString(),
         rewardId: reward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
 
       // 각 이벤트의 리워드 조회
@@ -740,11 +764,15 @@ describe('RewardService', () => {
       // Assert
       expect(event1Rewards).toBeDefined();
       expect(event1Rewards.length).toBe(1);
-      expect(event1Rewards[0]._id.toString()).toBe(reward._id.toString());
+      expect(event1Rewards[0].reward._id.toString()).toBe(
+        reward._id.toString(),
+      );
 
       expect(event2Rewards).toBeDefined();
       expect(event2Rewards.length).toBe(1);
-      expect(event2Rewards[0]._id.toString()).toBe(reward._id.toString());
+      expect(event2Rewards[0].reward._id.toString()).toBe(
+        reward._id.toString(),
+      );
     });
 
     // 이벤트에서 리워드 제거 후 다시 추가 테스트
@@ -752,7 +780,7 @@ describe('RewardService', () => {
       // Arrange
       const event = await eventService.createEvent({
         name: '테스트 이벤트',
-        condition: { type: 'test' },
+        rewardCondition: { type: 'test' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 30 * 86400000),
         status: EventStatus.ACTIVE,
@@ -767,6 +795,8 @@ describe('RewardService', () => {
       await service.addRewardToEvent({
         eventId: event._id.toString(),
         rewardId: reward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
 
       // Act 1 - 리워드를 이벤트에서 제거
@@ -784,6 +814,8 @@ describe('RewardService', () => {
       await service.addRewardToEvent({
         eventId: event._id.toString(),
         rewardId: reward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
 
       // 이벤트의 리워드 확인 - 다시 추가 후
@@ -797,7 +829,9 @@ describe('RewardService', () => {
 
       expect(rewardsAfterReAdd).toBeDefined();
       expect(rewardsAfterReAdd.length).toBe(1);
-      expect(rewardsAfterReAdd[0]._id.toString()).toBe(reward._id.toString());
+      expect(rewardsAfterReAdd[0].reward._id.toString()).toBe(
+        reward._id.toString(),
+      );
     });
   });
 
@@ -849,7 +883,7 @@ describe('RewardService', () => {
       // Arrange
       const event = await eventService.createEvent({
         name: '중복 리워드 테스트 이벤트',
-        condition: { type: 'test' },
+        rewardCondition: { type: 'test' },
         periodStart: new Date(),
         periodEnd: new Date(Date.now() + 30 * 86400000),
         status: EventStatus.ACTIVE,
@@ -864,6 +898,8 @@ describe('RewardService', () => {
       const firstAdd = await service.addRewardToEvent({
         eventId: event._id.toString(),
         rewardId: reward._id.toString(),
+        condition: { type: 'automatic' },
+        autoResolve: true,
       });
 
       // Act - 두 번째 중복 추가
@@ -871,6 +907,8 @@ describe('RewardService', () => {
         service.addRewardToEvent({
           eventId: event._id.toString(),
           rewardId: reward._id.toString(),
+          condition: { type: 'automatic' },
+          autoResolve: true,
         }),
       ).rejects.toThrow(ConflictException);
 
@@ -886,7 +924,7 @@ describe('RewardService', () => {
       // Arrange
       const event = await eventService.createEvent({
         name: '테스트 이벤트',
-        condition: { type: 'test' },
+        rewardCondition: { type: 'test' },
         periodStart: new Date(),
         status: EventStatus.ACTIVE,
       });

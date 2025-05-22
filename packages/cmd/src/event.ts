@@ -8,6 +8,7 @@ export const EVENT_CMP = {
 
   // Event Reward
   ADD_REWARD_TO_EVENT: "add_reward_to_event",
+  UPDATE_REWARD_FROM_EVENT: "update_reward_from_event",
   REMOVE_REWARD_FROM_EVENT: "remove_reward_from_event",
   GET_REWARDS_BY_EVENT_ID: "get_rewards_by_event_id",
 

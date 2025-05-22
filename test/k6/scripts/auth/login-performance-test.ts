@@ -103,14 +103,14 @@ export function normalLoginScenario(data: {
     },
   });
 
-  // For quick mode, also count any 201 response as a success for the metric
-  if (response.status === 201) {
+  // For quick mode, also count any 200 response as a success for the metric
+  if (response.status === 200) {
     successfulNormalLogins.add(1);
   }
 
   // Check response
   const success = check(response, {
-    "status is 201": (r) => r.status === 201,
+    "status is 200": (r) => r.status === 200,
     "response time < 500ms": (r) => r.timings.duration < 500, // Increased threshold
     "access token exists": (r) => r.json("accessToken") !== undefined,
     "user object exists": (r) => r.json("user") !== undefined,
@@ -148,8 +148,8 @@ export function wrongPasswordScenario(data: {
   // Check response - in the test environment, we get a 500 error with "Invalid credentials" message
   const responseBody = response.body ? String(response.body) : "";
 
-  // For quick mode, count the scenario as a success if status is not 201 (it's an error as expected)
-  if (response.status !== 201) {
+  // For quick mode, count the scenario as a success if status is not 200 (it's an error as expected)
+  if (response.status !== 200) {
     successfulWrongPasswordTests.add(1);
   }
 
@@ -194,8 +194,8 @@ export function nonExistentUserScenario(data: {
   // Check response - in the test environment, we get a 500 error with "User not found" message
   const responseBody = response.body ? String(response.body) : "";
 
-  // For quick mode, count the scenario as a success if status is not 201 (it's an error as expected)
-  if (response.status !== 201) {
+  // For quick mode, count the scenario as a success if status is not 200 (it's an error as expected)
+  if (response.status !== 200) {
     successfulNonExistentUserTests.add(1);
   }
 

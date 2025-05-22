@@ -1,5 +1,6 @@
 export * from "./create-event.dto";
 export * from "./create-reward.dto";
+export * from "./event-reward.dto";
 export * from "./query-event.dto";
 export * from "./query-reward-request.dto";
 export * from "./query-reward.dto";

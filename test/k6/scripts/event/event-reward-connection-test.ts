@@ -132,7 +132,7 @@ export function newEventScenario(data: {
 
   // Check response
   const success = check(response, {
-    "status is 200": (r) => r.status === 200,
+    "status is 201": (r) => r.status === 201,
     "response time < 150ms": (r) => r.timings.duration < 150,
   });
 
@@ -179,7 +179,7 @@ export function existingEventScenario(data: {
 
   // Check response
   const success = check(response, {
-    "status is 200": (r) => r.status === 200,
+    "status is 201": (r) => r.status === 201,
     "response time < 150ms": (r) => r.timings.duration < 150,
   });
 

@@ -15,4 +15,4 @@ EXPOSE 9229
 WORKDIR /app/apps/event
 
 # Override with CMD from docker-compose
-CMD ["pnpm", "start:prod"] 
+CMD ["pnpm", "start:debug"] 

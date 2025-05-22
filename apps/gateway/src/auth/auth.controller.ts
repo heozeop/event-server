@@ -21,10 +21,11 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Inject,
   Param,
-  Patch,
   Post,
+  Put,
   Query,
   Req,
   Res,
@@ -53,20 +54,6 @@ export class AuthController {
     private readonly logger: PinoLoggerService,
   ) {}
 
-  @Get('test')
-  @Public()
-  @ApiOperation({
-    summary: 'Test endpoint',
-    description: 'Smoke test endpoint for the auth service',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Service is operational',
-  })
-  async test() {
-    return { status: 'ok', service: 'auth' };
-  }
-
   @Post('login')
   @Public()
   @ApiOperation({
@@ -80,6 +67,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @ApiBody({ type: LoginDto })
+  @HttpCode(200)
   @LogExecution({
     entryLevel: 'log',
     exitLevel: 'log',
@@ -241,7 +229,7 @@ export class AuthController {
     }
   }
 
-  @Patch('users/:id/roles')
+  @Put('users/:id/roles')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Update user roles' })
@@ -260,6 +248,21 @@ export class AuthController {
     entryMessage: 'Updating user roles',
     exitMessage: 'User roles updated',
   })
+
+  // Adding PUT method to support the tests that use PUT
+  @Put('users/:id/roles')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Update user roles (alternative PUT method)' })
+  @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiBody({ type: UpdateRolesDto })
+  @ApiResponse({ status: 200, description: 'Roles updated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
   async updateUserRoles(
     @Param('id') id: string,
     @Body() updateRolesDto: UpdateRolesDto,

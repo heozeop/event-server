@@ -2,7 +2,7 @@ import { RewardRequestStatus } from "@libs/enums";
 import { RewardRequestEntity } from "@libs/types";
 import { ApiProperty } from "@nestjs/swagger";
 import { Exclude, Expose, Transform, Type } from "class-transformer";
-import { EventResponseDto } from "./event-response.dto";
+import { EventRewardResponseDto } from "./event-reward-response.dto";
 
 /**
  * DTO for reward request responses
@@ -26,12 +26,12 @@ export class RewardRequestResponseDto {
   userId!: string;
 
   @ApiProperty({
-    description: "The event associated with the reward request",
-    type: EventResponseDto,
+    description: "The event reward associated with the reward request",
+    type: EventRewardResponseDto,
   })
   @Expose()
-  @Type(() => EventResponseDto)
-  event!: EventResponseDto;
+  @Type(() => EventRewardResponseDto)
+  eventReward!: EventRewardResponseDto;
 
   @ApiProperty({
     description: "The status of the reward request",
@@ -65,7 +65,7 @@ export class RewardRequestResponseDto {
     Object.assign(dto, {
       id: rewardRequest._id.toString(),
       userId: rewardRequest.userId.toString(),
-      event: EventResponseDto.fromEntity(rewardRequest.event),
+      eventReward: EventRewardResponseDto.fromEntity(rewardRequest.eventReward),
       status: rewardRequest.status,
       createdAt: rewardRequest.createdAt,
       updatedAt: rewardRequest.updatedAt,

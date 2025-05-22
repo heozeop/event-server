@@ -107,7 +107,7 @@ async function seedDatabase() {
       ...event,
       _id: new ObjectId(event._id),
       periodStart: new Date(event.periodStart),
-      periodEnd: new Date(event.periodEnd),
+      periodEnd: event.periodEnd ? new Date(event.periodEnd) : null,
       createdAt: new Date(event.createdAt),
       updatedAt: new Date(),
     }));

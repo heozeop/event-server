@@ -128,7 +128,7 @@ function generateEvents(count: number, users: UserEntity[]): EventEntity[] {
     const event: EventEntity = {
       _id: new ObjectId(),
       name: faker.company.name() + " Event",
-      condition: {
+      rewardCondition: {
         minPurchase: faker.number.int({ min: 100, max: 10000 }),
         maxRewards: faker.number.int({ min: 1, max: 5 }),
       },
@@ -163,6 +163,10 @@ function generateEventRewards(
         ._id.toString() as unknown as RewardBaseEntity,
       createdAt: faker.date.past(),
       updatedAt: new Date(),
+      condition: {
+        minPurchase: faker.number.int({ min: 100, max: 10000 }),
+      },
+      autoResolve: faker.helpers.arrayElement([true, false]),
     };
 
     rewardEvents.push(rewardEvent);

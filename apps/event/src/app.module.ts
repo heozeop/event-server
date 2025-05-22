@@ -21,7 +21,6 @@ import { EventService, RewardRequestService, RewardService } from './services';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    DatabaseModule,
     MicroServiceExceptionModule,
     LoggerModule.forRootAsync({
       global: true,
@@ -48,6 +47,7 @@ import { EventService, RewardRequestService, RewardService } from './services';
         },
       }),
     }),
+    DatabaseModule,
     PipeModule,
     MetricsModule.forRoot({
       serviceName: 'event-service',

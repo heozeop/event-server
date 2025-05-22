@@ -1,13 +1,10 @@
 import { EventStatus } from "@libs/enums";
-import { EventEntity } from "@libs/types";
+import { EventEntity, EventRewardEntity } from "@libs/types";
 import { ApiProperty } from "@nestjs/swagger";
 import { Exclude, Expose, Transform } from "class-transformer";
+import { EventRewardResponseDto } from "./event-reward-response.dto";
 
-/**
- * DTO for event responses
- */
-@Exclude()
-export class EventResponseDto {
+export class EventRewardBaseDto {
   @ApiProperty({
     description: "The unique identifier of the event",
     example: "507f1f77bcf86cd799439011",
@@ -24,11 +21,14 @@ export class EventResponseDto {
   name!: string;
 
   @ApiProperty({
-    description: "The conditions for the event",
-    example: { minPurchase: 1000, maxRewards: 1 },
+    description: "The condition of the event reward",
+    example: {
+      minUserAge: 13,
+      maxUserAge: 19,
+    },
   })
   @Expose()
-  condition!: Record<string, any>;
+  rewardCondition!: Record<string, unknown>;
 
   @ApiProperty({
     description: "The period of the event",
@@ -55,7 +55,13 @@ export class EventResponseDto {
   @Expose()
   status!: EventStatus;
 
-  /**
+}
+/**
+ * DTO for event responses
+ */
+@Exclude()
+export class EventResponseDto extends EventRewardBaseDto {
+    /**
    * Static method to convert an Event entity to EventResponseDto
    */
   static fromEntity(event: EventEntity): EventResponseDto {
@@ -64,10 +70,40 @@ export class EventResponseDto {
     Object.assign(dto, {
       id: event._id.toString(),
       name: event.name,
-      condition: event.condition,
       periodStart: event.periodStart,
       periodEnd: event.periodEnd ?? undefined,
       status: event.status,
+      rewardCondition: event.rewardCondition,
+    });
+
+    return dto;
+  }
+}
+
+@Exclude()
+export class EventDetailResponseDto extends EventRewardBaseDto {
+  @ApiProperty({
+    type: [EventRewardResponseDto],
+  })
+  @Expose()
+  eventRewards!: EventRewardResponseDto[];
+
+  static fromEntity(
+    event: EventEntity,
+    eventRewards: EventRewardEntity[],
+  ): EventDetailResponseDto {
+    const dto = new EventDetailResponseDto();
+
+    Object.assign(dto, {
+      id: event._id.toString(),
+      name: event.name,
+      periodStart: event.periodStart,
+      periodEnd: event.periodEnd ?? undefined,
+      status: event.status,
+      rewardCondition: event.rewardCondition,
+      eventRewards: eventRewards.map((eventReward) =>
+        EventRewardResponseDto.fromEntity(eventReward),
+      ),
     });
 
     return dto;

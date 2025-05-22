@@ -29,7 +29,7 @@ export class CreateEventDto
     description: "The conditions for the event",
   })
   @IsObject()
-  condition!: Record<string, any>;
+  rewardCondition!: Record<string, any>;
 
   @ApiProperty({
     description: "The period of the event",

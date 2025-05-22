@@ -8,4 +8,6 @@ import { RewardBaseEntity } from "./reward.types";
 export interface EventRewardEntity extends CustomBaseEntity {
   event: EventEntity;
   reward: RewardBaseEntity;
+  condition: Record<string, any>;
+  autoResolve: boolean;
 }
