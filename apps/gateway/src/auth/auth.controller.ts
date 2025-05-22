@@ -24,7 +24,6 @@ import {
   HttpCode,
   Inject,
   Param,
-  Patch,
   Post,
   Put,
   Query,
@@ -230,7 +229,7 @@ export class AuthController {
     }
   }
 
-  @Patch('users/:id/roles')
+  @Put('users/:id/roles')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Update user roles' })
